@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+Allow: /landing
+Allow: /pricing
+Allow: /guide
+Allow: /terms
+Allow: /privacy
+
+Disallow: /dashboard
+Disallow: /contents
+Disallow: /keywords
+Disallow: /calendar
+Disallow: /settings
+Disallow: /admin
+Disallow: /api/
+Disallow: /onboarding
+
+Sitemap: https://marketingflow.kr/sitemap.xml
