@@ -17,13 +17,18 @@ export async function checkUsageLimit(
   const supabase = createServerSupabase()
 
   try {
-    // DB에서 유저의 plan을 직접 조회 (JWT에서 제거됨)
+    // DB에서 유저의 role과 plan을 직접 조회
     let limitValue = 9999
     const { data: userData } = await supabase
       .from('users')
-      .select('plan_id')
+      .select('plan_id, role')
       .eq('id', userId)
       .single()
+
+    // 관리자는 모든 기능 무제한
+    if (userData?.role === 'admin') {
+      return { allowed: true, used: 0, limit: 0, remaining: Infinity }
+    }
 
     if (userData?.plan_id) {
       const { data: plan } = await supabase
