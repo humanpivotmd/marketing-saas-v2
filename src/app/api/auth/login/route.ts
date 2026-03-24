@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { comparePassword, signToken } from '@/lib/auth'
 import { validateRequest, loginSchema } from '@/lib/validations'
@@ -59,9 +59,9 @@ export async function POST(req: NextRequest) {
       .update({ last_login_at: new Date().toISOString() })
       .eq('id', user.id)
 
-    const expiresAt = Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60
+    const expiresAt = Math.floor(Date.now() / 1000) + 24 * 60 * 60
 
-    return Response.json({
+    const response = NextResponse.json({
       success: true,
       user: {
         id: user.id,
@@ -76,6 +76,17 @@ export async function POST(req: NextRequest) {
         expires_at: expiresAt,
       },
     })
+
+    // HttpOnly 쿠키로 JWT 설정 (XSS 방어)
+    response.cookies.set('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60,
+      path: '/',
+    })
+
+    return response
   } catch (error) {
     return handleApiError(error)
   }

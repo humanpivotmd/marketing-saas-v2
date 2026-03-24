@@ -29,7 +29,7 @@ export function verifyToken(token: string): TokenPayload {
 // --- JWT Token Signing ---
 export function signToken(
   payload: Omit<TokenPayload, 'userId'> & { userId?: string },
-  expiresIn: string = '7d'
+  expiresIn: string = '24h'
 ): string {
   const fullPayload = {
     ...payload,

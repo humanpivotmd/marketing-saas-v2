@@ -15,7 +15,7 @@ const features = [
   {
     icon: 'M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z',
     title: 'AI 콘텐츠 생성',
-    description: '블로그, Threads, 인스타그램 캡션을 원클릭으로. Brand Voice가 자동 적용됩니다.',
+    description: '블로그, Threads, 인스타그램 캡션을 원클릭으로. 브랜드 보이스(Brand Voice)가 자동 적용됩니다.',
   },
   {
     icon: 'M22 12h-4l-3 9L9 3l-3 9H2',
@@ -25,7 +25,7 @@ const features = [
   {
     icon: 'M3 4h18v18H3zM16 2v4M8 2v4M3 10h18',
     title: '발행 및 예약',
-    description: '인스타그램, Threads 원클릭 발행. 주간 스케줄 큐로 자동 포스팅.',
+    description: '인스타그램, Threads 원클릭 발행. 주간 예약 발행으로 자동 포스팅.',
   },
   {
     icon: 'M18 20V10M12 20V4M6 20v-6',
@@ -45,7 +45,7 @@ const plans = [
     price: '0',
     period: '',
     description: 'MarketingFlow를 무료로 체험하세요',
-    features: ['콘텐츠 생성 10회/월', '키워드 분석 20회/월', '기본 SEO 점수', '클립보드 복사'],
+    features: ['콘텐츠 생성 10회/월', '키워드 분석 20회/월', '기본 SEO 점수', '복사하기'],
     cta: '무료로 시작',
     accent: false,
   },
@@ -72,7 +72,7 @@ const plans = [
     price: '149,000',
     period: '/월',
     description: '에이전시 및 기업',
-    features: ['Growth 전체 포함', '콘텐츠 무제한', '팀 협업', 'API 접근', '커스텀 Brand Voice', '전담 지원'],
+    features: ['Pro 전체 포함', '콘텐츠 무제한', '팀 협업', 'API 접근', '커스텀 Brand Voice', '전담 지원'],
     cta: '문의하기',
     accent: false,
   },
@@ -230,7 +230,7 @@ export default function LandingPage() {
           </h1>
           <p className="text-lg text-text-secondary mb-10 max-w-2xl mx-auto leading-relaxed">
             키워드 분석부터 AI 콘텐츠 생성, 발행, 순위 추적까지.
-            한국 마케터를 위한 올인원 콘텐츠 자동화 파이프라인.
+            한국 마케터를 위한 올인원 콘텐츠 자동화 시스템.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a href="/login"><Button size="lg">무료로 시작 - 카드 불필요</Button></a>
