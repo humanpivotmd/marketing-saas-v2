@@ -23,7 +23,6 @@ export async function POST(req: NextRequest) {
     // 실제 네이버 API로 키워드 데이터 조회
     let monthlySearch = 0
     let avgCpc = 0
-    let competition = '낮음'
 
     try {
       const adData = await fetchNaverKeywords([trimmed])
@@ -37,9 +36,6 @@ export async function POST(req: NextRequest) {
         avgCpc = typeof exact.pcClickCnt === 'number' && typeof exact.mobileClickCnt === 'number'
           ? Math.round((exact.pcClickCnt + exact.mobileClickCnt) / 2)
           : 0
-        competition = exact.competition === 'HIGH' ? '높음'
-          : exact.competition === 'MEDIUM' ? '중간'
-          : '낮음'
       }
     } catch {
       // API 실패 시 기본값 유지
@@ -53,6 +49,10 @@ export async function POST(req: NextRequest) {
 
     // 등급 계산 (경쟁도 높으면 → 포화도 높음 → 기회등급 낮음)
     const gradeResult = calculateGrade(monthlySearch, monthlyPublish, exposureDays, avgCpc)
+
+    // 경쟁도를 등급 계산의 difficulty에서 도출 (기회등급과 일관성 유지)
+    // 기회등급 낮음(D) = 경쟁도 높음, 기회등급 높음(A) = 경쟁도 낮음
+    const competition = gradeResult.difficulty
 
     const previewData = {
       keyword: trimmed,

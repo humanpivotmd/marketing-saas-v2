@@ -276,7 +276,7 @@ export default function LandingPage() {
                     <p className="text-xs text-text-tertiary mt-1">기회 등급</p>
                   </div>
                   <div>
-                    <p className={`text-2xl font-bold ${previewResult.competition === '높음' ? 'text-accent-danger' : previewResult.competition === '중간' ? 'text-accent-warning' : 'text-accent-success'}`}>{previewResult.competition}</p>
+                    <p className={`text-2xl font-bold ${previewResult.competition.includes('높음') || previewResult.competition === '포화' ? 'text-accent-danger' : previewResult.competition.includes('보통') ? 'text-accent-warning' : 'text-accent-success'}`}>{previewResult.competition}</p>
                     <p className="text-xs text-text-tertiary mt-1">경쟁도</p>
                   </div>
                 </div>
