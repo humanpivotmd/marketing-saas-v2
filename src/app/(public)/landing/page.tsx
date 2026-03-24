@@ -86,6 +86,8 @@ export default function LandingPage() {
     monthly_search: number
     competition: string
     grade: string
+    opportunity: string
+    opportunity_score: number
   } | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
   const [toast, setToast] = useState({ visible: false, message: '', variant: 'error' as 'error' | 'info' })
@@ -270,11 +272,11 @@ export default function LandingPage() {
                     <p className="text-xs text-text-tertiary mt-1">월간 검색량</p>
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-accent-success">{previewResult.grade}</p>
+                    <p className={`text-2xl font-bold ${previewResult.grade.startsWith('A') ? 'text-accent-success' : previewResult.grade.startsWith('B') ? 'text-accent-primary' : 'text-accent-danger'}`}>{previewResult.grade}</p>
                     <p className="text-xs text-text-tertiary mt-1">기회 등급</p>
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-text-secondary">{previewResult.competition}</p>
+                    <p className={`text-2xl font-bold ${previewResult.competition === '높음' ? 'text-accent-danger' : previewResult.competition === '중간' ? 'text-accent-warning' : 'text-accent-success'}`}>{previewResult.competition}</p>
                     <p className="text-xs text-text-tertiary mt-1">경쟁도</p>
                   </div>
                 </div>
