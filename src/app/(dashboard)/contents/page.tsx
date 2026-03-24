@@ -134,7 +134,7 @@ export default function ContentsPage() {
       </div>
 
       {/* Channel Tabs */}
-      <div className="flex border-b border-[rgba(240,246,252,0.1)] gap-1 overflow-x-auto">
+      <div className="flex border-b border-[rgba(240,246,252,0.1)] gap-1 overflow-x-auto scrollbar-hide">
         {CHANNEL_TABS.map((tab) => (
           <button
             key={tab.id}

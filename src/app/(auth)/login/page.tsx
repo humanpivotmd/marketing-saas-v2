@@ -191,7 +191,15 @@ function LoginContent() {
   }
 
   return (
-    <div>
+    <main>
+      {/* Skip link */}
+      <a
+        href="#login-form"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[60] focus:px-4 focus:py-2 focus:bg-accent-primary focus:text-white focus:rounded-lg focus:text-sm"
+      >
+        본문으로 건너뛰기
+      </a>
+
       {/* Logo */}
       <div className="text-center mb-10">
         <div className="w-12 h-12 rounded-xl bg-accent-primary flex items-center justify-center mx-auto mb-4">
@@ -204,7 +212,7 @@ function LoginContent() {
       </div>
 
       <Card>
-        <div className="space-y-5">
+        <div id="login-form" className="space-y-5">
           {/* Social Login */}
           <div className="space-y-3">
             <button
@@ -436,6 +444,6 @@ function LoginContent() {
         visible={toast.visible}
         onClose={() => setToast((t) => ({ ...t, visible: false }))}
       />
-    </div>
+    </main>
   )
 }

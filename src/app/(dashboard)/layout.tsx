@@ -191,7 +191,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto" id="main-content">
+      <main className="flex-1 overflow-auto overflow-x-hidden max-w-full" id="main-content">
         {/* Topbar */}
         <header className="h-16 px-4 lg:px-8 flex items-center justify-between border-b border-[rgba(240,246,252,0.1)] sticky top-0 z-30 bg-bg-primary/80 backdrop-blur-xl">
           <div className="flex items-center gap-3">

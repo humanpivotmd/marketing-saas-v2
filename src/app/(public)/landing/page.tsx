@@ -45,7 +45,7 @@ const plans = [
     price: '0',
     period: '',
     description: 'MarketingFlow를 무료로 체험하세요',
-    features: ['키워드 분석 3회/일', 'AI 콘텐츠 5개/월', '기본 SEO 점수', '클립보드 복사'],
+    features: ['콘텐츠 생성 10회/월', '키워드 분석 20회/월', '기본 SEO 점수', '클립보드 복사'],
     cta: '무료로 시작',
     accent: false,
   },
@@ -59,12 +59,12 @@ const plans = [
     accent: true,
   },
   {
-    name: 'Growth',
+    name: 'Pro',
     price: '59,000',
     period: '/월',
     description: '성장하는 팀을 위한 플랜',
     features: ['키워드 무제한', 'AI 콘텐츠 500개/월', '고급 SEO + AI 최적화', '모든 채널 발행', 'Brand Voice 5개', '성과 추적', '우선 지원'],
-    cta: 'Growth 시작',
+    cta: 'Pro 시작',
     accent: false,
   },
   {
@@ -115,8 +115,26 @@ export default function LandingPage() {
     }
   }
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'MarketingFlow',
+    description: '네이버 상위 노출을 위한 AI 콘텐츠 자동화 플랫폼',
+    applicationCategory: 'BusinessApplication',
+    operatingSystem: 'Web',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'KRW',
+    },
+  }
+
   return (
     <div className="min-h-screen bg-bg-primary">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Skip navigation */}
       <a
         href="#main-content"
@@ -219,7 +237,7 @@ export default function LandingPage() {
             <a href="#features"><Button variant="secondary" size="lg">기능 살펴보기</Button></a>
           </div>
           <p className="text-xs text-text-tertiary mt-4">
-            무료 플랜: AI 콘텐츠 5개/월, 신용카드 불필요
+            무료 플랜: 콘텐츠 생성 10회/월, 신용카드 불필요
           </p>
         </div>
       </section>

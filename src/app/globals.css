@@ -15,8 +15,8 @@
 
   /* Text Colors */
   --color-text-primary: #E6EDF3;
-  --color-text-secondary: #8B949E;
-  --color-text-tertiary: #6E7681;
+  --color-text-secondary: #9CA3AF;
+  --color-text-tertiary: #8B949E;
   --color-text-inverse: #0D1117;
   --color-text-link: #2F81F7;
 
@@ -156,6 +156,15 @@ textarea {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(240, 246, 252, 0.2);
+}
+
+/* Hide scrollbar for tab containers */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
 /* ============================================

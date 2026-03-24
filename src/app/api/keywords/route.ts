@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
       .from('keywords')
       .insert({
         user_id: user.userId,
-        keyword: data.keyword.trim(),
+        keyword: data.keyword.replace(/<[^>]*>/g, '').trim(),
         group_name: data.group_name || null,
       })
       .select()

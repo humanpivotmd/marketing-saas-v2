@@ -110,7 +110,7 @@ export default function SettingsPage() {
       <h1 className="text-2xl font-bold text-text-primary">설정</h1>
 
       {/* Tabs */}
-      <div className="flex border-b border-[rgba(240,246,252,0.1)] gap-1 overflow-x-auto">
+      <div className="flex border-b border-[rgba(240,246,252,0.1)] gap-1 overflow-x-auto scrollbar-hide">
         {TABS.map((tab) => (
           <button
             key={tab.id}
