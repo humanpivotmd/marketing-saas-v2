@@ -43,9 +43,9 @@ interface SeoScore {
     keywordDensity: number
     contentLength: number
     headingStructure: number
-    imagePresence: number
-    linkPresence: number
     readability: number
+    introKeyword: number
+    keywordVariation: number
   }
   suggestions: string[]
 }
@@ -92,9 +92,9 @@ const SEO_LABELS: Record<string, string> = {
   keywordDensity: '키워드 밀도',
   contentLength: '콘텐츠 길이',
   headingStructure: '소제목 구조',
-  imagePresence: '이미지',
-  linkPresence: '링크',
   readability: '가독성',
+  introKeyword: '도입부 키워드',
+  keywordVariation: '키워드 분포',
 }
 
 const SEO_MAX: Record<string, number> = {
@@ -102,9 +102,9 @@ const SEO_MAX: Record<string, number> = {
   keywordDensity: 20,
   contentLength: 15,
   headingStructure: 15,
-  imagePresence: 10,
-  linkPresence: 10,
   readability: 15,
+  introKeyword: 10,
+  keywordVariation: 10,
 }
 
 export default function KeywordDetailPage({ params }: { params: Promise<{ id: string }> }) {

@@ -20,7 +20,7 @@ const features = [
   {
     icon: 'M22 12h-4l-3 9L9 3l-3 9H2',
     title: '네이버 SEO 점수',
-    description: '발행 전 실시간 SEO 점수. 키워드 밀도, 구조, 이미지, 링크 등 7개 기준으로 최적화.',
+    description: '발행 전 실시간 SEO 점수. 키워드 밀도, 소제목 구조, 도입부 배치, 분포도 등 7개 기준.',
   },
   {
     icon: 'M3 4h18v18H3zM16 2v4M8 2v4M3 10h18',
