@@ -130,7 +130,7 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-bg-primary">
+    <div className="min-h-screen w-full bg-bg-primary">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -145,7 +145,7 @@ export default function LandingPage() {
 
       {/* Nav */}
       <nav className="sticky top-0 z-40 bg-bg-primary/80 backdrop-blur-xl border-b border-[rgba(240,246,252,0.1)]" aria-label="메인 네비게이션">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-8 lg:px-16 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-accent-primary flex items-center justify-center">
               <span className="text-white font-bold text-sm">M</span>
@@ -208,7 +208,7 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section id="main-content" className="pt-24 pb-20 px-6 relative overflow-hidden">
+      <section id="main-content" className="pt-32 pb-20 px-8 lg:px-16 relative overflow-hidden">
         {/* Hero background gradients */}
         <div
           className="absolute top-[-30%] left-[20%] w-[600px] h-[600px] rounded-full opacity-[0.06] pointer-events-none"
@@ -220,7 +220,7 @@ export default function LandingPage() {
           style={{ background: 'radial-gradient(circle, var(--color-accent-secondary) 0%, transparent 70%)' }}
           aria-hidden="true"
         />
-        <div className="max-w-4xl mx-auto text-center relative z-10">
+        <div className="max-w-3xl mx-auto text-center relative z-10">
           <Badge variant="accent" size="md" className="mb-6">
             네이버 SEO + AI 콘텐츠 + 자동 발행
           </Badge>
@@ -236,14 +236,14 @@ export default function LandingPage() {
             <a href="/login"><Button size="lg">무료로 시작 - 카드 불필요</Button></a>
             <a href="#features"><Button variant="secondary" size="lg">기능 살펴보기</Button></a>
           </div>
-          <p className="text-xs text-text-tertiary mt-4">
+          <p className="text-xs text-text-tertiary mt-6">
             무료 플랜: 콘텐츠 생성 10회/월, 신용카드 불필요
           </p>
         </div>
       </section>
 
       {/* Keyword Preview */}
-      <section className="pb-20 px-6">
+      <section className="py-20 px-8 lg:px-16 border-t border-[rgba(240,246,252,0.06)]">
         <div className="max-w-2xl mx-auto">
           <Card className="overflow-hidden">
             <div className="p-6 border-b border-[rgba(240,246,252,0.1)]">
@@ -300,8 +300,8 @@ export default function LandingPage() {
       </section>
 
       {/* Features */}
-      <section id="features" className="py-20 px-6">
-        <div className="max-w-6xl mx-auto">
+      <section id="features" className="py-24 px-8 lg:px-16 bg-[rgba(22,27,34,0.6)] border-t border-b border-[rgba(240,246,252,0.06)]">
+        <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-text-primary mb-4">
               콘텐츠 마케팅에 필요한 모든 것
@@ -310,7 +310,7 @@ export default function LandingPage() {
               키워드 분석, AI 콘텐츠 생성, SEO 점수, 발행, 성과 추적 - 하나의 플랫폼에서.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature) => (
               <Card key={feature.title} hover padding="lg">
                 <div className="text-accent-primary mb-4">
@@ -327,8 +327,8 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="py-20 px-6">
-        <div className="max-w-6xl mx-auto">
+      <section id="pricing" className="py-24 px-8 lg:px-16">
+        <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-text-primary mb-4">
               심플하고 투명한 요금제
@@ -381,7 +381,7 @@ export default function LandingPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 px-6">
+      <section className="py-24 px-8 lg:px-16 bg-[rgba(22,27,34,0.6)] border-t border-[rgba(240,246,252,0.06)]">
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-3xl font-bold text-text-primary mb-4">
             콘텐츠 자동화를 시작할 준비가 되셨나요?
@@ -394,8 +394,8 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[rgba(240,246,252,0.1)] py-12 px-6" aria-label="사이트 정보">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+      <footer className="border-t border-[rgba(240,246,252,0.1)] py-12 px-8 lg:px-16" aria-label="사이트 정보">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded bg-accent-primary flex items-center justify-center">
               <span className="text-white font-bold text-xs">M</span>

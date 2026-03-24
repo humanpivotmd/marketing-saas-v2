@@ -66,7 +66,7 @@ export default function RootLayout({
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
         />
       </head>
-      <body className="antialiased">
+      <body className="antialiased w-full max-w-[100vw] overflow-x-hidden">
         {children}
       </body>
     </html>
