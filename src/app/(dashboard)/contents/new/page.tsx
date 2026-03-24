@@ -399,16 +399,56 @@ export default function ContentNewPage() {
             onChange={(e) => { setCustomKeyword(e.target.value); setSelectedKeywordId('') }}
           />
 
-          <div className="mt-6 flex justify-end gap-3">
-            {quickMode && getKeyword() ? (
-              <Button onClick={handleQuickGenerate}>원클릭 생성</Button>
-            ) : (
-              <Button
-                disabled={!getKeyword()}
-                onClick={() => setStep(2)}
-              >
-                다음
-              </Button>
+          {/* Channel Selection */}
+          <div className="mt-6 mb-2">
+            <label className="text-sm font-medium text-text-primary mb-2 block">콘텐츠 유형</label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {CHANNELS.map((ch) => (
+                <button
+                  key={ch.id}
+                  onClick={() => {
+                    setSelectedChannels((prev) =>
+                      prev.includes(ch.id) ? (prev.length > 1 ? prev.filter((c) => c !== ch.id) : prev) : [...prev, ch.id]
+                    )
+                  }}
+                  className={`
+                    flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium border transition-all min-h-[44px]
+                    ${selectedChannels.includes(ch.id) ? ch.color + ' border-current' : 'bg-bg-tertiary text-text-tertiary border-transparent hover:text-text-secondary'}
+                  `}
+                >
+                  {ch.id === 'blog' && (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h4"/></svg>
+                  )}
+                  {ch.id === 'threads' && (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 12h8M12 8v8"/></svg>
+                  )}
+                  {ch.id === 'instagram' && (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5"/></svg>
+                  )}
+                  {ch.id === 'script' && (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  )}
+                  {ch.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-col items-end gap-2">
+            <div className="flex justify-end gap-3">
+              {quickMode && getKeyword() ? (
+                <Button onClick={handleQuickGenerate}>원클릭 생성</Button>
+              ) : (
+                <Button
+                  disabled={!getKeyword()}
+                  onClick={() => setStep(2)}
+                >
+                  다음
+                </Button>
+              )}
+            </div>
+            {!getKeyword() && (
+              <p className="text-xs text-text-tertiary">키워드를 선택하면 다음 단계로 진행할 수 있습니다</p>
             )}
           </div>
         </Card>

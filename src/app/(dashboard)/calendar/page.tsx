@@ -195,12 +195,12 @@ export default function CalendarPage() {
         {/* Calendar */}
         <div className="flex-1">
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
             <div>
               <h1 className="text-2xl font-bold text-text-primary">캘린더</h1>
               <p className="text-sm text-text-secondary mt-1">발행 스케줄을 관리하세요</p>
             </div>
-            <Button size="sm" onClick={openScheduleModal}>
+            <Button size="sm" onClick={openScheduleModal} className="shrink-0">
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <path d="M8 3v10M3 8h10" />
               </svg>

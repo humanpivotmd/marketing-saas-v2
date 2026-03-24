@@ -72,7 +72,7 @@ const plans = [
     price: '149,000',
     period: '/월',
     description: '에이전시 및 기업',
-    features: ['Pro 전체 포함', '콘텐츠 무제한', '팀 협업', 'API 접근', '커스텀 Brand Voice', '전담 지원'],
+    features: ['Pro 전체 포함', '콘텐츠 무제한', '팀 협업', '외부 연동', '커스텀 Brand Voice', '전담 지원'],
     cta: '문의하기',
     accent: false,
   },
@@ -359,7 +359,7 @@ export default function LandingPage() {
                   {plan.period && <span className="text-sm text-text-secondary">{plan.period}</span>}
                 </div>
                 <p className="text-xs text-text-tertiary mb-6">{plan.description}</p>
-                <a href="/login">
+                <a href={plan.name === 'Business' ? '/support' : '/login'}>
                   <Button variant={plan.accent ? 'primary' : 'secondary'} fullWidth size="sm">
                     {plan.cta}
                   </Button>

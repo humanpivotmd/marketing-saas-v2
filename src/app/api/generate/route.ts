@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     if (!keywordText) throw new ValidationError('키워드를 입력하세요.')
 
     // 사용량 체크
-    const usage = await checkUsageLimit(user.userId, 'content_create', user.plan)
+    const usage = await checkUsageLimit(user.userId, 'content_create')
     if (!usage.allowed) {
       return Response.json(
         { error: usage.error, code: usage.code },

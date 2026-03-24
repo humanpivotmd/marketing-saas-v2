@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     const supabase = createServerSupabase()
 
     // 사용량 체크
-    const usage = await checkUsageLimit(user.userId, 'image_generate', user.plan)
+    const usage = await checkUsageLimit(user.userId, 'image_generate')
     if (!usage.allowed) {
       return Response.json({ error: usage.error, code: usage.code }, { status: 403 })
     }

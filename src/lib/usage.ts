@@ -12,19 +12,24 @@ export interface UsageLimitResult {
 
 export async function checkUsageLimit(
   userId: string,
-  actionType: string,
-  planId?: string
+  actionType: string
 ): Promise<UsageLimitResult> {
   const supabase = createServerSupabase()
 
   try {
-    // Get plan limits
+    // DB에서 유저의 plan을 직접 조회 (JWT에서 제거됨)
     let limitValue = 9999
-    if (planId) {
+    const { data: userData } = await supabase
+      .from('users')
+      .select('plan_id')
+      .eq('id', userId)
+      .single()
+
+    if (userData?.plan_id) {
       const { data: plan } = await supabase
         .from('plans')
         .select('content_limit, keyword_limit, image_limit')
-        .eq('id', planId)
+        .eq('id', userData.plan_id)
         .single()
 
       if (plan) {

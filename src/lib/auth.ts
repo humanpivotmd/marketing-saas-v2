@@ -4,14 +4,11 @@ import { AuthError, ForbiddenError } from './errors'
 
 const BCRYPT_ROUNDS = 12
 
-// --- JWT Token Payload ---
+// --- JWT Token Payload (최소화: id + role만 포함) ---
 export interface TokenPayload {
   id: string
   userId: string
-  email: string
-  name: string
   role: string
-  plan: string
 }
 
 function getJwtSecret(): string {
@@ -26,14 +23,15 @@ export function verifyToken(token: string): TokenPayload {
   return decoded
 }
 
-// --- JWT Token Signing ---
+// --- JWT Token Signing (id + role만 포함, 나머지는 API 응답으로 전달) ---
 export function signToken(
-  payload: Omit<TokenPayload, 'userId'> & { userId?: string },
+  payload: { id: string; role: string; userId?: string },
   expiresIn: string = '24h'
 ): string {
   const fullPayload = {
-    ...payload,
+    id: payload.id,
     userId: payload.userId || payload.id,
+    role: payload.role,
   }
   return jwt.sign(fullPayload, getJwtSecret(), { expiresIn } as jwt.SignOptions)
 }

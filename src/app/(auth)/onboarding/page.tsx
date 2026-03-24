@@ -135,7 +135,8 @@ export default function OnboardingPage() {
           {/* Keywords */}
           <Card className="mb-6">
             <h2 className="text-base font-semibold text-text-primary mb-2">어떤 키워드로 고객을 찾고 싶으세요?</h2>
-            <p className="text-xs text-text-tertiary mb-4">1~3개의 키워드를 입력해주세요.</p>
+            <p className="text-xs text-text-tertiary mb-2">1~3개의 키워드를 입력해주세요.</p>
+            <p className="text-xs text-text-secondary mb-4 bg-accent-primary/5 rounded-lg px-3 py-2">고객이 검색할 만한 키워드를 입력하세요. 예: &lsquo;강남 네일샵&rsquo;, &lsquo;홈카페 레시피&rsquo;</p>
             <div className="space-y-3">
               {keywords.map((kw, i) => (
                 <Input

@@ -251,7 +251,7 @@ function LoginContent() {
           </div>
 
           {generalError && (
-            <div className="p-3 rounded-lg bg-accent-error/10 border border-accent-error/20" role="alert">
+            <div className="p-3 rounded-lg bg-accent-error/10 border border-accent-error/20" role="alert" aria-live="assertive">
               <p className="text-sm text-accent-error">{generalError}</p>
             </div>
           )}

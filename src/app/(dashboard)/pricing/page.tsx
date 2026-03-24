@@ -113,19 +113,25 @@ export default function PricingPage() {
       } catch { /* ignore */ }
     }
 
-    // 서버에서 플랜 정보 조회 시도
+    // 서버에서 플랜 정보 조회 시도 (admin만 호출)
     const token = sessionStorage.getItem('token')
     if (token) {
-      fetch('/api/admin/plan-limits', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then(r => r.json())
-        .then(data => {
-          if (data.success && data.data?.length > 0) {
-            setPlans(data.data)
-          }
-        })
-        .catch(() => { /* fallback to defaults */ })
+      try {
+        const userParsed = JSON.parse(userData || '{}')
+        const isAdmin = userParsed.role === 'admin' || userParsed.role === 'super_admin'
+        if (isAdmin) {
+          fetch('/api/admin/plan-limits', {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+            .then(r => r.json())
+            .then(data => {
+              if (data.success && data.data?.length > 0) {
+                setPlans(data.data)
+              }
+            })
+            .catch(() => { /* fallback to defaults */ })
+        }
+      } catch { /* fallback to defaults */ }
     }
   }, [])
 

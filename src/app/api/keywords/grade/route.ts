@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     const { keywords } = validateRequest(gradeSchema, body)
 
     // Check usage limit
-    const usage = await checkUsageLimit(user.userId, 'keyword_analyze', user.plan)
+    const usage = await checkUsageLimit(user.userId, 'keyword_analyze')
     if (!usage.allowed) {
       return Response.json(
         { error: usage.error, code: usage.code },

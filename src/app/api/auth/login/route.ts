@@ -47,10 +47,7 @@ export async function POST(req: NextRequest) {
 
     const token = signToken({
       id: user.id,
-      email: user.email,
-      name: user.name,
       role: user.role,
-      plan: planName,
     })
 
     // Update last_login_at

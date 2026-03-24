@@ -549,6 +549,25 @@ export default function KeywordsPage() {
         <p className="text-sm text-text-secondary mt-1">
           키워드를 등록하고 네이버 검색 데이터 기반 등급 분석을 받으세요.
         </p>
+        {/* 등급 범례 */}
+        <div className="mt-3 flex flex-wrap gap-3">
+          <span className="inline-flex items-center gap-1.5 text-xs">
+            <span className={`px-1.5 py-0.5 rounded font-bold ${GRADE_COLORS['A+']}`}>A+~A</span>
+            <span className="text-text-secondary">지금 바로 공략!</span>
+          </span>
+          <span className="inline-flex items-center gap-1.5 text-xs">
+            <span className={`px-1.5 py-0.5 rounded font-bold ${GRADE_COLORS['B+']}`}>B+~B-</span>
+            <span className="text-text-secondary">도전해볼 만해요</span>
+          </span>
+          <span className="inline-flex items-center gap-1.5 text-xs">
+            <span className={`px-1.5 py-0.5 rounded font-bold ${GRADE_COLORS['C+']}`}>C+~C-</span>
+            <span className="text-text-secondary">경쟁이 있어요</span>
+          </span>
+          <span className="inline-flex items-center gap-1.5 text-xs">
+            <span className={`px-1.5 py-0.5 rounded font-bold ${GRADE_COLORS['D']}`}>D+~D-</span>
+            <span className="text-text-secondary">매우 경쟁적</span>
+          </span>
+        </div>
       </div>
 
       <Tabs

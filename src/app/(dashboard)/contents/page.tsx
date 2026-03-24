@@ -138,6 +138,7 @@ export default function ContentsPage() {
         {CHANNEL_TABS.map((tab) => (
           <button
             key={tab.id}
+            aria-pressed={activeChannel === tab.id}
             onClick={() => { setActiveChannel(tab.id); setPage(1) }}
             className={`
               relative px-4 py-2.5 text-sm font-medium whitespace-nowrap min-h-[44px]

@@ -110,10 +110,14 @@ export default function SettingsPage() {
       <h1 className="text-2xl font-bold text-text-primary">설정</h1>
 
       {/* Tabs */}
-      <div className="flex border-b border-[rgba(240,246,252,0.1)] gap-1 overflow-x-auto scrollbar-hide">
+      <div role="tablist" aria-orientation="horizontal" className="flex border-b border-[rgba(240,246,252,0.1)] gap-1 overflow-x-auto scrollbar-hide">
         {TABS.map((tab) => (
           <button
             key={tab.id}
+            role="tab"
+            aria-selected={activeTab === tab.id}
+            aria-controls={`panel-${tab.id}`}
+            tabIndex={activeTab === tab.id ? 0 : -1}
             onClick={() => handleTabChange(tab.id)}
             className={`relative px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors ${
               activeTab === tab.id
@@ -130,11 +134,13 @@ export default function SettingsPage() {
       </div>
 
       {/* Tab Content */}
-      {activeTab === 'profile' && <ProfileTab onToast={setToast} />}
-      {activeTab === 'plan' && <PlanTab />}
-      {activeTab === 'brand-voice' && <BrandVoiceTab onToast={setToast} />}
-      {activeTab === 'sns' && <SnsTab onToast={setToast} />}
-      {activeTab === 'notifications' && <NotificationsTab onToast={setToast} />}
+      <div role="tabpanel" id={`panel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
+        {activeTab === 'profile' && <ProfileTab onToast={setToast} />}
+        {activeTab === 'plan' && <PlanTab />}
+        {activeTab === 'brand-voice' && <BrandVoiceTab onToast={setToast} />}
+        {activeTab === 'sns' && <SnsTab onToast={setToast} />}
+        {activeTab === 'notifications' && <NotificationsTab onToast={setToast} />}
+      </div>
 
       {toast && (
         <Toast
