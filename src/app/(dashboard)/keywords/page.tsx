@@ -408,11 +408,27 @@ export default function KeywordsPage() {
                       )}
                     </div>
                   </div>
-                  {kw.grade && (
-                    <span className={`inline-flex items-center px-3 py-1 text-sm font-bold rounded-lg ${getGradeColor(kw.grade)}`}>
-                      {kw.grade}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {kw.grade && (
+                      <span className={`inline-flex items-center px-3 py-1 text-sm font-bold rounded-lg ${getGradeColor(kw.grade)}`}>
+                        {kw.grade}
+                      </span>
+                    )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (confirm(`"${kw.keyword}" 키워드를 삭제하시겠습니까?`)) {
+                          handleDelete([kw.id])
+                        }
+                      }}
+                      className="p-1.5 rounded-md text-text-tertiary hover:text-accent-danger hover:bg-accent-danger/10 transition-colors"
+                      aria-label={`${kw.keyword} 삭제`}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M18 6L6 18M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
 
                 {mode === 'beginner' && gradeResult && renderBeginnerInsight(gradeResult)}
