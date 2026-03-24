@@ -32,19 +32,20 @@ export interface GradeRecommendations {
   avoid: GradeResult[]
 }
 
+// 점수 높음 = 경쟁 낮음 = D등급, 점수 낮음 = 경쟁 치열 = A등급
 export const GRADE_MAP: GradeInfo[] = [
-  { grade: 'A+', min: 90, difficulty: '매우 쉬움', opportunity: '매우 높음' },
-  { grade: 'A', min: 83, difficulty: '쉬움', opportunity: '높음' },
-  { grade: 'A-', min: 78, difficulty: '쉬움', opportunity: '중상' },
-  { grade: 'B+', min: 72, difficulty: '보통 이하', opportunity: '중상' },
-  { grade: 'B', min: 66, difficulty: '보통', opportunity: '중' },
-  { grade: 'B-', min: 60, difficulty: '보통 이상', opportunity: '중하' },
-  { grade: 'C+', min: 52, difficulty: '높음', opportunity: '중하' },
-  { grade: 'C', min: 44, difficulty: '높음', opportunity: '낮음' },
-  { grade: 'C-', min: 36, difficulty: '매우 높음', opportunity: '낮음' },
-  { grade: 'D+', min: 28, difficulty: '극히 높음', opportunity: '매우 낮음' },
-  { grade: 'D', min: 20, difficulty: '극히 높음', opportunity: '매우 낮음' },
-  { grade: 'D-', min: 0, difficulty: '포화', opportunity: '없음' },
+  { grade: 'D-', min: 90, difficulty: '경쟁 거의 없음', opportunity: '블루오션' },
+  { grade: 'D', min: 83, difficulty: '경쟁 매우 낮음', opportunity: '진입 최적' },
+  { grade: 'D+', min: 78, difficulty: '경쟁 낮음', opportunity: '추천' },
+  { grade: 'C-', min: 72, difficulty: '경쟁 다소 낮음', opportunity: '양호' },
+  { grade: 'C', min: 66, difficulty: '경쟁 보통', opportunity: '보통' },
+  { grade: 'C+', min: 60, difficulty: '경쟁 다소 높음', opportunity: '주의' },
+  { grade: 'B-', min: 52, difficulty: '경쟁 높음', opportunity: '차별화 필요' },
+  { grade: 'B', min: 44, difficulty: '경쟁 높음', opportunity: '신중 검토' },
+  { grade: 'B+', min: 36, difficulty: '경쟁 매우 높음', opportunity: '비추천' },
+  { grade: 'A-', min: 28, difficulty: '경쟁 치열', opportunity: '레드오션' },
+  { grade: 'A', min: 20, difficulty: '경쟁 치열', opportunity: '과포화' },
+  { grade: 'A+', min: 0, difficulty: '경쟁 극심', opportunity: '포화 시장' },
 ]
 
 const GRADE_WEIGHTS = {
@@ -229,11 +230,12 @@ export async function gradeKeywords(
     }
   }
 
+  // D=경쟁 낮음(추천), A=경쟁 치열(비추천)
   const recommendations: GradeRecommendations = {
-    beginner: results.filter((r) => ['A+', 'A', 'A-'].includes(r.grade)),
-    intermediate: results.filter((r) => ['B+', 'B', 'B-'].includes(r.grade)),
-    advanced: results.filter((r) => ['C+', 'C'].includes(r.grade)),
-    avoid: results.filter((r) => ['C-', 'D+', 'D', 'D-'].includes(r.grade)),
+    beginner: results.filter((r) => ['D-', 'D', 'D+'].includes(r.grade)),
+    intermediate: results.filter((r) => ['C-', 'C', 'C+'].includes(r.grade)),
+    advanced: results.filter((r) => ['B-', 'B'].includes(r.grade)),
+    avoid: results.filter((r) => ['B+', 'A-', 'A', 'A+'].includes(r.grade)),
   }
 
   return { results, recommendations }

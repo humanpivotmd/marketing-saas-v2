@@ -307,7 +307,7 @@ export default function LandingPage() {
                     <p className="text-xs text-text-tertiary mt-1">월간 검색량</p>
                   </div>
                   <div>
-                    <p className={`text-2xl font-bold ${previewResult.grade.startsWith('A') ? 'text-accent-success' : previewResult.grade.startsWith('B') ? 'text-accent-primary' : 'text-accent-danger'}`}>{previewResult.grade}</p>
+                    <p className={`text-2xl font-bold ${previewResult.grade.startsWith('D') ? 'text-accent-success' : previewResult.grade.startsWith('C') ? 'text-accent-primary' : 'text-accent-danger'}`}>{previewResult.grade}</p>
                     <p className="text-xs text-text-tertiary mt-1">기회 등급</p>
                   </div>
                   <div>

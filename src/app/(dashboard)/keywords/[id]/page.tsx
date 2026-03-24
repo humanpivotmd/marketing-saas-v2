@@ -261,9 +261,9 @@ export default function KeywordDetailPage({ params }: { params: Promise<{ id: st
     ? (() => {
         const r = gradeResult
         const verdict =
-          r.grade.startsWith('A') ? '경쟁이 낮아 지금 공략하면 상위 노출 가능성이 높습니다!' :
-          r.grade.startsWith('B') ? '경쟁이 보통 수준이에요. 꾸준히 올리면 좋은 결과를 기대할 수 있어요.' :
-          r.grade.startsWith('C') ? '경쟁이 높습니다. 차별화된 콘텐츠가 필요해요.' :
+          r.grade.startsWith('D') ? '경쟁이 낮아 지금 공략하면 상위 노출 가능성이 높습니다!' :
+          r.grade.startsWith('C') ? '경쟁이 보통 수준이에요. 꾸준히 올리면 좋은 결과를 기대할 수 있어요.' :
+          r.grade.startsWith('B') ? '경쟁이 높습니다. 차별화된 콘텐츠가 필요해요.' :
           '경쟁이 매우 치열합니다. 다른 키워드를 추천드려요.'
 
         return (
