@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
+import { useState, useEffect, type FormEvent } from 'react'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
@@ -79,7 +79,23 @@ const plans = [
 ]
 
 export default function LandingPage() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [userName, setUserName] = useState('')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  useEffect(() => {
+    const token = sessionStorage.getItem('token')
+    const userData = sessionStorage.getItem('user')
+    if (token && userData) {
+      try {
+        const parsed = JSON.parse(userData)
+        setIsLoggedIn(true)
+        setUserName(parsed.name || parsed.email || '')
+      } catch {
+        // invalid data
+      }
+    }
+  }, [])
+
   const [previewKeyword, setPreviewKeyword] = useState('')
   const [previewResult, setPreviewResult] = useState<{
     keyword: string
@@ -175,8 +191,17 @@ export default function LandingPage() {
                 )}
               </svg>
             </button>
-            <a href="/login" className="hidden sm:block"><Button variant="ghost" size="sm">로그인</Button></a>
-            <a href="/login"><Button size="sm">시작하기</Button></a>
+            {isLoggedIn ? (
+              <>
+                <span className="hidden sm:block text-sm text-text-secondary">{userName}님</span>
+                <a href="/dashboard"><Button size="sm">대시보드</Button></a>
+              </>
+            ) : (
+              <>
+                <a href="/login" className="hidden sm:block"><Button variant="ghost" size="sm">로그인</Button></a>
+                <a href="/login"><Button size="sm">시작하기</Button></a>
+              </>
+            )}
           </div>
         </div>
         {/* Mobile dropdown */}
@@ -197,13 +222,23 @@ export default function LandingPage() {
               >
                 요금제
               </a>
-              <a
-                href="/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block px-3 py-3 text-sm text-text-link hover:bg-bg-tertiary/50 rounded-lg transition-colors min-h-[44px] flex items-center"
-              >
-                로그인
-              </a>
+              {isLoggedIn ? (
+                <a
+                  href="/dashboard"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-3 text-sm text-text-link hover:bg-bg-tertiary/50 rounded-lg transition-colors min-h-[44px] flex items-center"
+                >
+                  대시보드
+                </a>
+              ) : (
+                <a
+                  href="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-3 text-sm text-text-link hover:bg-bg-tertiary/50 rounded-lg transition-colors min-h-[44px] flex items-center"
+                >
+                  로그인
+                </a>
+              )}
             </div>
           </div>
         )}
