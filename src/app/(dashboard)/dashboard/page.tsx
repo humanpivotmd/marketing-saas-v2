@@ -67,7 +67,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="p-4 lg:p-8 max-w-6xl">
+    <div className="max-w-6xl">
       {/* Greeting */}
       <div className="mb-8">
         {loading ? (
@@ -91,7 +91,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Usage Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {loading ? (
           Array.from({ length: 4 }).map((_, i) => (
             <Card key={i} padding="md">

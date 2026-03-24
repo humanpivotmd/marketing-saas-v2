@@ -14,8 +14,8 @@ export default function TermsPage() {
         </div>
       </nav>
 
-      <main className="max-w-3xl mx-auto px-8 py-12">
-        <Card padding="lg" className="shadow-lg border-[rgba(240,246,252,0.15)]">
+      <main className="max-w-3xl mx-auto px-8 py-16">
+        <Card padding="lg" className="shadow-lg border-2 border-[rgba(240,246,252,0.15)]">
           <h1 className="text-3xl font-bold text-text-primary mb-8">이용약관</h1>
 
           <div className="space-y-8 text-sm text-text-secondary leading-relaxed">
@@ -76,6 +76,12 @@ export default function TermsPage() {
             </p>
           </div>
         </Card>
+
+        <div className="mt-8 text-center">
+          <a href="/landing" className="text-sm text-text-link hover:underline">
+            &larr; 홈으로 돌아가기
+          </a>
+        </div>
       </main>
     </div>
   )

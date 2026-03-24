@@ -23,7 +23,7 @@ export default function Card({
     <div
       className={`
         bg-bg-secondary rounded-xl
-        border border-[rgba(240,246,252,0.1)]
+        border border-[rgba(240,246,252,0.08)] shadow-sm
         ${paddingStyles[padding]}
         ${hover ? 'transition-all duration-[var(--transition-normal)] hover:border-[rgba(240,246,252,0.2)] hover:shadow-md cursor-pointer' : ''}
         ${className}

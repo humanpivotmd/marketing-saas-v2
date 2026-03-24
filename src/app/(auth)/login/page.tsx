@@ -212,7 +212,7 @@ function LoginContent() {
       </div>
 
       <Card>
-        <div id="login-form" className="space-y-5">
+        <div id="login-form" className="space-y-6">
           {/* Social Login */}
           <div className="space-y-3">
             <button
