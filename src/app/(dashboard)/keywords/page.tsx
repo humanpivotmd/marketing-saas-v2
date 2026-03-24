@@ -499,10 +499,10 @@ export default function KeywordsPage() {
   ) : (
     <div className="space-y-6">
       {[
-        { label: '추천 (A등급)', items: gradeResults.filter((r) => r.grade.startsWith('A')), color: 'text-emerald-400' },
-        { label: '도전해볼만한 (B등급)', items: gradeResults.filter((r) => r.grade.startsWith('B')), color: 'text-blue-400' },
-        { label: '고급 (C등급)', items: gradeResults.filter((r) => r.grade.startsWith('C')), color: 'text-amber-400' },
-        { label: '비추천 (D등급)', items: gradeResults.filter((r) => r.grade.startsWith('D')), color: 'text-red-400' },
+        { label: '추천 · 경쟁 낮음 (A등급)', items: gradeResults.filter((r) => r.grade.startsWith('A')), color: 'text-emerald-400' },
+        { label: '도전 가능 · 경쟁 보통 (B등급)', items: gradeResults.filter((r) => r.grade.startsWith('B')), color: 'text-blue-400' },
+        { label: '차별화 필요 · 경쟁 높음 (C등급)', items: gradeResults.filter((r) => r.grade.startsWith('C')), color: 'text-amber-400' },
+        { label: '비추천 · 경쟁 치열 (D등급)', items: gradeResults.filter((r) => r.grade.startsWith('D')), color: 'text-red-400' },
       ].map((group) => group.items.length > 0 && (
         <div key={group.label}>
           <h3 className={`text-sm font-semibold ${group.color} mb-3`}>{group.label}</h3>
@@ -553,19 +553,19 @@ export default function KeywordsPage() {
         <div className="mt-3 flex flex-wrap gap-3">
           <span className="inline-flex items-center gap-1.5 text-xs">
             <span className={`px-1.5 py-0.5 rounded font-bold ${GRADE_COLORS['A+']}`}>A+~A</span>
-            <span className="text-text-secondary">지금 바로 공략!</span>
+            <span className="text-text-secondary">경쟁 낮음 · 지금 공략!</span>
           </span>
           <span className="inline-flex items-center gap-1.5 text-xs">
             <span className={`px-1.5 py-0.5 rounded font-bold ${GRADE_COLORS['B+']}`}>B+~B-</span>
-            <span className="text-text-secondary">도전해볼 만해요</span>
+            <span className="text-text-secondary">경쟁 보통 · 도전 가능</span>
           </span>
           <span className="inline-flex items-center gap-1.5 text-xs">
             <span className={`px-1.5 py-0.5 rounded font-bold ${GRADE_COLORS['C+']}`}>C+~C-</span>
-            <span className="text-text-secondary">경쟁이 있어요</span>
+            <span className="text-text-secondary">경쟁 높음 · 차별화 필요</span>
           </span>
           <span className="inline-flex items-center gap-1.5 text-xs">
             <span className={`px-1.5 py-0.5 rounded font-bold ${GRADE_COLORS['D']}`}>D+~D-</span>
-            <span className="text-text-secondary">매우 경쟁적</span>
+            <span className="text-text-secondary">경쟁 치열 · 비추천</span>
           </span>
         </div>
       </div>
