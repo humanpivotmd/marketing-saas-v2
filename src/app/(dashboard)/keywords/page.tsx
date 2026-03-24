@@ -194,9 +194,9 @@ export default function KeywordsPage() {
             }).catch(() => {})
           }
         }
-        const bestKeywords = data.data.results.filter((r: GradeResult) => r.grade.startsWith('D'))
+        const bestKeywords = data.data.results.filter((r: GradeResult) => r.grade.startsWith('C'))
         const analysisMsg = bestKeywords.length > 0
-          ? `${data.data.results.length}개 키워드 분석 완료! D등급(경쟁 낮음) 키워드 ${bestKeywords.length}개를 추천 탭에서 확인하세요.`
+          ? `${data.data.results.length}개 키워드 분석 완료! C등급(적정 경쟁) 키워드 ${bestKeywords.length}개가 공략하기 좋습니다.`
           : `${data.data.results.length}개 키워드 분석 완료`
         setToast({ visible: true, message: analysisMsg, variant: 'success' })
       } else {
@@ -243,7 +243,7 @@ export default function KeywordsPage() {
   // Beginner mode: natural language description of analysis results
   function renderBeginnerInsight(result: GradeResult) {
     const gradeText =
-      result.grade.startsWith('D') ? '아주 좋아요! 경쟁이 낮아요.' :
+      result.grade.startsWith('D') ? '경쟁은 낮지만 검색량도 적어요.' :
       result.grade.startsWith('C') ? '괜찮아요. 경쟁이 보통이에요.' :
       result.grade.startsWith('B') ? '경쟁이 높아요.' :
       '경쟁이 매우 치열해요!'
@@ -265,7 +265,7 @@ export default function KeywordsPage() {
         월 {result.monthly_search.toLocaleString()}명이 {searchText}{' '}
         {trendText}{' '}
         {result.grade.startsWith('D')
-          ? '블로그를 쓰면 상위 노출 가능성이 높아요!'
+          ? '타겟 키워드로 활용하면 효과적이에요.'
           : result.grade.startsWith('C')
           ? '꾸준히 콘텐츠를 올리면 충분히 노출될 수 있어요.'
           : '다른 키워드와 함께 사용하면 더 효과적이에요.'}
@@ -465,7 +465,7 @@ export default function KeywordsPage() {
                   </div>
                 )}
 
-                {mode === 'beginner' && gradeResult && gradeResult.grade.startsWith('D') && (
+                {mode === 'beginner' && gradeResult && gradeResult.grade.startsWith('C') && (
                   <div className="mt-2 pt-2 border-t border-[rgba(240,246,252,0.05)]">
                     <a
                       href={`/content/new?keyword=${encodeURIComponent(kw.keyword)}`}
@@ -499,10 +499,10 @@ export default function KeywordsPage() {
   ) : (
     <div className="space-y-6">
       {[
-        { label: '추천 · 경쟁 낮음 (D등급)', items: gradeResults.filter((r) => r.grade.startsWith('D')), color: 'text-emerald-400' },
-        { label: '도전 가능 · 경쟁 보통 (C등급)', items: gradeResults.filter((r) => r.grade.startsWith('C')), color: 'text-blue-400' },
-        { label: '차별화 필요 · 경쟁 높음 (B등급)', items: gradeResults.filter((r) => r.grade.startsWith('B')), color: 'text-amber-400' },
-        { label: '비추천 · 경쟁 치열 (A등급)', items: gradeResults.filter((r) => r.grade.startsWith('A')), color: 'text-red-400' },
+        { label: '추천 · 적정 경쟁 (C등급)', items: gradeResults.filter((r) => r.grade.startsWith('C')), color: 'text-emerald-400' },
+        { label: '경쟁 낮음 · 노출 적음 (D등급)', items: gradeResults.filter((r) => r.grade.startsWith('D')), color: 'text-blue-400' },
+        { label: '경쟁 높음 · 차별화 필요 (B등급)', items: gradeResults.filter((r) => r.grade.startsWith('B')), color: 'text-amber-400' },
+        { label: '경쟁 치열 · 비추천 (A등급)', items: gradeResults.filter((r) => r.grade.startsWith('A')), color: 'text-red-400' },
       ].map((group) => group.items.length > 0 && (
         <div key={group.label}>
           <h3 className={`text-sm font-semibold ${group.color} mb-3`}>{group.label}</h3>
@@ -518,7 +518,7 @@ export default function KeywordsPage() {
                 {mode === 'beginner' ? (
                   <div className="mt-1 px-2">
                     <p className="text-xs text-text-secondary">{r.opportunity}</p>
-                    {r.grade.startsWith('D') && (
+                    {r.grade.startsWith('C') && (
                       <a
                         href={`/content/new?keyword=${encodeURIComponent(r.keyword)}`}
                         className="text-xs text-accent-primary hover:underline mt-1 inline-block"
@@ -565,7 +565,7 @@ export default function KeywordsPage() {
           </span>
           <span className="inline-flex items-center gap-1.5 text-xs">
             <span className={`px-1.5 py-0.5 rounded font-bold ${GRADE_COLORS['D']}`}>D+~D-</span>
-            <span className="text-text-secondary">경쟁 낮음 · 지금 공략!</span>
+            <span className="text-text-secondary">경쟁 낮음 · 노출 적음</span>
           </span>
         </div>
       </div>

@@ -34,12 +34,12 @@ export interface GradeRecommendations {
 
 // 점수 높음 = 경쟁 낮음 = D등급, 점수 낮음 = 경쟁 치열 = A등급
 export const GRADE_MAP: GradeInfo[] = [
-  { grade: 'D-', min: 90, difficulty: '경쟁 거의 없음', opportunity: '블루오션' },
-  { grade: 'D', min: 83, difficulty: '경쟁 매우 낮음', opportunity: '진입 최적' },
-  { grade: 'D+', min: 78, difficulty: '경쟁 낮음', opportunity: '추천' },
-  { grade: 'C-', min: 72, difficulty: '경쟁 다소 낮음', opportunity: '양호' },
-  { grade: 'C', min: 66, difficulty: '경쟁 보통', opportunity: '보통' },
-  { grade: 'C+', min: 60, difficulty: '경쟁 다소 높음', opportunity: '주의' },
+  { grade: 'D-', min: 90, difficulty: '경쟁 거의 없음', opportunity: '검색량 부족 · 노출 효과 낮음' },
+  { grade: 'D', min: 83, difficulty: '경쟁 매우 낮음', opportunity: '니치 키워드 · 타겟 공략' },
+  { grade: 'D+', min: 78, difficulty: '경쟁 낮음', opportunity: '진입 적합 · 추천' },
+  { grade: 'C-', min: 72, difficulty: '경쟁 다소 낮음', opportunity: '양호 · 공략 가능' },
+  { grade: 'C', min: 66, difficulty: '경쟁 보통', opportunity: '적정 경쟁 · 도전 가능' },
+  { grade: 'C+', min: 60, difficulty: '경쟁 다소 높음', opportunity: '꾸준한 콘텐츠 필요' },
   { grade: 'B-', min: 52, difficulty: '경쟁 높음', opportunity: '차별화 필요' },
   { grade: 'B', min: 44, difficulty: '경쟁 높음', opportunity: '신중 검토' },
   { grade: 'B+', min: 36, difficulty: '경쟁 매우 높음', opportunity: '비추천' },
