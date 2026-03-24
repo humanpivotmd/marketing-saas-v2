@@ -79,10 +79,35 @@ const PLATFORM_LABELS: Record<string, string> = {
   kakao: '카카오',
 }
 
+// --- 네이버 블로그 주제 33개 ---
+const NAVER_BLOG_TOPICS = [
+  { group: '엔터테인먼트·예술', topics: ['문학·책', '영화', '미술·디자인', '공연·전시', '음악', '드라마', '스타·연예인', '만화·애니', '방송'] },
+  { group: '생활·노하우·쇼핑', topics: ['일상·생각', '육아·결혼', '애완·반려동물', '쇼핑', '요리·레시피', '상품리뷰', '원예·재배'] },
+  { group: '취미·여가·여행', topics: ['게임', '스포츠', '사진', '가드닝', '세계여행', '맛집'] },
+  { group: '지식·동향', topics: ['IT·컴퓨터', '사회·정치', '건강·의학', '비즈니스·경제', '어학·외국어', '교육·학문', '법률', '과학·기술', '인테리어', '자동차', '패션·뷰티'] },
+]
+
+// --- 채널별 프롬프트 STEP ---
+const PROMPT_STEPS = [
+  { step: 'blog', label: '블로그', description: '네이버 블로그 콘텐츠 생성 시 적용' },
+  { step: 'instagram', label: '인스타그램', description: '인스타그램 캡션 생성 시 적용' },
+  { step: 'threads', label: 'Threads', description: 'Threads 게시글 생성 시 적용' },
+  { step: 'image', label: '이미지', description: 'AI 이미지 프롬프트 생성 시 적용' },
+  { step: 'script', label: '영상 스크립트', description: '영상 스크립트 생성 시 적용' },
+]
+
+const PROMPT_MODES = [
+  { value: 'priority', label: '내 프롬프트 우선', description: '내 프롬프트를 최우선으로 적용' },
+  { value: 'combine', label: '조합', description: '시스템 프롬프트와 내 프롬프트를 조합' },
+  { value: 'reference', label: '참고', description: '내 프롬프트를 참고 수준으로 반영' },
+]
+
 // --- Tab IDs ---
 const TABS = [
   { id: 'profile', label: '프로필' },
   { id: 'plan', label: '플랜' },
+  { id: 'keyword-settings', label: '키워드 설정' },
+  { id: 'prompts', label: '채널 프롬프트' },
   { id: 'brand-voice', label: 'Brand Voice' },
   { id: 'sns', label: 'SNS 연동' },
   { id: 'notifications', label: '알림' },
@@ -137,6 +162,8 @@ export default function SettingsPage() {
       <div role="tabpanel" id={`panel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
         {activeTab === 'profile' && <ProfileTab onToast={setToast} />}
         {activeTab === 'plan' && <PlanTab />}
+        {activeTab === 'keyword-settings' && <KeywordSettingsTab onToast={setToast} />}
+        {activeTab === 'prompts' && <PromptsTab onToast={setToast} />}
         {activeTab === 'brand-voice' && <BrandVoiceTab onToast={setToast} />}
         {activeTab === 'sns' && <SnsTab onToast={setToast} />}
         {activeTab === 'notifications' && <NotificationsTab onToast={setToast} />}
@@ -647,6 +674,303 @@ function BrandVoiceModal({ open, onClose, voice, onToast, onSaved }: {
         </div>
       </div>
     </Modal>
+  )
+}
+
+// =========================================
+// Keyword Settings Tab (고정 키워드 + 블로그 주제)
+// =========================================
+function KeywordSettingsTab({ onToast }: { onToast: (t: { message: string; variant: 'success' | 'error' }) => void }) {
+  const [keywords, setKeywords] = useState<{ id: string; keyword: string; group_name: string | null }[]>([])
+  const [loading, setLoading] = useState(true)
+  const [newKeyword, setNewKeyword] = useState('')
+  const [newTopic, setNewTopic] = useState('')
+
+  const fetchKeywords = useCallback(() => {
+    setLoading(true)
+    fetch('/api/keywords', { headers: authHeaders() })
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.success) setKeywords(res.data || [])
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  useEffect(() => { fetchKeywords() }, [fetchKeywords])
+
+  const handleAdd = async () => {
+    if (!newKeyword.trim()) return
+    try {
+      const res = await fetch('/api/keywords', {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ keyword: newKeyword.trim(), group_name: newTopic || null }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        onToast({ message: '키워드가 등록되었습니다.', variant: 'success' })
+        setNewKeyword('')
+        setNewTopic('')
+        fetchKeywords()
+      } else {
+        onToast({ message: data.error || '등록 실패', variant: 'error' })
+      }
+    } catch {
+      onToast({ message: '등록 중 오류가 발생했습니다.', variant: 'error' })
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    try {
+      await fetch('/api/keywords', {
+        method: 'DELETE',
+        headers: authHeaders(),
+        body: JSON.stringify({ ids: [id] }),
+      })
+      onToast({ message: '삭제되었습니다.', variant: 'success' })
+      fetchKeywords()
+    } catch {
+      onToast({ message: '삭제 실패', variant: 'error' })
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-lg font-semibold text-text-primary">고정 키워드 관리</h2>
+        <p className="text-sm text-text-secondary mt-1">콘텐츠 생성 시 자주 사용하는 키워드를 등록하세요.</p>
+      </div>
+
+      {/* 키워드 추가 */}
+      <Card>
+        <div className="space-y-3">
+          <Input
+            label="키워드"
+            value={newKeyword}
+            onChange={(e) => setNewKeyword(e.target.value)}
+            placeholder="예: 소상공인 마케팅"
+          />
+          <div>
+            <label className="block text-sm font-medium text-text-primary mb-1.5">네이버 블로그 주제</label>
+            <select
+              value={newTopic}
+              onChange={(e) => setNewTopic(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-lg bg-bg-tertiary border border-[rgba(240,246,252,0.1)] text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent-primary"
+            >
+              <option value="">주제 선택 (선택사항)</option>
+              {NAVER_BLOG_TOPICS.map((group) => (
+                <optgroup key={group.group} label={group.group}>
+                  {group.topics.map((topic) => (
+                    <option key={topic} value={topic}>{topic}</option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </div>
+          <Button onClick={handleAdd} disabled={!newKeyword.trim()}>키워드 등록</Button>
+        </div>
+      </Card>
+
+      {/* 등록된 키워드 목록 */}
+      <div>
+        <h3 className="text-sm font-semibold text-text-primary mb-3">
+          등록된 키워드 <span className="text-text-tertiary font-normal">({keywords.length})</span>
+        </h3>
+        {loading ? (
+          <p className="text-sm text-text-tertiary">불러오는 중...</p>
+        ) : keywords.length === 0 ? (
+          <EmptyState title="등록된 키워드가 없습니다" description="위에서 키워드를 등록하세요." />
+        ) : (
+          <div className="space-y-2">
+            {keywords.map((kw) => (
+              <Card key={kw.id} padding="sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-sm font-medium text-text-primary">{kw.keyword}</span>
+                    {kw.group_name && (
+                      <Badge className="ml-2">{kw.group_name}</Badge>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => handleDelete(kw.id)}
+                    className="p-1.5 rounded-md text-text-tertiary hover:text-accent-danger hover:bg-accent-danger/10 transition-colors"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 6L6 18M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// =========================================
+// Prompts Tab (채널별 개인 프롬프트)
+// =========================================
+interface UserPrompt {
+  id: string
+  step: string
+  prompt_text: string
+  mode: string
+}
+
+function PromptsTab({ onToast }: { onToast: (t: { message: string; variant: 'success' | 'error' }) => void }) {
+  const [prompts, setPrompts] = useState<UserPrompt[]>([])
+  const [loading, setLoading] = useState(true)
+  const [editStep, setEditStep] = useState<string | null>(null)
+  const [editText, setEditText] = useState('')
+  const [editMode, setEditMode] = useState('combine')
+
+  const fetchPrompts = useCallback(() => {
+    setLoading(true)
+    fetch('/api/user-prompts', { headers: authHeaders() })
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.success) setPrompts(res.data || [])
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  useEffect(() => { fetchPrompts() }, [fetchPrompts])
+
+  const handleSave = async (step: string) => {
+    try {
+      const res = await fetch('/api/user-prompts', {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ step, prompt_text: editText, mode: editMode }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        onToast({ message: '프롬프트가 저장되었습니다.', variant: 'success' })
+        setEditStep(null)
+        fetchPrompts()
+      } else {
+        onToast({ message: data.error || '저장 실패', variant: 'error' })
+      }
+    } catch {
+      onToast({ message: '저장 중 오류가 발생했습니다.', variant: 'error' })
+    }
+  }
+
+  const handleDelete = async (step: string) => {
+    try {
+      await fetch(`/api/user-prompts?step=${step}`, {
+        method: 'DELETE',
+        headers: authHeaders(),
+      })
+      onToast({ message: '프롬프트가 삭제되었습니다.', variant: 'success' })
+      fetchPrompts()
+    } catch {
+      onToast({ message: '삭제 실패', variant: 'error' })
+    }
+  }
+
+  const startEdit = (step: string) => {
+    const existing = prompts.find((p) => p.step === step)
+    setEditStep(step)
+    setEditText(existing?.prompt_text || '')
+    setEditMode(existing?.mode || 'combine')
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-lg font-semibold text-text-primary">채널별 프롬프트 설정</h2>
+        <p className="text-sm text-text-secondary mt-1">각 채널의 콘텐츠 생성 시 적용할 개인 프롬프트를 설정하세요.</p>
+      </div>
+
+      {loading ? (
+        <p className="text-sm text-text-tertiary">불러오는 중...</p>
+      ) : (
+        <div className="space-y-3">
+          {PROMPT_STEPS.map(({ step, label, description }) => {
+            const existing = prompts.find((p) => p.step === step)
+            const isEditing = editStep === step
+
+            return (
+              <Card key={step}>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h3 className="text-sm font-semibold text-text-primary">{label}</h3>
+                    <p className="text-xs text-text-tertiary mt-0.5">{description}</p>
+
+                    {existing && !isEditing && (
+                      <div className="mt-3 p-3 bg-bg-tertiary/50 rounded-lg">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge>{PROMPT_MODES.find((m) => m.value === existing.mode)?.label || existing.mode}</Badge>
+                        </div>
+                        <p className="text-sm text-text-secondary whitespace-pre-wrap">{existing.prompt_text}</p>
+                      </div>
+                    )}
+
+                    {isEditing && (
+                      <div className="mt-3 space-y-3">
+                        <div>
+                          <label className="block text-xs font-medium text-text-secondary mb-1.5">적용 모드</label>
+                          <div className="flex gap-2">
+                            {PROMPT_MODES.map((m) => (
+                              <button
+                                key={m.value}
+                                onClick={() => setEditMode(m.value)}
+                                className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
+                                  editMode === m.value
+                                    ? 'bg-accent-primary text-white border-accent-primary'
+                                    : 'bg-bg-tertiary text-text-secondary border-[rgba(240,246,252,0.1)] hover:border-accent-primary/50'
+                                }`}
+                              >
+                                {m.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <textarea
+                          value={editText}
+                          onChange={(e) => setEditText(e.target.value)}
+                          placeholder="예: 광고 티가 나지 않게, 자연스럽고 친근한 말투로 작성해줘"
+                          rows={4}
+                          className="w-full px-3 py-2.5 rounded-lg bg-bg-tertiary border border-[rgba(240,246,252,0.1)] text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent-primary resize-none"
+                        />
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={() => handleSave(step)} disabled={!editText.trim()}>저장</Button>
+                          <Button size="sm" variant="ghost" onClick={() => setEditStep(null)}>취소</Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {!isEditing && (
+                    <div className="flex gap-1 ml-3">
+                      <button
+                        onClick={() => startEdit(step)}
+                        className="px-3 py-1.5 text-xs rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors"
+                      >
+                        {existing ? '수정' : '설정'}
+                      </button>
+                      {existing && (
+                        <button
+                          onClick={() => handleDelete(step)}
+                          className="px-3 py-1.5 text-xs rounded-lg text-text-tertiary hover:text-accent-danger hover:bg-accent-danger/10 transition-colors"
+                        >
+                          삭제
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </Card>
+            )
+          })}
+        </div>
+      )}
+    </div>
   )
 }
 
