@@ -14,8 +14,8 @@ export default function PrivacyPage() {
         </div>
       </nav>
 
-      <main className="max-w-4xl mx-auto px-6 py-12">
-        <Card padding="lg">
+      <main className="max-w-3xl mx-auto px-8 py-12">
+        <Card padding="lg" className="shadow-lg border-[rgba(240,246,252,0.15)]">
           <h1 className="text-3xl font-bold text-text-primary mb-8">개인정보처리방침</h1>
 
           <div className="space-y-8 text-sm text-text-secondary leading-relaxed">
