@@ -4,8 +4,8 @@ import { getClientIp, rateLimit, checkRateLimitOrRespond } from '@/lib/rate-limi
 import { fetchNaverKeywords, getPublishCount, getExposureDays } from '@/lib/naver'
 import { calculateGrade } from '@/lib/grade'
 
-// 1일 3회 제한 (86400000ms = 24h)
-const previewRateLimit = rateLimit(86400000, 3)
+// 1시간 5회 제한 (3600000ms = 1h)
+const previewRateLimit = rateLimit(3600000, 5)
 
 export async function POST(req: NextRequest) {
   try {
