@@ -41,6 +41,13 @@ export async function POST(req: NextRequest) {
       throw new ValidationError('무료 플랜은 결제가 필요하지 않습니다.')
     }
 
+    // 사용자 정보 조회
+    const { data: user } = await supabase
+      .from('users')
+      .select('email, name')
+      .eq('id', authUser.userId)
+      .single()
+
     // 주문 ID 생성
     const orderId = `MF_${authUser.userId}_${Date.now()}`
 
@@ -56,8 +63,8 @@ export async function POST(req: NextRequest) {
         plan_id: plan.id,
         plan_name: plan.display_name,
         billing_cycle,
-        customerEmail: authUser.email,
-        customerName: authUser.name,
+        customerEmail: user?.email ?? '',
+        customerName: user?.name ?? '',
         // 토스페이먼츠 클라이언트 키 (실제 운영 시 환경변수에서)
         // clientKey: process.env.TOSS_CLIENT_KEY,
       },
