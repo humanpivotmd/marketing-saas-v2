@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     default: 'MarketingFlow - 네이버 상위 노출을 위한 콘텐츠 자동화',
     template: '%s | MarketingFlow',
   },
-  description: '키워드 분석부터 AI 콘텐츠 생성, SNS 발행, 순위 추적까지. 네이버 상위 노출을 위한 콘텐츠 자동화 파이프라인.',
+  description: '키워드 분석부터 B2B/B2C 맞춤 AI 콘텐츠 생성, 이미지·영상 스크립트까지. 하나의 키워드로 5채널 콘텐츠를 자동 생성하는 마케팅 플랫폼.',
   keywords: ['마케팅', '콘텐츠 자동화', '네이버 SEO', 'AI 콘텐츠', '키워드 분석', 'SNS 마케팅'],
   alternates: {
     canonical: 'https://marketingflow.kr/',
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     url: 'https://marketingflow.kr/',
     siteName: 'MarketingFlow',
     title: 'MarketingFlow - 네이버 상위 노출을 위한 콘텐츠 자동화',
-    description: '키워드 분석부터 AI 콘텐츠 생성, SNS 발행까지. 마케팅 자동화 파이프라인.',
+    description: 'B2B/B2C 맞춤 AI 콘텐츠. 하나의 키워드로 5채널 콘텐츠 자동 생성.',
     images: [
       {
         url: '/og-image.png',
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'MarketingFlow - 네이버 상위 노출을 위한 콘텐츠 자동화',
-    description: '키워드 분석부터 AI 콘텐츠 생성, SNS 발행까지. 마케팅 자동화 파이프라인.',
+    description: 'B2B/B2C 맞춤 AI 콘텐츠. 하나의 키워드로 5채널 콘텐츠 자동 생성.',
     images: ['/og-image.png'],
   },
   robots: {

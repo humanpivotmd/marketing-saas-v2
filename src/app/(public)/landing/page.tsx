@@ -14,8 +14,8 @@ const features = [
   },
   {
     icon: 'M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z',
-    title: 'AI 콘텐츠 생성',
-    description: '블로그, Threads, 인스타그램 캡션을 원클릭으로. 브랜드 보이스(Brand Voice)가 자동 적용됩니다.',
+    title: 'B2B/B2C 맞춤 콘텐츠',
+    description: '블로그, Threads, 인스타그램, 페이스북, 영상 스크립트를 채널 특성에 맞게 자동 생성합니다.',
   },
   {
     icon: 'M22 12h-4l-3 9L9 3l-3 9H2',
@@ -23,19 +23,19 @@ const features = [
     description: '발행 전 실시간 SEO 점수. 키워드 밀도, 소제목 구조, 도입부 배치, 분포도 등 7개 기준.',
   },
   {
-    icon: 'M3 4h18v18H3zM16 2v4M8 2v4M3 10h18',
-    title: '발행 및 예약',
-    description: '인스타그램, Threads 원클릭 발행. 주간 예약 발행으로 자동 포스팅.',
+    icon: 'M4 6h16M4 10h16M4 14h16M4 18h16',
+    title: '채널별 맞춤 생성',
+    description: '같은 키워드로 블로그, SNS, 영상까지. 각 채널의 규칙에 맞춰 자동 변환합니다.',
   },
   {
-    icon: 'M18 20V10M12 20V4M6 20v-6',
-    title: '성과 추적',
-    description: '24시간/72시간/7일 후 조회수, 좋아요, 댓글 자동 수집. 어떤 콘텐츠가 효과적인지 확인.',
+    icon: 'M15 12a3 3 0 11-6 0 3 3 0 016 0zM19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33',
+    title: '커스텀 프롬프트',
+    description: '기본 프롬프트에 나만의 지시를 추가. 우선/조합/참고 3가지 모드로 맞춤 콘텐츠를 만듭니다.',
   },
   {
-    icon: 'M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM12 6v6l4 2',
-    title: '하루 30분 절약',
-    description: '키워드 리서치부터 콘텐츠 생성, 발행까지. 하나의 플랫폼에서 모두 자동화.',
+    icon: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14',
+    title: '이미지/영상 스크립트',
+    description: 'AI 이미지 프롬프트와 영상 스토리보드를 자동 생성. 채널별 최적 사이즈로 제공합니다.',
   },
 ]
 
@@ -51,28 +51,28 @@ const plans = [
   },
   {
     name: 'Starter',
-    price: '29,000',
+    price: '19,900',
     period: '/월',
     description: '1인 마케터와 소규모 비즈니스',
-    features: ['키워드 분석 50회/일', 'AI 콘텐츠 100개/월', '전체 SEO 점수', '인스타/Threads 발행', 'Brand Voice 1개', '발행 캘린더'],
+    features: ['AI 콘텐츠 50개/월', '키워드 분석 100회/월', '전체 SEO 점수', 'B2B/B2C 맞춤 생성', 'Brand Voice 3개', '이미지/영상 스크립트'],
     cta: 'Starter 시작',
     accent: true,
   },
   {
     name: 'Pro',
-    price: '59,000',
+    price: '49,900',
     period: '/월',
     description: '성장하는 팀을 위한 플랜',
-    features: ['키워드 무제한', 'AI 콘텐츠 500개/월', '고급 SEO + AI 최적화', '모든 채널 발행', 'Brand Voice 5개', '성과 추적', '우선 지원'],
+    features: ['콘텐츠 무제한', '키워드 무제한', '고급 SEO + AI 최적화', '5채널 맞춤 생성', 'Brand Voice 10개', '커스텀 프롬프트', '우선 지원'],
     cta: 'Pro 시작',
     accent: false,
   },
   {
-    name: 'Business',
-    price: '149,000',
-    period: '/월',
+    name: 'Premium',
+    price: '협의',
+    period: '',
     description: '에이전시 및 기업',
-    features: ['Pro 전체 포함', '콘텐츠 무제한', '팀 협업', '외부 연동', '커스텀 Brand Voice', '전담 지원'],
+    features: ['Pro 전체 포함', '팀원 10명', '전담 지원'],
     cta: '문의하기',
     accent: false,
   },
@@ -259,15 +259,15 @@ export default function LandingPage() {
         />
         <div className="max-w-3xl mx-auto text-center relative z-10">
           <Badge variant="accent" size="md" className="mb-6">
-            네이버 SEO + AI 콘텐츠 + 자동 발행
+            B2B/B2C 맞춤 AI 콘텐츠 자동화
           </Badge>
           <h1 className="text-4xl md:text-5xl font-bold text-text-primary mb-6 leading-tight tracking-tight">
             콘텐츠 자동화로<br />
             <span className="text-accent-primary">네이버 상위 노출</span>
           </h1>
           <p className="text-lg text-text-secondary mb-10 max-w-2xl mx-auto leading-relaxed">
-            키워드 분석부터 AI 콘텐츠 생성, 발행, 순위 추적까지.
-            한국 마케터를 위한 올인원 콘텐츠 자동화 시스템.
+            키워드 분석부터 B2B/B2C 맞춤 콘텐츠, 이미지·영상 스크립트까지.
+            하나의 키워드로 5채널 콘텐츠를 자동 생성하는 마케팅 플랫폼.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a href="/login"><Button size="lg">무료로 시작 - 카드 불필요</Button></a>
@@ -344,7 +344,7 @@ export default function LandingPage() {
               콘텐츠 마케팅에 필요한 모든 것
             </h2>
             <p className="text-text-secondary max-w-xl mx-auto">
-              키워드 분석, AI 콘텐츠 생성, SEO 점수, 발행, 성과 추적 - 하나의 플랫폼에서.
+              키워드 분석부터 B2B/B2C 맞춤 콘텐츠, 이미지·영상 스크립트까지 - 하나의 플랫폼에서.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
