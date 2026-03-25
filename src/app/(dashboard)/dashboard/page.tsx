@@ -157,10 +157,10 @@ export default function DashboardPage() {
                   </svg>
                 }
                 title="아직 콘텐츠가 없습니다"
-                description="키워드를 분석하고 첫 번째 AI 콘텐츠를 만들어보세요."
+                description="키워드를 분석하고 B2B/B2C 맞춤 콘텐츠를 생성해보세요."
                 action={
-                  <a href="/contents/new">
-                    <Button>새 콘텐츠 만들기</Button>
+                  <a href="/keywords">
+                    <Button>키워드에서 시작하기</Button>
                   </a>
                 }
               />
@@ -201,7 +201,7 @@ export default function DashboardPage() {
           <Card>
             <h2 className="text-base font-semibold text-text-primary mb-4">빠른 액션</h2>
             <div className="space-y-2.5">
-              <a href="/contents/new">
+              <a href="/keywords">
                 <Button variant="secondary" fullWidth size="sm">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true">
                     <path d="M8 4v8M4 8h8" />

@@ -28,7 +28,6 @@ const CHANNEL_TABS = [
   { id: 'instagram', label: '인스타그램' },
   { id: 'facebook', label: '페이스북' },
   { id: 'video_script', label: '영상 스크립트' },
-  { id: 'script', label: '스크립트(구)' },
 ]
 
 const CHANNEL_COLORS: Record<string, string> = {
@@ -147,12 +146,12 @@ export default function ContentsPage() {
           <h1 className="text-2xl font-bold text-text-primary">콘텐츠</h1>
           <p className="text-sm text-text-secondary mt-1">AI로 생성한 콘텐츠를 관리하세요</p>
         </div>
-        <a href="/contents/new">
+        <a href="/keywords">
           <Button>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M8 3v10M3 8h10" />
             </svg>
-            새 콘텐츠 생성
+            키워드에서 시작하기
           </Button>
         </a>
       </div>

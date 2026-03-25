@@ -137,9 +137,9 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState(() => {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash.replace('#', '')
-      return TABS.some((t) => t.id === hash) ? hash : 'profile'
+      return TABS.some((t) => t.id === hash) ? hash : 'business'
     }
-    return 'profile'
+    return 'business'
   })
   const [toast, setToast] = useState<{ message: string; variant: 'success' | 'error' } | null>(null)
 

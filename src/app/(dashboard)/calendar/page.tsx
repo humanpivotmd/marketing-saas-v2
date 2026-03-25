@@ -198,7 +198,7 @@ export default function CalendarPage() {
           <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
             <div>
               <h1 className="text-2xl font-bold text-text-primary">캘린더</h1>
-              <p className="text-sm text-text-secondary mt-1">발행 스케줄을 관리하세요</p>
+              <p className="text-sm text-text-secondary mt-1">콘텐츠 일정을 관리하세요</p>
             </div>
             <Button size="sm" onClick={openScheduleModal} className="shrink-0">
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
