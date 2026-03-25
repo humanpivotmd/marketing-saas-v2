@@ -1372,16 +1372,19 @@ function BusinessProfileTab({ onToast }: { onToast: (t: { message: string; varia
             className="w-full py-2.5 px-3 rounded-lg bg-surface-secondary border border-border-primary text-text-primary text-sm"
           >
             <option value="">업종을 선택하세요</option>
-            {industries.map(ind => (
-              <optgroup key={ind.id} label={ind.name}>
-                {ind.children?.map(sub => (
-                  <option key={sub.id} value={sub.id}>{sub.name}</option>
-                ))}
-                {(!ind.children || ind.children.length === 0) && (
-                  <option value={ind.id}>{ind.name}</option>
-                )}
-              </optgroup>
-            ))}
+            {industries.map(ind => {
+              const hasChildren = ind.children && ind.children.length > 0
+              if (hasChildren) {
+                return (
+                  <optgroup key={ind.id} label={ind.name}>
+                    {ind.children!.map(sub => (
+                      <option key={sub.id} value={sub.id}>{sub.name}</option>
+                    ))}
+                  </optgroup>
+                )
+              }
+              return <option key={ind.id} value={ind.id}>{ind.name}</option>
+            })}
           </select>
         </div>
       </Card>
