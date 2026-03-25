@@ -396,7 +396,7 @@ export default function LandingPage() {
                   {plan.period && <span className="text-sm text-text-secondary">{plan.period}</span>}
                 </div>
                 <p className="text-xs text-text-tertiary mb-6">{plan.description}</p>
-                <a href={plan.name === 'Business' ? '/support' : '/login'}>
+                <a href={plan.name === 'Premium' ? '/support' : '/login'}>
                   <Button variant={plan.accent ? 'primary' : 'secondary'} fullWidth size="sm">
                     {plan.cta}
                   </Button>

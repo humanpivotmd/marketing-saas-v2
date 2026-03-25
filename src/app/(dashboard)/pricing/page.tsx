@@ -34,24 +34,24 @@ const DEFAULT_PLANS: PlanData[] = [
   },
   {
     id: 'starter', name: 'starter', display_name: 'Starter',
-    price_monthly: 29000, price_yearly: 23200,
-    content_limit: 100, keyword_limit: 200, image_limit: 50,
-    saved_keyword_limit: 200, channel_limit: 3, brand_voice_limit: 3,
-    team_member_limit: 0, has_api_access: false, has_priority_support: false,
+    price_monthly: 19900, price_yearly: 199000,
+    content_limit: 50, keyword_limit: 100, image_limit: 30,
+    saved_keyword_limit: 100, channel_limit: 3, brand_voice_limit: 3,
+    team_member_limit: 0, has_api_access: true, has_priority_support: false,
   },
   {
     id: 'pro', name: 'pro', display_name: 'Pro',
-    price_monthly: 59000, price_yearly: 47200,
-    content_limit: 500, keyword_limit: 1000, image_limit: 200,
-    saved_keyword_limit: 1000, channel_limit: 10, brand_voice_limit: 10,
-    team_member_limit: 3, has_api_access: false, has_priority_support: false,
+    price_monthly: 49900, price_yearly: 499000,
+    content_limit: -1, keyword_limit: -1, image_limit: -1,
+    saved_keyword_limit: -1, channel_limit: 10, brand_voice_limit: 10,
+    team_member_limit: 3, has_api_access: true, has_priority_support: false,
   },
   {
-    id: 'business', name: 'business', display_name: 'Business',
-    price_monthly: 149000, price_yearly: 119200,
+    id: 'premium', name: 'premium', display_name: 'Premium',
+    price_monthly: 0, price_yearly: 0,
     content_limit: -1, keyword_limit: -1, image_limit: -1,
     saved_keyword_limit: -1, channel_limit: -1, brand_voice_limit: -1,
-    team_member_limit: 20, has_api_access: true, has_priority_support: true,
+    team_member_limit: 10, has_api_access: true, has_priority_support: true,
   },
 ]
 
@@ -59,21 +59,21 @@ const PLAN_COLORS: Record<string, string> = {
   free: 'text-text-secondary',
   starter: 'text-accent-primary',
   pro: 'text-accent-secondary',
-  business: 'text-accent-warning',
+  premium: 'text-accent-warning',
 }
 
 const PLAN_BORDERS: Record<string, string> = {
   free: 'border-[rgba(240,246,252,0.1)]',
   starter: 'border-accent-primary/30',
   pro: 'border-accent-secondary/30 ring-1 ring-accent-secondary/20',
-  business: 'border-accent-warning/30',
+  premium: 'border-accent-warning/30',
 }
 
 const PLAN_DESCRIPTIONS: Record<string, string> = {
   free: '마케팅플로우를 시작해보세요',
   starter: '본격적인 콘텐츠 마케팅',
   pro: '성장하는 비즈니스를 위한 최적의 선택',
-  business: '대규모 팀과 에이전시',
+  premium: '에이전시 및 기업',
 }
 
 function formatPrice(price: number): string {
@@ -320,7 +320,7 @@ export default function PricingPage() {
                     fullWidth
                     onClick={() => handleUpgrade(plan)}
                   >
-                    {plan.name === 'business' ? '문의하기' : '업그레이드'}
+                    {plan.name === 'premium' ? '문의하기' : '업그레이드'}
                   </Button>
                 )}
               </Card>

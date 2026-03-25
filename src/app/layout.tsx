@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     description: 'B2B/B2C 맞춤 AI 콘텐츠. 하나의 키워드로 5채널 콘텐츠 자동 생성.',
     images: [
       {
-        url: '/og-image.png',
+        url: '/og-image.svg',
         width: 1200,
         height: 630,
         alt: 'MarketingFlow - 네이버 상위 노출을 위한 콘텐츠 자동화',
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'MarketingFlow - 네이버 상위 노출을 위한 콘텐츠 자동화',
     description: 'B2B/B2C 맞춤 AI 콘텐츠. 하나의 키워드로 5채널 콘텐츠 자동 생성.',
-    images: ['/og-image.png'],
+    images: ['/og-image.svg'],
   },
   robots: {
     index: true,

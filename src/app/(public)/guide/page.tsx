@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: '사용 가이드 - MarketingFlow',
-  description: '마케팅플로우 사용법을 3단계로 알아보세요. 키워드 분석, AI 콘텐츠 생성, SNS 발행까지.',
+  description: '마케팅플로우 사용법을 3단계로 알아보세요. 키워드 분석, B2B/B2C 맞춤 AI 콘텐츠 생성, 이미지·영상 스크립트까지.',
 }
 
 const steps = [
@@ -25,9 +25,9 @@ const steps = [
     title: 'AI 콘텐츠 생성',
     subtitle: '키워드 기반으로 SEO 최적화 콘텐츠를 자동 생성',
     description:
-      '선택한 키워드와 브랜드 보이스를 바탕으로 AI가 블로그, Threads, Instagram 콘텐츠를 생성합니다. 네이버 SEO 점수를 실시간으로 확인하며 편집할 수 있습니다.',
+      'B2B/B2C 맞춤으로 AI가 블로그, Threads, Instagram, Facebook 콘텐츠를 채널 특성에 맞게 생성합니다. 네이버 SEO 점수를 실시간으로 확인하며 편집할 수 있습니다.',
     features: [
-      '블로그/Threads/Instagram/스크립트 지원',
+      '블로그/Threads/Instagram/Facebook/영상 스크립트 5채널 지원',
       '브랜드 보이스 반영 (톤, 타겟, 금지어)',
       '네이버 SEO 점수 실시간 표시',
       '아웃라인 수정 후 재생성 가능',
