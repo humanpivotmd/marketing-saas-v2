@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
 
     const snapshot = project.settings_snapshot || {}
     const selectedChannels: string[] = snapshot.selected_channels || ['blog']
-    const apiKey = process.env.ANTHROPIC_API_KEY
+    const apiKey = process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY
     if (!apiKey) {
       return Response.json({ success: false, error: 'API 키가 설정되지 않았습니다.' }, { status: 500 })
     }

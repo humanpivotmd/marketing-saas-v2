@@ -12,7 +12,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
     const { data, error } = await supabase
       .from('projects')
-      .select('*, keywords(keyword, grade, monthly_search)')
+      .select('*')
       .eq('id', id)
       .eq('user_id', authUser.userId)
       .single()

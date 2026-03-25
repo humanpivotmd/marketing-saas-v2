@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
             let generatedContent = ''
             let generatedTitle = ''
 
-            const apiKey = process.env.ANTHROPIC_API_KEY
+            const apiKey = process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY
             if (!apiKey) {
               controller.enqueue(encoder.encode(
                 `data: ${JSON.stringify({ type: 'error', channel, message: 'AI API 키가 설정되지 않았습니다.' })}\n\n`

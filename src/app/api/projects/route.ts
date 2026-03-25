@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
 
     let query = supabase
       .from('projects')
-      .select('*, keywords(keyword, grade)', { count: 'exact' })
+      .select('*', { count: 'exact' })
       .eq('user_id', authUser.userId)
 
     if (status) query = query.eq('status', status)
