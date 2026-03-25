@@ -9,6 +9,7 @@ import Skeleton from '@/components/ui/Skeleton'
 import EmptyState from '@/components/ui/EmptyState'
 import Tabs from '@/components/ui/Tabs'
 import Toast from '@/components/ui/Toast'
+import SetupRequired from '@/components/SetupRequired'
 
 interface Keyword {
   id: string
@@ -559,6 +560,7 @@ export default function KeywordsPage() {
   )
 
   return (
+    <SetupRequired>
     <div className="p-4 lg:p-8 max-w-6xl">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-text-primary">키워드 분석</h1>
@@ -600,5 +602,6 @@ export default function KeywordsPage() {
         onClose={() => setToast((t) => ({ ...t, visible: false }))}
       />
     </div>
+    </SetupRequired>
   )
 }
