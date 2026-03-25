@@ -315,6 +315,12 @@ export default function KeywordDetailPage({ params }: { params: Promise<{ id: st
           )}
         </div>
         <div className="flex items-center gap-3">
+          <a
+            href={`/create/draft-info?keyword_id=${keyword.id}&keyword=${encodeURIComponent(keyword.keyword)}`}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-accent-primary text-white text-sm font-medium rounded-lg hover:bg-accent-primary/90 transition-colors"
+          >
+            콘텐츠 생성
+          </a>
           <div className="flex items-center gap-2 bg-bg-tertiary rounded-lg p-0.5">
             <button
               className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${

@@ -8,12 +8,12 @@ import { validateRequest } from '@/lib/validations'
 const contentCreateSchema = z.object({
   keyword_id: z.string().uuid().optional(),
   keyword: z.string().max(200).optional(),
-  channel: z.enum(['blog', 'threads', 'instagram', 'script']),
+  channel: z.enum(['blog', 'threads', 'instagram', 'facebook', 'video_script', 'script']),
   title: z.string().max(500).optional(),
   body: z.string().optional(),
   hashtags: z.array(z.string()).optional(),
   seo_score: z.number().min(0).max(100).optional(),
-  status: z.enum(['draft', 'generated', 'published']).optional(),
+  status: z.enum(['draft', 'generated', 'confirmed', 'edited', 'scheduled', 'published', 'failed']).optional(),
   meta: z.record(z.string(), z.unknown()).optional(),
 })
 

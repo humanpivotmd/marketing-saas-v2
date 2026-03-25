@@ -22,10 +22,13 @@ interface Content {
 
 const CHANNEL_TABS = [
   { id: 'all', label: '전체' },
+  { id: 'projects', label: '프로젝트' },
   { id: 'blog', label: '블로그' },
   { id: 'threads', label: 'Threads' },
   { id: 'instagram', label: '인스타그램' },
-  { id: 'script', label: '영상 스크립트' },
+  { id: 'facebook', label: '페이스북' },
+  { id: 'video_script', label: '영상 스크립트' },
+  { id: 'script', label: '스크립트(구)' },
 ]
 
 const CHANNEL_COLORS: Record<string, string> = {
@@ -60,10 +63,31 @@ export default function ContentsPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [toast, setToast] = useState<{ visible: boolean; message: string; variant: 'info' | 'success' | 'error' | 'warning' }>({ visible: false, message: '', variant: 'info' })
 
+  const [projects, setProjects] = useState<{ id: string; keyword_text: string; business_type: string; status: string; current_step: number; content_ids: Record<string, string>; updated_at: string; keywords?: { keyword: string; grade: string } }[]>([])
+
   const fetchContents = async () => {
     setLoading(true)
     const token = sessionStorage.getItem('token')
     if (!token) return
+
+    // 프로젝트 탭이면 프로젝트 목록 조회
+    if (activeChannel === 'projects') {
+      try {
+        const res = await fetch('/api/projects?limit=50', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        const json = await res.json()
+        if (json.success) {
+          setProjects(json.data || [])
+          setContents([])
+        }
+      } catch {
+        setToast({ visible: true, message: '프로젝트 목록을 불러올 수 없습니다.', variant: 'error' as const })
+      } finally {
+        setLoading(false)
+      }
+      return
+    }
 
     const params = new URLSearchParams({ page: String(page), limit: '20', sort, order: 'desc' })
     if (activeChannel !== 'all') params.set('channel', activeChannel)
@@ -76,7 +100,7 @@ export default function ContentsPage() {
       const json = await res.json()
       if (json.success) {
         setContents(json.data)
-        setTotalPages(json.pagination.totalPages)
+        setTotalPages(json.pagination?.totalPages || 1)
       }
     } catch {
       setToast({ visible: true, message: '콘텐츠 목록을 불러올 수 없습니다.', variant: 'error' as const })
@@ -184,13 +208,56 @@ export default function ContentsPage() {
             <Skeleton key={i} variant="card" />
           ))}
         </div>
+      ) : activeChannel === 'projects' ? (
+        projects.length === 0 ? (
+          <EmptyState
+            title="프로젝트가 없습니다"
+            description="키워드에서 콘텐츠 생성을 시작해보세요"
+            action={<a href="/keywords"><Button>키워드로 이동</Button></a>}
+          />
+        ) : (
+          <div className="space-y-3">
+            {projects.map((proj) => (
+              <a key={proj.id} href={(() => {
+                const step = proj.current_step || 3
+                const routes: Record<number, string> = { 3: '/create/draft-info', 4: '/create/generating', 5: '/create/channel-write', 6: '/create/image-script', 7: '/create/video-script' }
+                return `${routes[step] || '/create/channel-write'}?project_id=${proj.id}`
+              })()}>
+                <Card padding="sm" className="hover:border-accent-primary/50 transition-colors cursor-pointer">
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-text-primary truncate">
+                          {proj.keywords?.keyword || proj.keyword_text || '키워드 없음'}
+                        </span>
+                        <Badge variant={proj.business_type === 'B2B' ? 'accent' : 'success'}>
+                          {proj.business_type}
+                        </Badge>
+                        <Badge variant={proj.status === 'completed' ? 'success' : 'default'}>
+                          {proj.status === 'completed' ? '완료' : `STEP ${proj.current_step}/7`}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-3 mt-1 text-xs text-text-tertiary">
+                        <span>채널: {Object.keys(proj.content_ids || {}).length}개</span>
+                        <span>{new Date(proj.updated_at).toLocaleDateString('ko-KR')}</span>
+                      </div>
+                    </div>
+                    <span className="text-xs text-text-tertiary">
+                      {proj.status === 'completed' ? '상세 보기' : '이어서 작성'}
+                    </span>
+                  </div>
+                </Card>
+              </a>
+            ))}
+          </div>
+        )
       ) : contents.length === 0 ? (
         <EmptyState
           title="콘텐츠가 없습니다"
           description="AI를 활용해 첫 번째 콘텐츠를 생성해보세요"
           action={
-            <a href="/contents/new">
-              <Button>콘텐츠 생성하기</Button>
+            <a href="/keywords">
+              <Button>키워드에서 시작하기</Button>
             </a>
           }
         />

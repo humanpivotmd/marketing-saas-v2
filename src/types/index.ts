@@ -28,6 +28,9 @@ export type UserRole = 'user' | 'member' | 'team_admin' | 'admin' | 'super_admin
 export type UserStatus = 'pending' | 'active' | 'suspended'
 export type ExperienceLevel = 'beginner' | 'expert'
 
+export type BusinessType = 'B2B' | 'B2C'
+export type PromptMode = 'priority' | 'combine' | 'reference'
+
 export interface User {
   id: string
   email: string
@@ -48,6 +51,17 @@ export interface User {
   pending_plan_id: string | null
   pending_plan_at: string | null
   last_login_at: string | null
+  // v3 마이페이지 확장
+  business_type: BusinessType
+  selected_channels: string[]
+  target_audience: string | null
+  target_gender: 'male' | 'female' | 'all'
+  fixed_keywords: string[]
+  blog_category: string | null
+  industry_id: string | null
+  company_name: string | null
+  service_name: string | null
+  writing_tone: string
   created_at: string
   updated_at: string
 }
@@ -96,14 +110,15 @@ export interface KeywordOpportunity {
   calculated_at: string
 }
 
-export type ContentType = 'blog' | 'threads' | 'instagram' | 'script'
-export type ContentStatus = 'draft' | 'scheduled' | 'published' | 'failed'
+export type ContentType = 'blog' | 'threads' | 'instagram' | 'facebook' | 'video_script' | 'script'
+export type ContentStatus = 'draft' | 'generated' | 'confirmed' | 'edited' | 'scheduled' | 'published' | 'failed'
 
 export interface Content {
   id: string
   user_id: string
   brand_voice_id: string | null
   keyword_id: string | null
+  project_id: string | null
   type: ContentType
   title: string | null
   body: string
@@ -119,6 +134,8 @@ export interface Content {
   seo_score: number | null
   prompt_version_id: string | null
   outline: Record<string, unknown> | null
+  confirmed_at: string | null
+  revision_note: string | null
   created_at: string
   updated_at: string
 }
@@ -146,7 +163,7 @@ export interface Image {
   created_at: string
 }
 
-export type Platform = 'instagram' | 'threads' | 'youtube' | 'naver_blog' | 'kakao'
+export type Platform = 'instagram' | 'threads' | 'youtube' | 'naver_blog' | 'kakao' | 'facebook'
 
 export interface Channel {
   id: string
@@ -178,6 +195,8 @@ export interface Schedule {
 }
 
 export type ActionType = 'content_create' | 'keyword_analyze' | 'image_generate' | 'publish'
+  | 'draft_generate' | 'title_generate' | 'image_script_generate' | 'video_script_generate'
+  | 'quality_score' | 'content_revise'
 
 export interface UsageLog {
   id: string
@@ -251,6 +270,122 @@ export interface SupportTicket {
   admin_reply: string | null
   replied_at: string | null
   created_at: string
+}
+
+// ============================================
+// v3 Pipeline Types
+// ============================================
+
+export interface Industry {
+  id: string
+  parent_id: string | null
+  name: string
+  level: 1 | 2 | 3
+  sort_order: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  children?: Industry[]
+}
+
+export type TopicType = 'info' | 'intro' | 'service' | 'product'
+export type ProjectStatus = 'in_progress' | 'completed' | 'archived'
+
+export interface ProjectStepStatus {
+  s1: 'pending' | 'completed'
+  s2: 'pending' | 'completed'
+  s3: 'pending' | 'completed'
+  s4: 'pending' | 'completed'
+  s5: 'pending' | 'completed'
+  s6: 'pending' | 'completed'
+  s7: 'pending' | 'completed'
+}
+
+export interface Project {
+  id: string
+  user_id: string
+  keyword_id: string | null
+  keyword_text: string | null
+  business_type: BusinessType
+  current_step: number
+  step_status: ProjectStepStatus
+  topic_type: TopicType | null
+  selected_title: string | null
+  title_candidates: string[] | null
+  custom_prompt: string | null
+  prompt_mode: PromptMode
+  draft_content: string | null
+  content_ids: Record<string, string>
+  settings_snapshot: Record<string, unknown> | null
+  status: ProjectStatus
+  confirmed_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type ImageStyleType = 'photo' | 'illustration'
+
+export interface ImageScriptPrompt {
+  seq: number
+  description_ko: string
+  prompt_en: string
+  placement?: string
+}
+
+export interface ImageScript {
+  id: string
+  project_id: string
+  user_id: string
+  content_id: string | null
+  channel: string
+  ai_tool: string
+  image_size: string
+  image_style: ImageStyleType
+  style_detail: string | null
+  prompts: ImageScriptPrompt[]
+  thumbnail_prompt: string | null
+  status: 'generating' | 'generated' | 'edited'
+  created_at: string
+  updated_at: string
+}
+
+export interface VideoScene {
+  scene: number
+  duration: number
+  visual: string
+  narration: string
+  text_overlay?: string
+  transition: string
+}
+
+export interface VideoScript {
+  id: string
+  project_id: string
+  user_id: string
+  content_id: string | null
+  format: 'short' | 'normal'
+  target_channel: string
+  scene_count: number
+  scene_duration: number
+  total_duration: number | null
+  image_style: ImageStyleType
+  style_detail: string | null
+  storyboard: VideoScene[]
+  full_script: string | null
+  status: 'generating' | 'generated' | 'edited'
+  created_at: string
+  updated_at: string
+}
+
+export interface UserPrompt {
+  id: string
+  user_id: string
+  step: string
+  prompt_text: string
+  mode: PromptMode
+  is_active: boolean
+  created_at: string
+  updated_at: string
 }
 
 // ============================================

@@ -45,6 +45,7 @@ export const supportRateLimit = rateLimit(60000, 10)
 export const channelRateLimit = rateLimit(60000, 10)
 export const socialSettingsRateLimit = rateLimit(60000, 10)
 export const accountDeleteRateLimit = rateLimit(300000, 3)
+export const generateRateLimit = rateLimit(60000, 10)  // AI 생성 API: 분당 10회
 
 export function getClientIp(req: Request): string {
   const forwarded = req.headers.get('x-forwarded-for')

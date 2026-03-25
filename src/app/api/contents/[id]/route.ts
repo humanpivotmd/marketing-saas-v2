@@ -10,7 +10,9 @@ const contentUpdateSchema = z.object({
   body: z.string().optional(),
   hashtags: z.array(z.string()).optional(),
   seo_score: z.number().min(0).max(100).optional(),
-  status: z.enum(['draft', 'generated', 'published']).optional(),
+  status: z.enum(['draft', 'generated', 'confirmed', 'edited', 'scheduled', 'published', 'failed']).optional(),
+  confirmed_at: z.string().optional(),
+  revision_note: z.string().optional(),
   meta: z.record(z.string(), z.unknown()).optional(),
 })
 

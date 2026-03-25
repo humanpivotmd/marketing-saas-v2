@@ -26,7 +26,7 @@ export const keywordAnalyzeSchema = z.object({
 // --- Content Schemas ---
 export const contentGenerateSchema = z.object({
   keyword: z.string().min(1).max(200),
-  type: z.enum(['blog', 'threads', 'instagram', 'script']),
+  type: z.enum(['blog', 'threads', 'instagram', 'facebook', 'video_script', 'script']),
   brand_voice_id: z.string().uuid().optional(),
   tone: z.string().max(50).optional(),
   length: z.enum(['short', 'medium', 'long']).optional(),
