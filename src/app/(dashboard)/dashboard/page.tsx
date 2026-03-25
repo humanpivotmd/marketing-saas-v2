@@ -27,6 +27,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<UserData | null>(null)
   const [usage, setUsage] = useState<UsageData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [needsSetup, setNeedsSetup] = useState(false)
 
   useEffect(() => {
     const userData = sessionStorage.getItem('user')
@@ -36,6 +37,21 @@ export default function DashboardPage() {
 
     const token = sessionStorage.getItem('token')
     if (!token) { setLoading(false); return }
+
+    // 마이페이지 설정 확인
+    const setupStatus = sessionStorage.getItem('business_setup')
+    if (setupStatus === 'needed') setNeedsSetup(true)
+    // 직접 확인도 (sessionStorage 미반영 시)
+    fetch('/api/mypage/business-profile', { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && data.data) {
+          const p = data.data
+          const done = !!(p.business_type && p.selected_channels?.length > 0 && p.company_name)
+          setNeedsSetup(!done)
+        }
+      })
+      .catch(() => {})
 
     fetch('/api/mypage/usage', {
       headers: { Authorization: `Bearer ${token}` },
@@ -89,6 +105,25 @@ export default function DashboardPage() {
           </>
         )}
       </div>
+
+      {/* 마이페이지 설정 안내 배너 */}
+      {needsSetup && (
+        <div className="mb-6 p-4 rounded-xl border-2 border-accent-primary/40 bg-accent-primary/5">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl shrink-0">⚙️</span>
+            <div className="flex-1">
+              <h3 className="text-sm font-bold text-text-primary mb-1">마이페이지 설정을 먼저 완료해주세요</h3>
+              <p className="text-xs text-text-secondary leading-relaxed mb-3">
+                콘텐츠를 생성하려면 <strong>비즈니스 유형(B2B/B2C)</strong>, <strong>운영 채널</strong>, <strong>회사명</strong> 등 기본 정보가 필요합니다.
+                설정한 정보는 AI가 맞춤 콘텐츠를 생성할 때 자동으로 반영됩니다.
+              </p>
+              <a href="/settings#business">
+                <Button size="sm">마이페이지 설정하기</Button>
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Usage Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

@@ -6,6 +6,7 @@ import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Toast from '@/components/ui/Toast'
+import SetupRequired from '@/components/SetupRequired'
 
 const TOPIC_TYPES = [
   { value: 'info', label: '정보형', desc: '독자에게 유용한 정보 제공' },
@@ -145,6 +146,7 @@ export default function DraftInfoPage() {
   }
 
   return (
+    <SetupRequired>
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-bold text-text-primary">초안 정보 입력</h1>
@@ -301,5 +303,6 @@ export default function DraftInfoPage() {
 
       <Toast message={toast?.message || ''} variant={toast?.variant} visible={!!toast} onClose={() => setToast(null)} />
     </div>
+    </SetupRequired>
   )
 }

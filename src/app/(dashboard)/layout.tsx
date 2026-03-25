@@ -54,23 +54,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       return
     }
 
-    // 마이페이지 필수 설정 확인 (설정/대시보드 페이지 제외)
-    const skipPaths = ['/settings', '/dashboard', '/onboarding', '/support', '/pricing']
-    if (!skipPaths.some(p => pathname.startsWith(p))) {
-      fetch('/api/mypage/business-profile', { headers: { Authorization: `Bearer ${token}` } })
-        .then(r => r.json())
-        .then(data => {
-          if (data.success && data.data) {
-            const p = data.data
-            const isSetup = p.business_type && (p.selected_channels?.length > 0) && p.company_name
-            if (!isSetup) {
-              sessionStorage.setItem('setup_redirect', pathname)
-              router.push('/settings#business')
-            }
-          }
-        })
-        .catch(() => {})
-    }
+    // 마이페이지 설정 상태를 sessionStorage에 저장 (각 페이지에서 참조)
+    fetch('/api/mypage/business-profile', { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && data.data) {
+          const p = data.data
+          const isSetup = !!(p.business_type && (p.selected_channels?.length > 0) && p.company_name)
+          sessionStorage.setItem('business_setup', isSetup ? 'done' : 'needed')
+        }
+      })
+      .catch(() => {})
   }, [router, pathname])
 
   useEffect(() => {
