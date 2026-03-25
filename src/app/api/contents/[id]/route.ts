@@ -13,6 +13,7 @@ const contentUpdateSchema = z.object({
   status: z.enum(['draft', 'generated', 'confirmed', 'edited', 'scheduled', 'published', 'failed']).optional(),
   confirmed_at: z.string().optional(),
   revision_note: z.string().optional(),
+  scheduled_date: z.string().optional().nullable(),
   meta: z.record(z.string(), z.unknown()).optional(),
 })
 

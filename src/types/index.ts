@@ -136,6 +136,7 @@ export interface Content {
   outline: Record<string, unknown> | null
   confirmed_at: string | null
   revision_note: string | null
+  scheduled_date: string | null
   created_at: string
   updated_at: string
 }

@@ -36,6 +36,7 @@ export default function ChannelWritePage() {
   const [generating, setGenerating] = useState(false)
   const [progress, setProgress] = useState<Record<string, string>>({})
   const [revisionNote, setRevisionNote] = useState('')
+  const [scheduledDate, setScheduledDate] = useState('')
   const [revising, setRevising] = useState(false)
   const [toast, setToast] = useState<{ message: string; variant: 'success' | 'error' } | null>(null)
   const [projectData, setProjectData] = useState<Record<string, unknown> | null>(null)
@@ -150,7 +151,11 @@ export default function ChannelWritePage() {
         await fetch(`/api/contents/${content.id}`, {
           method: 'PUT',
           headers: authHeaders(),
-          body: JSON.stringify({ status: 'confirmed', confirmed_at: new Date().toISOString() }),
+          body: JSON.stringify({
+            status: 'confirmed',
+            confirmed_at: new Date().toISOString(),
+            scheduled_date: scheduledDate || null,
+          }),
         })
       }
 
@@ -185,7 +190,16 @@ export default function ChannelWritePage() {
             <Button variant="secondary" onClick={startGeneration}>재생성</Button>
           )}
           {contents.length > 0 && !generating && (
-            <Button onClick={handleConfirmAll}>전체 컨펌 → 이미지</Button>
+            <div className="flex items-center gap-3">
+              <input
+                type="date"
+                value={scheduledDate}
+                onChange={e => setScheduledDate(e.target.value)}
+                className="py-1.5 px-3 rounded-lg bg-surface-secondary border border-border-primary text-text-primary text-sm"
+                title="발행 예정일"
+              />
+              <Button onClick={handleConfirmAll}>전체 컨펌 → 이미지</Button>
+            </div>
           )}
         </div>
       </div>
