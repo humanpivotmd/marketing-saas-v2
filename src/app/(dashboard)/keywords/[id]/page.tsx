@@ -578,7 +578,7 @@ export default function KeywordDetailPage({ params }: { params: Promise<{ id: st
                 className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-bg-primary/50 hover:bg-bg-tertiary/30 transition-colors"
               >
                 <span className="text-sm text-text-secondary">{topic}</span>
-                <a href={`/content/new?keyword=${encodeURIComponent(keyword.keyword)}&topic=${encodeURIComponent(topic)}`}>
+                <a href={`/create/draft-info?keyword=${encodeURIComponent(keyword.keyword)}`}>
                   <Button variant="ghost" size="sm">글 쓰기</Button>
                 </a>
               </div>

@@ -21,6 +21,8 @@ export interface PipelineContext {
   blogContent?: string
   userPrompt?: string
   promptMode?: 'priority' | 'combine' | 'reference'
+  blogCategory?: string
+  fixedKeywords?: string[]
 }
 
 const B2B_CONTEXT = `
@@ -82,6 +84,9 @@ ${ctx.serviceName ? `- 서비스/제품: ${ctx.serviceName}` : ''}
 - 글 유형: ${topicLabels[ctx.topicType || 'info'] || '정보형'}
 - 톤: ${ctx.tone || 'auto'}
 ${ctx.targetAudience ? `- 타겟: ${ctx.targetAudience}` : ''}
+${ctx.targetGender && ctx.targetGender !== 'all' ? `- 성별: ${ctx.targetGender === 'male' ? '남성' : '여성'} 타겟` : ''}
+${ctx.blogCategory ? `- 블로그 카테고리: ${ctx.blogCategory}` : ''}
+${ctx.fixedKeywords?.length ? `- 고정 키워드: ${ctx.fixedKeywords.join(', ')}` : ''}
 
 [지시]
 위 조건에 맞는 블로그/콘텐츠 제목을 정확히 5개 생성하세요.
@@ -111,7 +116,10 @@ ${getBusinessContext(ctx.businessType)}
 ${ctx.companyName ? `- 회사: ${ctx.companyName}` : ''}
 ${ctx.serviceName ? `- 서비스: ${ctx.serviceName}` : ''}
 ${ctx.targetAudience ? `- 타겟: ${ctx.targetAudience}` : ''}
+${ctx.targetGender && ctx.targetGender !== 'all' ? `- 성별: ${ctx.targetGender === 'male' ? '남성' : '여성'} 타겟` : ''}
 ${ctx.industry ? `- 업종: ${ctx.industry}` : ''}
+${ctx.blogCategory ? `- 블로그 카테고리: ${ctx.blogCategory}` : ''}
+${ctx.fixedKeywords?.length ? `- 고정 키워드: ${ctx.fixedKeywords.join(', ')} (본문에 자연스럽게 포함)` : ''}
 
 [지시]
 위 조건으로 핵심 초안을 작성하세요.

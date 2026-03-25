@@ -484,7 +484,7 @@ export default function KeywordsPage() {
                 {mode === 'beginner' && gradeResult && gradeResult.grade.startsWith('C') && (
                   <div className="mt-2 pt-2 border-t border-[rgba(240,246,252,0.05)]">
                     <a
-                      href={`/content/new?keyword=${encodeURIComponent(kw.keyword)}`}
+                      href={`/create/draft-info?keyword=${encodeURIComponent(kw.keyword)}`}
                       className="text-xs text-accent-primary hover:underline"
                       onClick={(e) => e.stopPropagation()}
                     >
@@ -536,7 +536,7 @@ export default function KeywordsPage() {
                     <p className="text-xs text-text-secondary">{r.opportunity}</p>
                     {r.grade.startsWith('C') && (
                       <a
-                        href={`/content/new?keyword=${encodeURIComponent(r.keyword)}`}
+                        href={`/create/draft-info?keyword=${encodeURIComponent(r.keyword)}`}
                         className="text-xs text-accent-primary hover:underline mt-1 inline-block"
                       >
                         이 키워드로 글 쓰기 &rarr;

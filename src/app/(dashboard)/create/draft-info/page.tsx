@@ -135,6 +135,15 @@ export default function DraftInfoPage() {
     }
   }
 
+  if (!keywordText) {
+    return (
+      <div className="py-12 text-center space-y-4">
+        <p className="text-text-tertiary">키워드를 먼저 선택해주세요.</p>
+        <Button onClick={() => router.push('/keywords')}>키워드 분석으로 이동</Button>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div>

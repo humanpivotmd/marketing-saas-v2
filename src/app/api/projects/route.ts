@@ -49,6 +49,15 @@ export async function POST(req: NextRequest) {
       .eq('id', authUser.userId)
       .single()
 
+    // industry_id → 이름 변환
+    let industryName = ''
+    if (user?.industry_id) {
+      const { data: ind } = await supabase.from('industries').select('name').eq('id', user.industry_id).single()
+      if (ind) industryName = ind.name
+    }
+
+    const snapshot = { ...(user || {}), industry: industryName }
+
     const { data, error } = await supabase
       .from('projects')
       .insert({
@@ -58,7 +67,7 @@ export async function POST(req: NextRequest) {
         business_type: user?.business_type || body.business_type || 'B2C',
         current_step: 3,
         step_status: { s1: 'completed', s2: 'completed', s3: 'pending', s4: 'pending', s5: 'pending', s6: 'pending', s7: 'pending' },
-        settings_snapshot: user || {},
+        settings_snapshot: snapshot,
       })
       .select()
       .single()
