@@ -1369,21 +1369,22 @@ function BusinessProfileTab({ onToast }: { onToast: (t: { message: string; varia
           <select
             value={profile.industry_id}
             onChange={e => setProfile(p => ({ ...p, industry_id: e.target.value }))}
-            className="w-full py-2.5 px-3 rounded-lg bg-surface-secondary border border-border-primary text-text-primary text-sm"
+            className="w-full py-2.5 px-3 rounded-lg border border-border-primary text-sm"
+            style={{ backgroundColor: '#0d1117', color: '#e6edf3' }}
           >
-            <option value="">업종을 선택하세요</option>
+            <option value="" style={{ backgroundColor: '#0d1117', color: '#e6edf3' }}>업종을 선택하세요</option>
             {industries.map(ind => {
               const hasChildren = ind.children && ind.children.length > 0
               if (hasChildren) {
                 return (
-                  <optgroup key={ind.id} label={ind.name}>
+                  <optgroup key={ind.id} label={ind.name} style={{ backgroundColor: '#161b22', color: '#8b949e' }}>
                     {ind.children!.map(sub => (
-                      <option key={sub.id} value={sub.id}>{sub.name}</option>
+                      <option key={sub.id} value={sub.id} style={{ backgroundColor: '#0d1117', color: '#e6edf3' }}>{sub.name}</option>
                     ))}
                   </optgroup>
                 )
               }
-              return <option key={ind.id} value={ind.id}>{ind.name}</option>
+              return <option key={ind.id} value={ind.id} style={{ backgroundColor: '#0d1117', color: '#e6edf3' }}>{ind.name}</option>
             })}
           </select>
         </div>
@@ -1523,13 +1524,14 @@ function BusinessProfileTab({ onToast }: { onToast: (t: { message: string; varia
             <select
               value={profile.blog_category}
               onChange={e => setProfile(p => ({ ...p, blog_category: e.target.value }))}
-              className="w-full py-2.5 px-3 rounded-lg bg-surface-secondary border border-border-primary text-text-primary text-sm"
+              className="w-full py-2.5 px-3 rounded-lg border border-border-primary text-sm"
+              style={{ backgroundColor: '#0d1117', color: '#e6edf3' }}
             >
-              <option value="">카테고리 선택</option>
+              <option value="" style={{ backgroundColor: '#0d1117', color: '#e6edf3' }}>카테고리 선택</option>
               {NAVER_BLOG_TOPICS.map(group => (
-                <optgroup key={group.group} label={group.group}>
+                <optgroup key={group.group} label={group.group} style={{ backgroundColor: '#161b22', color: '#8b949e' }}>
                   {group.topics.map(topic => (
-                    <option key={topic} value={topic}>{topic}</option>
+                    <option key={topic} value={topic} style={{ backgroundColor: '#0d1117', color: '#e6edf3' }}>{topic}</option>
                   ))}
                 </optgroup>
               ))}
