@@ -5,6 +5,12 @@ import path from 'path'
 dotenv.config({ path: path.resolve(__dirname, '.env.test') })
 
 export default defineConfig({
+  webServer: {
+    command: 'npm run build && npm run start',
+    url: 'http://localhost:3000',
+    reuseExistingServer: !process.env.CI,
+    timeout: 180000,
+  },
   testDir: './tests',
   timeout: 120000,
   retries: 0,
