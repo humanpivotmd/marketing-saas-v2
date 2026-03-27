@@ -102,3 +102,166 @@ npm run build   # 프로덕션 빌드 (TypeScript 타입 체크 포함)
   → 프론트 projects 페이지에서 응답 형식 변경 필요
 - settings/page.tsx 탭별 컴포넌트 분리 후 useAsyncAction 적용
 - keywords/page.tsx, keywords/[id]/page.tsx visible 패턴 정리
+
+## Ralph Loop 자동 검증
+
+모든 작업 완료 후 반드시 실행:
+\=== Ralph Loop 시작 ===
+[1/3] 타입 체크 중...
+✅ 타입 체크 통과
+[2/3] 빌드 중...
+
+> marketing-saas-v2@1.0.0 build
+> next build
+
+▲ Next.js 16.2.1 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 3.6s
+  Running TypeScript ...
+  Finished TypeScript in 5.4s ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/96) ...
+  Generating static pages using 11 workers (24/96) 
+  Generating static pages using 11 workers (48/96) 
+  Generating static pages using 11 workers (72/96) 
+✓ Generating static pages using 11 workers (96/96) in 651ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /admin
+├ ○ /admin-login
+├ ○ /admin/industries
+├ ○ /admin/mail
+├ ○ /admin/plans
+├ ○ /admin/prompts
+├ ○ /admin/support
+├ ○ /admin/users
+├ ƒ /api/admin/action-logs
+├ ƒ /api/admin/industries
+├ ƒ /api/admin/industries/[id]
+├ ƒ /api/admin/logs
+├ ƒ /api/admin/mail/history
+├ ƒ /api/admin/mail/send
+├ ƒ /api/admin/migrate
+├ ƒ /api/admin/plan-limits
+├ ƒ /api/admin/prompts
+├ ƒ /api/admin/prompts/[id]/activate
+├ ƒ /api/admin/stats
+├ ƒ /api/admin/stats/costs
+├ ƒ /api/admin/support
+├ ƒ /api/admin/users
+├ ƒ /api/admin/users/[id]
+├ ƒ /api/admin/users/[id]/unlock
+├ ƒ /api/admin/users/[id]/usage-grant
+├ ƒ /api/auth/forgot-password
+├ ƒ /api/auth/login
+├ ƒ /api/auth/me
+├ ƒ /api/auth/register
+├ ƒ /api/auth/resend-verify
+├ ƒ /api/auth/reset-password
+├ ƒ /api/auth/verify-email
+├ ƒ /api/brand-voices
+├ ƒ /api/brand-voices/[id]
+├ ƒ /api/calendar
+├ ƒ /api/channels
+├ ƒ /api/channels/[id]
+├ ƒ /api/channels/test
+├ ƒ /api/contents
+├ ƒ /api/contents/[id]
+├ ƒ /api/contents/[id]/duplicate
+├ ƒ /api/generate
+├ ƒ /api/generate/draft
+├ ƒ /api/generate/image
+├ ƒ /api/generate/image-script
+├ ƒ /api/generate/outline
+├ ƒ /api/generate/pipeline
+├ ƒ /api/generate/single
+├ ƒ /api/generate/titles
+├ ƒ /api/generate/video-script
+├ ƒ /api/industries
+├ ƒ /api/keywords
+├ ƒ /api/keywords/[id]
+├ ƒ /api/keywords/grade
+├ ƒ /api/keywords/naver
+├ ƒ /api/keywords/opportunities
+├ ƒ /api/keywords/seo-score
+├ ƒ /api/keywords/trends
+├ ƒ /api/mypage/account
+├ ƒ /api/mypage/business-profile
+├ ƒ /api/mypage/password
+├ ƒ /api/mypage/profile
+├ ƒ /api/mypage/usage
+├ ƒ /api/payments/checkout
+├ ƒ /api/payments/confirm
+├ ƒ /api/payments/history
+├ ƒ /api/payments/webhook
+├ ƒ /api/projects
+├ ƒ /api/projects/[id]
+├ ƒ /api/public/keyword-preview
+├ ƒ /api/publish/clipboard
+├ ƒ /api/publish/instagram
+├ ƒ /api/publish/threads
+├ ƒ /api/schedules
+├ ƒ /api/schedules/[id]
+├ ƒ /api/social-settings
+├ ƒ /api/subscriptions
+├ ƒ /api/subscriptions/cancel
+├ ƒ /api/support
+├ ƒ /api/user-prompts
+├ ○ /calendar
+├ ○ /contents
+├ ƒ /contents/[id]
+├ ○ /contents/new
+├ ○ /create/channel-write
+├ ○ /create/draft-info
+├ ○ /create/generating
+├ ○ /create/image-script
+├ ○ /create/video-script
+├ ○ /dashboard
+├ ○ /dashboard-preview
+├ ○ /guide
+├ ○ /keywords
+├ ƒ /keywords/[id]
+├ ○ /landing
+├ ○ /login
+├ ○ /login-preview
+├ ○ /onboarding
+├ ○ /pricing
+├ ○ /pricing/checkout
+├ ○ /privacy
+├ ○ /reset-password
+├ ○ /settings
+├ ○ /sitemap.xml
+├ ○ /support
+├ ○ /terms
+└ ○ /verify-email
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+✅ 빌드 성공
+[3/3] PRD 상태 확인...
+PRD 현황: 7/11 통과
+US-01 ❌ 토스페이먼츠 결제 연동
+US-02 ❌ 페이스북 자동 발행
+US-03 ✅ 채널별 개별 컨펌
+US-04 ❌ 자동 결제 갱신
+US-05 ❌ 블로그 직접 발행
+US-06 ✅ SNS 채널 설정 개선
+US-07 ✅ 채널별 이미지 BottomSheet 통합
+US-08 ✅ STEP2 키워드+서비스명 조합
+US-09 ✅ STEP3 이벤트 유형 + 핵심 전달 내용
+US-10 ✅ STEP7 영상 글+스토리보드 탭 분리
+US-11 ✅ STEP7 영상 수정 요청 API 연동
+=== Ralph Loop 완료 ===
+오류 발생 시:
+1. 타입 에러 → 해당 파일 수정 후 다시 실행
+2. 빌드 실패 → 오류 메시지 확인 후 수정
+3. 모두 통과 → 커밋 진행

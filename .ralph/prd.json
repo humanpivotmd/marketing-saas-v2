@@ -61,6 +61,12 @@
       "title": "STEP7 영상 글+스토리보드 탭 분리",
       "description": "영상 글/스토리보드 탭 분리, 마이프롬프트 토글, 수정 요청 기능",
       "passes": true
+    },
+    {
+      "id": "US-11",
+      "title": "STEP7 영상 수정 요청 API 연동",
+      "description": "revision_note, use_my_prompt 파라미터 추가",
+      "passes": true
     }
   ]
 }
