@@ -49,7 +49,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const allowed = [
       'current_step', 'step_status', 'topic_type', 'selected_title',
       'title_candidates', 'custom_prompt', 'prompt_mode', 'draft_content',
-      'content_ids', 'status', 'confirmed_at', 'business_type'
+      'content_ids', 'status', 'confirmed_at', 'business_type', 'core_message'
     ]
     for (const key of allowed) {
       if (body[key] !== undefined) updateData[key] = body[key]

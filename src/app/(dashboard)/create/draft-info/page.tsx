@@ -101,6 +101,7 @@ export default function DraftInfoPage() {
           title_candidates: titles,
           custom_prompt: customPrompt || null,
           prompt_mode: promptMode,
+          core_message: coreMessage || null,
           current_step: 4,
           step_status: { s1: 'completed', s2: 'completed', s3: 'completed', s4: 'pending', s5: 'pending', s6: 'pending', s7: 'pending' },
         }),

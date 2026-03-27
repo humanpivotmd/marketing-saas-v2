@@ -67,6 +67,12 @@
       "title": "STEP7 영상 수정 요청 API 연동",
       "description": "revision_note, use_my_prompt 파라미터 추가",
       "passes": true
+    },
+    {
+      "id": "US-12",
+      "title": "STEP3 core_message API 반영",
+      "description": "titles/draft API에 핵심 전달 내용 반영",
+      "passes": true
     }
   ]
 }
