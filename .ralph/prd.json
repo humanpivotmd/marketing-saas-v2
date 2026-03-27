@@ -43,6 +43,12 @@
       "title": "채널별 이미지 BottomSheet 통합",
       "description": "STEP5+6 통합, 마이프롬프트 토글, 모바일 최적화",
       "passes": true
+    },
+    {
+      "id": "US-08",
+      "title": "STEP2 키워드+서비스명 조합",
+      "description": "키워드 입력 시 서비스명 자동 조합 + ON/OFF 토글",
+      "passes": true
     }
   ]
 }

@@ -289,7 +289,7 @@ export interface Industry {
   children?: Industry[]
 }
 
-export type TopicType = 'info' | 'intro' | 'service' | 'product'
+export type TopicType = 'info' | 'intro' | 'service' | 'product' | 'event'
 export type ProjectStatus = 'in_progress' | 'completed' | 'archived'
 
 export interface ProjectStepStatus {

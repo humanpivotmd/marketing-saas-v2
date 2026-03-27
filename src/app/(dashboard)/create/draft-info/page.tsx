@@ -23,6 +23,7 @@ export default function DraftInfoPage() {
   const [topicType, setTopicType] = useState('info')
   const [tone, setTone] = useState('auto')
   const [customPrompt, setCustomPrompt] = useState('')
+  const [coreMessage, setCoreMessage] = useState('')
   const [promptMode, setPromptMode] = useState('combine')
   const [titles, setTitles] = useState<string[]>([])
   const [selectedTitle, setSelectedTitle] = useState('')
@@ -59,6 +60,7 @@ export default function DraftInfoPage() {
           company_name: companyName,
           service_name: serviceName,
           topic_type: topicType,
+          core_message: coreMessage || undefined,
           tone,
           custom_prompt: customPrompt,
         }),
@@ -199,6 +201,19 @@ export default function DraftInfoPage() {
             </button>
           ))}
         </div>
+      </Card>
+
+      {/* 핵심 전달 내용 */}
+      <Card>
+        <h3 className="text-sm font-semibold text-text-primary mb-2">핵심 전달 내용 (선택)</h3>
+        <textarea
+          value={coreMessage}
+          onChange={e => setCoreMessage(e.target.value)}
+          placeholder='예: "3월 할인 이벤트 진행 중", "신규 기능 출시"'
+          rows={2}
+          className="w-full py-2.5 px-3 rounded-lg bg-surface-secondary border border-border-primary text-text-primary text-sm resize-none"
+        />
+        <p className="text-xs text-text-tertiary mt-1">입력하면 AI가 이 내용을 중심으로 글을 작성합니다.</p>
       </Card>
 
       {/* 커스텀 프롬프트 */}

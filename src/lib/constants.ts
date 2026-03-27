@@ -61,6 +61,7 @@ export const TOPIC_TYPES = [
   { value: 'intro' as const, label: '회사 소개', desc: '회사/브랜드를 알리는 글' },
   { value: 'service' as const, label: '서비스 소개', desc: '서비스 설명 및 장점' },
   { value: 'product' as const, label: '상품 소개', desc: '제품 리뷰 및 소개' },
+  { value: 'event' as const, label: '이벤트', desc: '할인·프로모션·이벤트 안내' },
 ] as const
 
 // ── 프롬프트 적용 모드 ──
