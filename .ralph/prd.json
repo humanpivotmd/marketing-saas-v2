@@ -49,6 +49,12 @@
       "title": "STEP2 키워드+서비스명 조합",
       "description": "키워드 입력 시 서비스명 자동 조합 + ON/OFF 토글",
       "passes": true
+    },
+    {
+      "id": "US-09",
+      "title": "STEP3 이벤트 유형 + 핵심 전달 내용",
+      "description": "이벤트 글 유형 추가, 핵심 전달 내용 입력박스 추가",
+      "passes": true
     }
   ]
 }
