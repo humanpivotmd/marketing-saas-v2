@@ -56,7 +56,7 @@ function getGradeColor(grade: string | null): string {
   return GRADE_COLORS[grade] || 'bg-bg-tertiary text-text-tertiary'
 }
 
-import { getToken } from '@/lib/auth-client'
+import { getToken, authHeaders } from '@/lib/auth-client'
 
 function getExperienceLevel(): string {
   try {
@@ -73,6 +73,8 @@ export default function KeywordsPage() {
   const [keywords, setKeywords] = useState<Keyword[]>([])
   const [loading, setLoading] = useState(true)
   const [newKeyword, setNewKeyword] = useState('')
+  const [serviceName, setServiceName] = useState<string | null>(null)
+  const [includeServiceName, setIncludeServiceName] = useState(true)
   const [newGroup, setNewGroup] = useState('')
   const [adding, setAdding] = useState(false)
   const [analyzing, setAnalyzing] = useState(false)
@@ -80,6 +82,17 @@ export default function KeywordsPage() {
   const [mode, setMode] = useState<'beginner' | 'expert'>('beginner')
   const [toast, setToast] = useState({ visible: false, message: '', variant: 'error' as 'error' | 'info' | 'success' })
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    fetch('/api/mypage/business-profile', { headers: authHeaders() })
+      .then(r => r.json())
+      .then(res => {
+        if (res.success && res.data?.service_name) {
+          setServiceName(res.data.service_name)
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     setMode(getExperienceLevel() as 'beginner' | 'expert')
@@ -118,7 +131,9 @@ export default function KeywordsPage() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          keyword: newKeyword.trim(),
+          keyword: includeServiceName && serviceName
+            ? `${newKeyword.trim()} ${serviceName}`
+            : newKeyword.trim(),
           group_name: newGroup.trim() || undefined,
         }),
       })
@@ -297,6 +312,28 @@ export default function KeywordsPage() {
             등록
           </Button>
         </form>
+        {serviceName && (
+          <div className="flex items-center justify-between mt-3 p-3 rounded-lg bg-surface-secondary border border-border-primary">
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-text-tertiary">조합:</span>
+              <span className="text-text-primary font-medium">
+                {newKeyword || '키워드'} + {serviceName}
+              </span>
+            </div>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <span className="text-xs text-text-tertiary">서비스명 포함</span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={includeServiceName}
+                onClick={() => setIncludeServiceName(v => !v)}
+                className={`relative w-9 h-5 rounded-full transition-colors ${includeServiceName ? 'bg-accent-primary' : 'bg-surface-secondary border border-border-primary'}`}
+              >
+                <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${includeServiceName ? 'translate-x-4' : 'translate-x-0.5'}`} />
+              </button>
+            </label>
+          </div>
+        )}
       </Card>
 
       {/* Actions */}

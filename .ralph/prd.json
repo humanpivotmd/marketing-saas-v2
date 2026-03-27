@@ -37,6 +37,12 @@
       "title": "SNS 채널 설정 개선",
       "description": "페이스북 채널 추가 옵션 + 토큰 수정 UI",
       "passes": true
+    },
+    {
+      "id": "US-07",
+      "title": "채널별 이미지 BottomSheet 통합",
+      "description": "STEP5+6 통합, 마이프롬프트 토글, 모바일 최적화",
+      "passes": true
     }
   ]
 }
