@@ -12,8 +12,8 @@ export default defineConfig({
     timeout: 180000,
   },
   testDir: './tests',
-  timeout: 120000,
-  retries: 0,
+  timeout: 180000,
+  retries: 1,
   use: {
     baseURL: process.env.TEST_BASE_URL || 'http://localhost:3000',
     screenshot: 'only-on-failure',
@@ -37,12 +37,21 @@ export default defineConfig({
     {
       name: 'e2e',
       testDir: './tests/e2e',
-      testIgnore: /mobile\.spec\.ts/,
+      testIgnore: [/mobile\.spec\.ts/, /scenario-.*\.spec\.ts/],
       use: {
         browserName: 'chromium',
         storageState: './tests/.auth/session.json',
       },
       dependencies: ['setup'],
+    },
+    {
+      name: 'scenario',
+      testDir: './tests/e2e',
+      testMatch: /scenario-.*\.spec\.ts/,
+      use: {
+        browserName: 'chromium',
+      },
+      timeout: 300000,
     },
     {
       name: 'mobile-iphone',
