@@ -68,6 +68,7 @@ export default function VideoScriptPage() {
           scene_duration: sceneDuration,
           image_style: imageStyle,
           style_detail: styleDetail,
+          revision_note: revisionNote || undefined,
           use_my_prompt: useMyPrompt,
         }),
       })

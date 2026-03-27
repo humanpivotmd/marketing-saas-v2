@@ -55,6 +55,12 @@
       "title": "STEP3 이벤트 유형 + 핵심 전달 내용",
       "description": "이벤트 글 유형 추가, 핵심 전달 내용 입력박스 추가",
       "passes": true
+    },
+    {
+      "id": "US-10",
+      "title": "STEP7 영상 글+스토리보드 탭 분리",
+      "description": "영상 글/스토리보드 탭 분리, 마이프롬프트 토글, 수정 요청 기능",
+      "passes": true
     }
   ]
 }
