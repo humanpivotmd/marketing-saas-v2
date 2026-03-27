@@ -82,6 +82,7 @@ export default function KeywordsPage() {
   const [mode, setMode] = useState<'beginner' | 'expert'>('beginner')
   const [toast, setToast] = useState({ visible: false, message: '', variant: 'error' as 'error' | 'info' | 'success' })
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [compareOpen, setCompareOpen] = useState(false)
 
   useEffect(() => {
     fetch('/api/mypage/business-profile', { headers: authHeaders() })
@@ -593,6 +594,67 @@ export default function KeywordsPage() {
     </div>
   )
 
+  // Grade compare table
+  const gradedKeywords = keywords
+    .filter(kw => kw.grade)
+    .sort((a, b) => (a.grade || '').localeCompare(b.grade || ''))
+    .slice(0, 10)
+
+  const gradeCompareContent = gradedKeywords.length === 0 ? (
+    <EmptyState
+      title="분석된 키워드가 없습니다"
+      description="키워드를 등록하고 '전체 등급 분석'을 실행하세요."
+    />
+  ) : (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-text-primary">
+          등급 분석 비교 <span className="text-text-tertiary font-normal">({gradedKeywords.length}개)</span>
+        </h3>
+        <button
+          onClick={() => setCompareOpen(v => !v)}
+          className="text-xs text-accent-primary hover:underline min-h-[44px] flex items-center"
+        >
+          {compareOpen ? '접기' : '펼치기'}
+        </button>
+      </div>
+      {compareOpen && (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border-primary text-text-tertiary text-xs">
+                <th className="text-left py-2 pr-4 font-medium">키워드</th>
+                <th className="text-center py-2 px-3 font-medium">등급</th>
+                <th className="text-right py-2 px-3 font-medium">월검색량</th>
+                <th className="text-center py-2 px-3 font-medium">경쟁도</th>
+                <th className="text-right py-2 pl-3 font-medium">분석일</th>
+              </tr>
+            </thead>
+            <tbody>
+              {gradedKeywords.map(kw => (
+                <tr key={kw.id} className="border-b border-border-primary/50 hover:bg-surface-secondary/50">
+                  <td className="py-2.5 pr-4 text-text-primary font-medium truncate max-w-[200px]">{kw.keyword}</td>
+                  <td className="py-2.5 px-3 text-center">
+                    <span className={`inline-flex items-center px-2 py-0.5 text-xs font-bold rounded-md ${getGradeColor(kw.grade)}`}>
+                      {kw.grade}
+                    </span>
+                  </td>
+                  <td className="py-2.5 px-3 text-right text-text-secondary">
+                    {kw.monthly_search?.toLocaleString() || '-'}
+                  </td>
+                  <td className="py-2.5 px-3 text-center text-text-secondary">{kw.competition || '-'}</td>
+                  <td className="py-2.5 pl-3 text-right text-text-tertiary text-xs">
+                    {kw.last_analyzed ? new Date(kw.last_analyzed).toLocaleDateString('ko-KR') : '-'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
+
   return (
     <SetupRequired>
     <div className="p-4 lg:p-8 max-w-6xl">
@@ -626,6 +688,7 @@ export default function KeywordsPage() {
         tabs={[
           { id: 'keywords', label: '키워드 관리', content: keywordListContent },
           { id: 'recommendations', label: '추천', content: recommendationsContent },
+          { id: 'compare', label: '등급 비교', content: gradeCompareContent },
         ]}
       />
 
