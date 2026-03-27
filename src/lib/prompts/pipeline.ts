@@ -21,6 +21,7 @@ export interface PipelineContext {
   blogContent?: string
   userPrompt?: string
   promptMode?: 'priority' | 'combine' | 'reference'
+  coreMessage?: string
   blogCategory?: string
   fixedKeywords?: string[]
 }
@@ -345,6 +346,7 @@ ${ctx.targetAudience ? `- 타겟: ${ctx.targetAudience}` : ''}
 ${ctx.targetGender && ctx.targetGender !== 'all' ? `- 성별: ${ctx.targetGender === 'male' ? '남성' : '여성'} 타겟` : ''}
 ${ctx.blogCategory ? `- 블로그 카테고리: ${ctx.blogCategory}` : ''}
 ${ctx.fixedKeywords?.length ? `- 고정 키워드: ${ctx.fixedKeywords.join(', ')}` : ''}
+${ctx.coreMessage ? `- 핵심 전달 내용: ${ctx.coreMessage}` : ''}
 
 ${getIndustryContext(ctx.industry)}
 
@@ -379,6 +381,7 @@ ${ctx.targetAudience ? `- 타겟: ${ctx.targetAudience}` : ''}
 ${ctx.targetGender && ctx.targetGender !== 'all' ? `- 성별: ${ctx.targetGender === 'male' ? '남성' : '여성'} 타겟` : ''}
 ${ctx.blogCategory ? `- 블로그 카테고리: ${ctx.blogCategory}` : ''}
 ${ctx.fixedKeywords?.length ? `- 고정 키워드: ${ctx.fixedKeywords.join(', ')} (본문에 자연스럽게 포함)` : ''}
+${ctx.coreMessage ? `- 핵심 전달 내용 (반드시 본문에 포함): ${ctx.coreMessage}` : ''}
 
 ${getIndustryContext(ctx.industry)}
 

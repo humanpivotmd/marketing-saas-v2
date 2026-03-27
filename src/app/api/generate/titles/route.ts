@@ -23,6 +23,7 @@ export async function POST(req: NextRequest) {
       topicType: body.topic_type,
       userPrompt: body.custom_prompt ? sanitizePromptInput(body.custom_prompt) : undefined,
       promptMode: body.prompt_mode,
+      coreMessage: body.core_message ? sanitizeInput(body.core_message) : undefined,
     }
 
     if (!ctx.keyword) {

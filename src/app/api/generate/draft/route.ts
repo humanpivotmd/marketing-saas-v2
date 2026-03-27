@@ -52,6 +52,7 @@ export async function POST(req: NextRequest) {
       selectedTitle: project.selected_title || '',
       userPrompt: project.custom_prompt,
       promptMode: project.prompt_mode,
+      coreMessage: snapshot.core_message,
     }
 
     const prompt = buildDraftPrompt(ctx)
