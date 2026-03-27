@@ -1,0 +1,840 @@
+[ 3075329ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:67:7
+the name `BRAND_VOICE_PRESETS` is defined multiple times
+  65 |
+  66 | // --- Presets ---
+> 67 | const BRAND_VOICE_PRESETS = [
+     |       ^^^^^^^^^^^^^^^^^^^
+  68 |   { name: '카페/음식점', industry: '카페/음식점', tone: '친근한', description: '따뜻하고 ...
+  69 |   { name: '뷰티/패션', industry: '뷰티/패션', tone: '트렌디한', description: '세련되고 트...
+  70 |   { name: '교육/학원', industry: '교육', tone: '전문적인', description: '신뢰감 있는 교육 ...
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3075330ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:102:7
+the name `CHANNEL_OPTIONS` is defined multiple times
+  100 |
+  101 | // --- 운영 채널 옵션 ---
+> 102 | const CHANNEL_OPTIONS = [
+      |       ^^^^^^^^^^^^^^^
+  103 |   { id: 'blog', label: '블로그', icon: '📝' },
+  104 |   { id: 'threads', label: 'Threads', icon: '🧵' },
+  105 |   { id: 'instagram', label: '인스타그램', icon: '📸' },
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3075330ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:84:7
+the name `NAVER_BLOG_TOPICS` is defined multiple times
+  82 |
+  83 | // --- 네이버 블로그 주제 33개 ---
+> 84 | const NAVER_BLOG_TOPICS = [
+     |       ^^^^^^^^^^^^^^^^^
+  85 |   { group: '엔터테인먼트·예술', topics: ['문학·책', '영화', '미술·디자인', '공연·전시', '...
+  86 |   { group: '생활·노하우·쇼핑', topics: ['일상·생각', '육아·결혼', '애완·반려동물', '쇼핑',...
+  87 |   { group: '취미·여가·여행', topics: ['게임', '스포츠', '사진', '가드닝', '세계여행', '맛...
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3075331ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:75:7
+the name `PLATFORM_LABELS` is defined multiple times
+  73 | ]
+  74 |
+> 75 | const PLATFORM_LABELS: Record<string, string> = {
+     |       ^^^^^^^^^^^^^^^
+  76 |   instagram: 'Instagram',
+  77 |   threads: 'Threads',
+  78 |   youtube: 'YouTube',
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3075331ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:119:7
+the name `PROMPT_MODES` is defined multiple times
+  117 | ]
+  118 |
+> 119 | const PROMPT_MODES = [
+      |       ^^^^^^^^^^^^
+  120 |   { value: 'priority', label: '내 프롬프트 우선', description: '내 프롬프트를 최우선으로 ...
+  121 |   { value: 'combine', label: '조합', description: '시스템 프롬프트와 내 프롬프트를 조합' },
+  122 |   { value: 'reference', label: '참고', description: '내 프롬프트를 참고 수준으로 반영' },
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3075331ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:92:7
+the name `PROMPT_STEPS` is defined multiple times
+  90 |
+  91 | // --- 채널별 프롬프트 STEP ---
+> 92 | const PROMPT_STEPS = [
+     |       ^^^^^^^^^^^^
+  93 |   { step: 'blog', label: '블로그', description: '네이버 블로그 콘텐츠 생성 시 적용' },
+  94 |   { step: 'instagram', label: '인스타그램', description: '인스타그램 캡션 생성 시 적용' },
+  95 |   { step: 'threads', label: 'Threads', description: 'Threads 게시글 생성 시 적용' },
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3075331ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:111:7
+the name `TONE_OPTIONS` is defined multiple times
+  109 |
+  110 | // --- 글 톤 옵션 ---
+> 111 | const TONE_OPTIONS = [
+      |       ^^^^^^^^^^^^
+  112 |   { value: 'auto', label: '자동' },
+  113 |   { value: 'professional', label: '전문적' },
+  114 |   { value: 'friendly', label: '친근한' },
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3075407ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:67:7
+the name `BRAND_VOICE_PRESETS` is defined multiple times
+  65 |
+  66 | // --- Presets ---
+> 67 | const BRAND_VOICE_PRESETS = [
+     |       ^^^^^^^^^^^^^^^^^^^
+  68 |   { name: '카페/음식점', industry: '카페/음식점', tone: '친근한', description: '따뜻하고 ...
+  69 |   { name: '뷰티/패션', industry: '뷰티/패션', tone: '트렌디한', description: '세련되고 트...
+  70 |   { name: '교육/학원', industry: '교육', tone: '전문적인', description: '신뢰감 있는 교육 ...
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3075407ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:102:7
+the name `CHANNEL_OPTIONS` is defined multiple times
+  100 |
+  101 | // --- 운영 채널 옵션 ---
+> 102 | const CHANNEL_OPTIONS = [
+      |       ^^^^^^^^^^^^^^^
+  103 |   { id: 'blog', label: '블로그', icon: '📝' },
+  104 |   { id: 'threads', label: 'Threads', icon: '🧵' },
+  105 |   { id: 'instagram', label: '인스타그램', icon: '📸' },
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3075407ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:84:7
+the name `NAVER_BLOG_TOPICS` is defined multiple times
+  82 |
+  83 | // --- 네이버 블로그 주제 33개 ---
+> 84 | const NAVER_BLOG_TOPICS = [
+     |       ^^^^^^^^^^^^^^^^^
+  85 |   { group: '엔터테인먼트·예술', topics: ['문학·책', '영화', '미술·디자인', '공연·전시', '...
+  86 |   { group: '생활·노하우·쇼핑', topics: ['일상·생각', '육아·결혼', '애완·반려동물', '쇼핑',...
+  87 |   { group: '취미·여가·여행', topics: ['게임', '스포츠', '사진', '가드닝', '세계여행', '맛...
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3075408ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:75:7
+the name `PLATFORM_LABELS` is defined multiple times
+  73 | ]
+  74 |
+> 75 | const PLATFORM_LABELS: Record<string, string> = {
+     |       ^^^^^^^^^^^^^^^
+  76 |   instagram: 'Instagram',
+  77 |   threads: 'Threads',
+  78 |   youtube: 'YouTube',
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3075408ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:119:7
+the name `PROMPT_MODES` is defined multiple times
+  117 | ]
+  118 |
+> 119 | const PROMPT_MODES = [
+      |       ^^^^^^^^^^^^
+  120 |   { value: 'priority', label: '내 프롬프트 우선', description: '내 프롬프트를 최우선으로 ...
+  121 |   { value: 'combine', label: '조합', description: '시스템 프롬프트와 내 프롬프트를 조합' },
+  122 |   { value: 'reference', label: '참고', description: '내 프롬프트를 참고 수준으로 반영' },
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3075408ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:92:7
+the name `PROMPT_STEPS` is defined multiple times
+  90 |
+  91 | // --- 채널별 프롬프트 STEP ---
+> 92 | const PROMPT_STEPS = [
+     |       ^^^^^^^^^^^^
+  93 |   { step: 'blog', label: '블로그', description: '네이버 블로그 콘텐츠 생성 시 적용' },
+  94 |   { step: 'instagram', label: '인스타그램', description: '인스타그램 캡션 생성 시 적용' },
+  95 |   { step: 'threads', label: 'Threads', description: 'Threads 게시글 생성 시 적용' },
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3075408ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:111:7
+the name `TONE_OPTIONS` is defined multiple times
+  109 |
+  110 | // --- 글 톤 옵션 ---
+> 111 | const TONE_OPTIONS = [
+      |       ^^^^^^^^^^^^
+  112 |   { value: 'auto', label: '자동' },
+  113 |   { value: 'professional', label: '전문적' },
+  114 |   { value: 'friendly', label: '친근한' },
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3075493ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:67:7
+the name `BRAND_VOICE_PRESETS` is defined multiple times
+  65 |
+  66 | // --- Presets ---
+> 67 | const BRAND_VOICE_PRESETS = [
+     |       ^^^^^^^^^^^^^^^^^^^
+  68 |   { name: '카페/음식점', industry: '카페/음식점', tone: '친근한', description: '따뜻하고 ...
+  69 |   { name: '뷰티/패션', industry: '뷰티/패션', tone: '트렌디한', description: '세련되고 트...
+  70 |   { name: '교육/학원', industry: '교육', tone: '전문적인', description: '신뢰감 있는 교육 ...
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3075493ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:102:7
+the name `CHANNEL_OPTIONS` is defined multiple times
+  100 |
+  101 | // --- 운영 채널 옵션 ---
+> 102 | const CHANNEL_OPTIONS = [
+      |       ^^^^^^^^^^^^^^^
+  103 |   { id: 'blog', label: '블로그', icon: '📝' },
+  104 |   { id: 'threads', label: 'Threads', icon: '🧵' },
+  105 |   { id: 'instagram', label: '인스타그램', icon: '📸' },
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3075493ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:84:7
+the name `NAVER_BLOG_TOPICS` is defined multiple times
+  82 |
+  83 | // --- 네이버 블로그 주제 33개 ---
+> 84 | const NAVER_BLOG_TOPICS = [
+     |       ^^^^^^^^^^^^^^^^^
+  85 |   { group: '엔터테인먼트·예술', topics: ['문학·책', '영화', '미술·디자인', '공연·전시', '...
+  86 |   { group: '생활·노하우·쇼핑', topics: ['일상·생각', '육아·결혼', '애완·반려동물', '쇼핑',...
+  87 |   { group: '취미·여가·여행', topics: ['게임', '스포츠', '사진', '가드닝', '세계여행', '맛...
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3075493ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:75:7
+the name `PLATFORM_LABELS` is defined multiple times
+  73 | ]
+  74 |
+> 75 | const PLATFORM_LABELS: Record<string, string> = {
+     |       ^^^^^^^^^^^^^^^
+  76 |   instagram: 'Instagram',
+  77 |   threads: 'Threads',
+  78 |   youtube: 'YouTube',
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3075493ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:119:7
+the name `PROMPT_MODES` is defined multiple times
+  117 | ]
+  118 |
+> 119 | const PROMPT_MODES = [
+      |       ^^^^^^^^^^^^
+  120 |   { value: 'priority', label: '내 프롬프트 우선', description: '내 프롬프트를 최우선으로 ...
+  121 |   { value: 'combine', label: '조합', description: '시스템 프롬프트와 내 프롬프트를 조합' },
+  122 |   { value: 'reference', label: '참고', description: '내 프롬프트를 참고 수준으로 반영' },
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3075493ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:92:7
+the name `PROMPT_STEPS` is defined multiple times
+  90 |
+  91 | // --- 채널별 프롬프트 STEP ---
+> 92 | const PROMPT_STEPS = [
+     |       ^^^^^^^^^^^^
+  93 |   { step: 'blog', label: '블로그', description: '네이버 블로그 콘텐츠 생성 시 적용' },
+  94 |   { step: 'instagram', label: '인스타그램', description: '인스타그램 캡션 생성 시 적용' },
+  95 |   { step: 'threads', label: 'Threads', description: 'Threads 게시글 생성 시 적용' },
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3075493ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:111:7
+the name `TONE_OPTIONS` is defined multiple times
+  109 |
+  110 | // --- 글 톤 옵션 ---
+> 111 | const TONE_OPTIONS = [
+      |       ^^^^^^^^^^^^
+  112 |   { value: 'auto', label: '자동' },
+  113 |   { value: 'professional', label: '전문적' },
+  114 |   { value: 'friendly', label: '친근한' },
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3076826ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:67:7
+the name `BRAND_VOICE_PRESETS` is defined multiple times
+  65 |
+  66 | // --- Presets ---
+> 67 | const BRAND_VOICE_PRESETS = [
+     |       ^^^^^^^^^^^^^^^^^^^
+  68 |   { name: '카페/음식점', industry: '카페/음식점', tone: '친근한', description: '따뜻하고 ...
+  69 |   { name: '뷰티/패션', industry: '뷰티/패션', tone: '트렌디한', description: '세련되고 트...
+  70 |   { name: '교육/학원', industry: '교육', tone: '전문적인', description: '신뢰감 있는 교육 ...
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3076827ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:102:7
+the name `CHANNEL_OPTIONS` is defined multiple times
+  100 |
+  101 | // --- 운영 채널 옵션 ---
+> 102 | const CHANNEL_OPTIONS = [
+      |       ^^^^^^^^^^^^^^^
+  103 |   { id: 'blog', label: '블로그', icon: '📝' },
+  104 |   { id: 'threads', label: 'Threads', icon: '🧵' },
+  105 |   { id: 'instagram', label: '인스타그램', icon: '📸' },
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3076827ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:84:7
+the name `NAVER_BLOG_TOPICS` is defined multiple times
+  82 |
+  83 | // --- 네이버 블로그 주제 33개 ---
+> 84 | const NAVER_BLOG_TOPICS = [
+     |       ^^^^^^^^^^^^^^^^^
+  85 |   { group: '엔터테인먼트·예술', topics: ['문학·책', '영화', '미술·디자인', '공연·전시', '...
+  86 |   { group: '생활·노하우·쇼핑', topics: ['일상·생각', '육아·결혼', '애완·반려동물', '쇼핑',...
+  87 |   { group: '취미·여가·여행', topics: ['게임', '스포츠', '사진', '가드닝', '세계여행', '맛...
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3076827ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:75:7
+the name `PLATFORM_LABELS` is defined multiple times
+  73 | ]
+  74 |
+> 75 | const PLATFORM_LABELS: Record<string, string> = {
+     |       ^^^^^^^^^^^^^^^
+  76 |   instagram: 'Instagram',
+  77 |   threads: 'Threads',
+  78 |   youtube: 'YouTube',
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3076827ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:119:7
+the name `PROMPT_MODES` is defined multiple times
+  117 | ]
+  118 |
+> 119 | const PROMPT_MODES = [
+      |       ^^^^^^^^^^^^
+  120 |   { value: 'priority', label: '내 프롬프트 우선', description: '내 프롬프트를 최우선으로 ...
+  121 |   { value: 'combine', label: '조합', description: '시스템 프롬프트와 내 프롬프트를 조합' },
+  122 |   { value: 'reference', label: '참고', description: '내 프롬프트를 참고 수준으로 반영' },
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3076827ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:92:7
+the name `PROMPT_STEPS` is defined multiple times
+  90 |
+  91 | // --- 채널별 프롬프트 STEP ---
+> 92 | const PROMPT_STEPS = [
+     |       ^^^^^^^^^^^^
+  93 |   { step: 'blog', label: '블로그', description: '네이버 블로그 콘텐츠 생성 시 적용' },
+  94 |   { step: 'instagram', label: '인스타그램', description: '인스타그램 캡션 생성 시 적용' },
+  95 |   { step: 'threads', label: 'Threads', description: 'Threads 게시글 생성 시 적용' },
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3076827ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:111:7
+the name `TONE_OPTIONS` is defined multiple times
+  109 |
+  110 | // --- 글 톤 옵션 ---
+> 111 | const TONE_OPTIONS = [
+      |       ^^^^^^^^^^^^
+  112 |   { value: 'auto', label: '자동' },
+  113 |   { value: 'professional', label: '전문적' },
+  114 |   { value: 'friendly', label: '친근한' },
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3081535ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:67:7
+the name `BRAND_VOICE_PRESETS` is defined multiple times
+  65 |
+  66 | // --- Presets ---
+> 67 | const BRAND_VOICE_PRESETS = [
+     |       ^^^^^^^^^^^^^^^^^^^
+  68 |   { name: '카페/음식점', industry: '카페/음식점', tone: '친근한', description: '따뜻하고 ...
+  69 |   { name: '뷰티/패션', industry: '뷰티/패션', tone: '트렌디한', description: '세련되고 트...
+  70 |   { name: '교육/학원', industry: '교육', tone: '전문적인', description: '신뢰감 있는 교육 ...
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3081535ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:102:7
+the name `CHANNEL_OPTIONS` is defined multiple times
+  100 |
+  101 | // --- 운영 채널 옵션 ---
+> 102 | const CHANNEL_OPTIONS = [
+      |       ^^^^^^^^^^^^^^^
+  103 |   { id: 'blog', label: '블로그', icon: '📝' },
+  104 |   { id: 'threads', label: 'Threads', icon: '🧵' },
+  105 |   { id: 'instagram', label: '인스타그램', icon: '📸' },
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3081535ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:84:7
+the name `NAVER_BLOG_TOPICS` is defined multiple times
+  82 |
+  83 | // --- 네이버 블로그 주제 33개 ---
+> 84 | const NAVER_BLOG_TOPICS = [
+     |       ^^^^^^^^^^^^^^^^^
+  85 |   { group: '엔터테인먼트·예술', topics: ['문학·책', '영화', '미술·디자인', '공연·전시', '...
+  86 |   { group: '생활·노하우·쇼핑', topics: ['일상·생각', '육아·결혼', '애완·반려동물', '쇼핑',...
+  87 |   { group: '취미·여가·여행', topics: ['게임', '스포츠', '사진', '가드닝', '세계여행', '맛...
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3081536ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:75:7
+the name `PLATFORM_LABELS` is defined multiple times
+  73 | ]
+  74 |
+> 75 | const PLATFORM_LABELS: Record<string, string> = {
+     |       ^^^^^^^^^^^^^^^
+  76 |   instagram: 'Instagram',
+  77 |   threads: 'Threads',
+  78 |   youtube: 'YouTube',
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3081536ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:119:7
+the name `PROMPT_MODES` is defined multiple times
+  117 | ]
+  118 |
+> 119 | const PROMPT_MODES = [
+      |       ^^^^^^^^^^^^
+  120 |   { value: 'priority', label: '내 프롬프트 우선', description: '내 프롬프트를 최우선으로 ...
+  121 |   { value: 'combine', label: '조합', description: '시스템 프롬프트와 내 프롬프트를 조합' },
+  122 |   { value: 'reference', label: '참고', description: '내 프롬프트를 참고 수준으로 반영' },
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3081536ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:92:7
+the name `PROMPT_STEPS` is defined multiple times
+  90 |
+  91 | // --- 채널별 프롬프트 STEP ---
+> 92 | const PROMPT_STEPS = [
+     |       ^^^^^^^^^^^^
+  93 |   { step: 'blog', label: '블로그', description: '네이버 블로그 콘텐츠 생성 시 적용' },
+  94 |   { step: 'instagram', label: '인스타그램', description: '인스타그램 캡션 생성 시 적용' },
+  95 |   { step: 'threads', label: 'Threads', description: 'Threads 게시글 생성 시 적용' },
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3081536ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:111:7
+the name `TONE_OPTIONS` is defined multiple times
+  109 |
+  110 | // --- 글 톤 옵션 ---
+> 111 | const TONE_OPTIONS = [
+      |       ^^^^^^^^^^^^
+  112 |   { value: 'auto', label: '자동' },
+  113 |   { value: 'professional', label: '전문적' },
+  114 |   { value: 'friendly', label: '친근한' },
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3082365ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:67:7
+the name `BRAND_VOICE_PRESETS` is defined multiple times
+  65 |
+  66 | // --- Presets ---
+> 67 | const BRAND_VOICE_PRESETS = [
+     |       ^^^^^^^^^^^^^^^^^^^
+  68 |   { name: '카페/음식점', industry: '카페/음식점', tone: '친근한', description: '따뜻하고 ...
+  69 |   { name: '뷰티/패션', industry: '뷰티/패션', tone: '트렌디한', description: '세련되고 트...
+  70 |   { name: '교육/학원', industry: '교육', tone: '전문적인', description: '신뢰감 있는 교육 ...
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3082365ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:102:7
+the name `CHANNEL_OPTIONS` is defined multiple times
+  100 |
+  101 | // --- 운영 채널 옵션 ---
+> 102 | const CHANNEL_OPTIONS = [
+      |       ^^^^^^^^^^^^^^^
+  103 |   { id: 'blog', label: '블로그', icon: '📝' },
+  104 |   { id: 'threads', label: 'Threads', icon: '🧵' },
+  105 |   { id: 'instagram', label: '인스타그램', icon: '📸' },
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3082365ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:84:7
+the name `NAVER_BLOG_TOPICS` is defined multiple times
+  82 |
+  83 | // --- 네이버 블로그 주제 33개 ---
+> 84 | const NAVER_BLOG_TOPICS = [
+     |       ^^^^^^^^^^^^^^^^^
+  85 |   { group: '엔터테인먼트·예술', topics: ['문학·책', '영화', '미술·디자인', '공연·전시', '...
+  86 |   { group: '생활·노하우·쇼핑', topics: ['일상·생각', '육아·결혼', '애완·반려동물', '쇼핑',...
+  87 |   { group: '취미·여가·여행', topics: ['게임', '스포츠', '사진', '가드닝', '세계여행', '맛...
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3082365ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:75:7
+the name `PLATFORM_LABELS` is defined multiple times
+  73 | ]
+  74 |
+> 75 | const PLATFORM_LABELS: Record<string, string> = {
+     |       ^^^^^^^^^^^^^^^
+  76 |   instagram: 'Instagram',
+  77 |   threads: 'Threads',
+  78 |   youtube: 'YouTube',
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3082365ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:119:7
+the name `PROMPT_MODES` is defined multiple times
+  117 | ]
+  118 |
+> 119 | const PROMPT_MODES = [
+      |       ^^^^^^^^^^^^
+  120 |   { value: 'priority', label: '내 프롬프트 우선', description: '내 프롬프트를 최우선으로 ...
+  121 |   { value: 'combine', label: '조합', description: '시스템 프롬프트와 내 프롬프트를 조합' },
+  122 |   { value: 'reference', label: '참고', description: '내 프롬프트를 참고 수준으로 반영' },
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3082365ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:92:7
+the name `PROMPT_STEPS` is defined multiple times
+  90 |
+  91 | // --- 채널별 프롬프트 STEP ---
+> 92 | const PROMPT_STEPS = [
+     |       ^^^^^^^^^^^^
+  93 |   { step: 'blog', label: '블로그', description: '네이버 블로그 콘텐츠 생성 시 적용' },
+  94 |   { step: 'instagram', label: '인스타그램', description: '인스타그램 캡션 생성 시 적용' },
+  95 |   { step: 'threads', label: 'Threads', description: 'Threads 게시글 생성 시 적용' },
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 3082365ms] [ERROR] ./src/app/(dashboard)/settings/page.tsx:111:7
+the name `TONE_OPTIONS` is defined multiple times
+  109 |
+  110 | // --- 글 톤 옵션 ---
+> 111 | const TONE_OPTIONS = [
+      |       ^^^^^^^^^^^^
+  112 |   { value: 'auto', label: '자동' },
+  113 |   { value: 'professional', label: '전문적' },
+  114 |   { value: 'friendly', label: '친근한' },
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/settings/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/settings/page.tsx [Server Component] @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272

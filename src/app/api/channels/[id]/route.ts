@@ -3,6 +3,7 @@ import { requireAuth } from '@/lib/auth'
 import { handleApiError } from '@/lib/errors'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { encrypt } from '@/lib/crypto'
+import { deleteOwnedRecord } from '@/lib/api-helpers'
 
 // PUT: 채널 수정
 export async function PUT(
@@ -41,25 +42,6 @@ export async function PUT(
 }
 
 // DELETE: 채널 연동 해제
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const authUser = await requireAuth(req)
-    const { id } = await params
-    const supabase = createServerSupabase()
-
-    const { error } = await supabase
-      .from('channels')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', authUser.userId)
-
-    if (error) throw error
-
-    return Response.json({ success: true })
-  } catch (error) {
-    return handleApiError(error)
-  }
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  return deleteOwnedRecord(req, params, 'channels')
 }

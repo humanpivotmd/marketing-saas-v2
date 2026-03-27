@@ -6,6 +6,8 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Badge from '@/components/ui/Badge'
 import Toast from '@/components/ui/Toast'
+import { useAsyncAction } from '@/hooks/useAsyncAction'
+import { authHeaders } from '@/lib/auth-client'
 
 interface Plan {
   id: string
@@ -23,23 +25,18 @@ interface Plan {
   sort_order: number
 }
 
-function getToken() { return sessionStorage.getItem('token') || '' }
-function authHeaders() { return { Authorization: `Bearer ${getToken()}`, 'Content-Type': 'application/json' } }
-
 export default function AdminPlansPage() {
   const [plans, setPlans] = useState<Plan[]>([])
-  const [loading, setLoading] = useState(true)
   const [editPlan, setEditPlan] = useState<Plan | null>(null)
   const [saving, setSaving] = useState(false)
-  const [toast, setToast] = useState<{ message: string; variant: 'success' | 'error' } | null>(null)
+  const { loading, toast, clearToast, run } = useAsyncAction(true)
 
   const fetchPlans = () => {
-    setLoading(true)
-    fetch('/api/admin/plan-limits', { headers: authHeaders() })
-      .then((r) => r.json())
-      .then((res) => { if (res.success) setPlans(res.data) })
-      .catch(() => {})
-      .finally(() => setLoading(false))
+    run(async () => {
+      const r = await fetch('/api/admin/plan-limits', { headers: authHeaders() })
+      const res = await r.json()
+      if (res.success) setPlans(res.data)
+    })
   }
 
   useEffect(() => { fetchPlans() }, [])
@@ -47,23 +44,17 @@ export default function AdminPlansPage() {
   const handleSave = async () => {
     if (!editPlan) return
     setSaving(true)
-    try {
+    await run(async () => {
       const res = await fetch('/api/admin/plan-limits', {
         method: 'PUT',
         headers: authHeaders(),
         body: JSON.stringify(editPlan),
       })
       const data = await res.json()
-      if (data.success) {
-        setToast({ message: '플랜이 수정되었습니다.', variant: 'success' })
-        fetchPlans()
-        setEditPlan(null)
-      } else {
-        setToast({ message: data.error || '오류가 발생했습니다.', variant: 'error' })
-      }
-    } catch {
-      setToast({ message: '네트워크 오류가 발생했습니다.', variant: 'error' })
-    }
+      if (!data.success) throw new Error(data.error || '오류가 발생했습니다.')
+      fetchPlans()
+      setEditPlan(null)
+    }, { successMessage: '플랜이 수정되었습니다.', errorMessage: '네트워크 오류가 발생했습니다.' })
     setSaving(false)
   }
 
@@ -154,7 +145,7 @@ export default function AdminPlansPage() {
         </div>
       )}
 
-      {toast && <Toast message={toast.message} variant={toast.variant} visible onClose={() => setToast(null)} />}
+      {toast && <Toast message={toast.message} variant={toast.variant} visible onClose={clearToast} />}
     </div>
   )
 }

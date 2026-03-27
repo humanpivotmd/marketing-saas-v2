@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
 import Modal from '@/components/ui/Modal'
 import Toast from '@/components/ui/Toast'
+import { useAsyncAction } from '@/hooks/useAsyncAction'
 
 interface Prompt {
   id: string
@@ -25,34 +26,31 @@ const STEPS = [
   { id: 'image', label: '이미지' },
 ]
 
-function getToken() { return sessionStorage.getItem('token') || '' }
-function authHeaders() { return { Authorization: `Bearer ${getToken()}`, 'Content-Type': 'application/json' } }
+import { authHeaders } from '@/lib/auth-client'
 
 export default function AdminPromptsPage() {
   const [activeStep, setActiveStep] = useState('blog')
   const [prompts, setPrompts] = useState<Prompt[]>([])
-  const [loading, setLoading] = useState(true)
   const [showEditor, setShowEditor] = useState(false)
-  const [toast, setToast] = useState<{ message: string; variant: 'success' | 'error' } | null>(null)
+  const { loading, toast, clearToast, run } = useAsyncAction(true)
 
   const fetchPrompts = useCallback(() => {
-    setLoading(true)
-    fetch(`/api/admin/prompts?step=${activeStep}`, { headers: authHeaders() })
-      .then((r) => r.json())
-      .then((res) => { if (res.success) setPrompts(res.data) })
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [activeStep])
+    run(async () => {
+      const res = await fetch(`/api/admin/prompts?step=${activeStep}`, { headers: authHeaders() })
+      const json = await res.json()
+      if (json.success) setPrompts(json.data)
+    })
+  }, [activeStep, run])
 
   useEffect(() => { fetchPrompts() }, [fetchPrompts])
 
   const handleActivate = async (id: string) => {
-    const res = await fetch(`/api/admin/prompts/${id}/activate`, { method: 'POST', headers: authHeaders() })
-    const data = await res.json()
-    if (data.success) {
-      setToast({ message: '활성화되었습니다.', variant: 'success' })
+    await run(async () => {
+      const res = await fetch(`/api/admin/prompts/${id}/activate`, { method: 'POST', headers: authHeaders() })
+      const data = await res.json()
+      if (!data.success) throw new Error(data.error)
       fetchPrompts()
-    }
+    }, { successMessage: '활성화되었습니다.' })
   }
 
   return (
@@ -126,48 +124,44 @@ export default function AdminPromptsPage() {
         open={showEditor}
         onClose={() => setShowEditor(false)}
         step={activeStep}
-        onToast={setToast}
         onSaved={fetchPrompts}
       />
 
-      {toast && <Toast message={toast.message} variant={toast.variant} visible onClose={() => setToast(null)} />}
+      {toast && <Toast message={toast.message} variant={toast.variant} visible onClose={clearToast} />}
     </div>
   )
 }
 
-function PromptEditorModal({ open, onClose, step, onToast, onSaved }: {
+function PromptEditorModal({ open, onClose, step, onSaved }: {
   open: boolean
   onClose: () => void
   step: string
-  onToast: (t: { message: string; variant: 'success' | 'error' }) => void
   onSaved: () => void
 }) {
   const [text, setText] = useState('')
   const [trafficRatio, setTrafficRatio] = useState('100')
-  const [loading, setLoading] = useState(false)
+  const { loading, toast: editorToast, clearToast: clearEditorToast, run: editorRun } = useAsyncAction()
 
   const handleSubmit = async () => {
-    if (!text.trim()) { onToast({ message: '프롬프트 내용을 입력해주세요.', variant: 'error' }); return }
-    setLoading(true)
-    try {
+    if (!text.trim()) {
+      editorRun(async () => { throw new Error('프롬프트 내용을 입력해주세요.') })
+      return
+    }
+    await editorRun(async () => {
       const res = await fetch('/api/admin/prompts', {
         method: 'POST',
         headers: authHeaders(),
         body: JSON.stringify({ step, prompt_text: text, traffic_ratio: parseInt(trafficRatio) || 100 }),
       })
       const data = await res.json()
-      if (data.success) {
-        onToast({ message: '새 버전이 저장되었습니다.', variant: 'success' })
-        onSaved()
-        onClose()
-        setText('')
-      } else {
-        onToast({ message: data.error || '오류가 발생했습니다.', variant: 'error' })
-      }
-    } catch {
-      onToast({ message: '네트워크 오류가 발생했습니다.', variant: 'error' })
-    }
-    setLoading(false)
+      if (!data.success) throw new Error(data.error || '오류가 발생했습니다.')
+      onSaved()
+      onClose()
+      setText('')
+    }, {
+      successMessage: '새 버전이 저장되었습니다.',
+      errorMessage: '네트워크 오류가 발생했습니다.',
+    })
   }
 
   return (
@@ -194,6 +188,7 @@ function PromptEditorModal({ open, onClose, step, onToast, onSaved }: {
           />
           <p className="text-xs text-text-tertiary mt-1">A/B 테스트 시 이 프롬프트에 할당할 트래픽 비율 (기본: 100%)</p>
         </div>
+        {editorToast && <Toast message={editorToast.message} variant={editorToast.variant} visible onClose={clearEditorToast} />}
         <div className="flex justify-end gap-3">
           <Button variant="secondary" onClick={onClose}>취소</Button>
           <Button onClick={handleSubmit} loading={loading}>저장</Button>

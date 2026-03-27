@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { requireAuth, requireAdmin } from '@/lib/auth'
 import { handleApiError } from '@/lib/errors'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { parsePagination, paginatedResponse } from '@/lib/pagination'
 
 // GET: 회원 목록 (role/plan/status/검색 필터)
 export async function GET(req: NextRequest) {
@@ -11,15 +12,11 @@ export async function GET(req: NextRequest) {
     const supabase = createServerSupabase()
 
     const url = new URL(req.url)
-    const page = parseInt(url.searchParams.get('page') || '1')
-    const limit = parseInt(url.searchParams.get('limit') || '20')
+    const { page, limit, offset } = parsePagination(url)
     const search = url.searchParams.get('search') || ''
     const role = url.searchParams.get('role') || ''
     const status = url.searchParams.get('status') || ''
     const plan = url.searchParams.get('plan') || ''
-
-    const from = (page - 1) * limit
-    const to = from + limit - 1
 
     let query = supabase
       .from('users')
@@ -34,20 +31,11 @@ export async function GET(req: NextRequest) {
 
     const { data, count, error } = await query
       .order('created_at', { ascending: false })
-      .range(from, to)
+      .range(offset, offset + limit - 1)
 
     if (error) throw error
 
-    return Response.json({
-      success: true,
-      data: data || [],
-      pagination: {
-        page,
-        limit,
-        total: count || 0,
-        totalPages: Math.ceil((count || 0) / limit),
-      },
-    })
+    return paginatedResponse(data || [], count, { page, limit })
   } catch (error) {
     return handleApiError(error)
   }

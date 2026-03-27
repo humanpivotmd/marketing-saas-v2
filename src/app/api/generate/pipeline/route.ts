@@ -71,10 +71,7 @@ export async function POST(req: NextRequest) {
               `data: ${JSON.stringify({ type: 'progress', channel, message: `${channel} 생성 중...` })}\n\n`
             ))
 
-            const prompt = buildChannelPrompt(
-              { ...ctx, blogContent: ctx.blogContent },
-              channel
-            )
+            const prompt = buildChannelPrompt(ctx, channel)
 
             const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
               method: 'POST',
@@ -152,8 +149,8 @@ export async function POST(req: NextRequest) {
             .from('projects')
             .update({
               content_ids: contentIds,
-              current_step: 6,
-              step_status: { ...project.step_status, s4: 'completed', s5: 'completed' },
+              current_step: 5,
+              step_status: { ...project.step_status, s5: 'completed' },
             })
             .eq('id', project_id)
             .eq('user_id', authUser.userId)

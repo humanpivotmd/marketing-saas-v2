@@ -7,30 +7,9 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Toast from '@/components/ui/Toast'
 import SetupRequired from '@/components/SetupRequired'
-
-const TOPIC_TYPES = [
-  { value: 'info', label: '정보형', desc: '독자에게 유용한 정보 제공' },
-  { value: 'intro', label: '회사 소개', desc: '회사/브랜드를 알리는 글' },
-  { value: 'service', label: '서비스 소개', desc: '서비스 설명 및 장점' },
-  { value: 'product', label: '상품 소개', desc: '제품 리뷰 및 소개' },
-]
-
-const TONE_OPTIONS = [
-  { value: 'auto', label: '자동' },
-  { value: 'professional', label: '전문적' },
-  { value: 'friendly', label: '친근한' },
-  { value: 'formal', label: '격식체' },
-  { value: 'conversational', label: '대화체' },
-]
-
-const PROMPT_MODES = [
-  { value: 'combine', label: '조합', desc: '시스템 + 내 프롬프트 동등 결합' },
-  { value: 'priority', label: '내 프롬프트 우선', desc: '내 프롬프트를 최우선 적용' },
-  { value: 'reference', label: '참고만', desc: '내 프롬프트를 참고 수준으로 반영' },
-]
-
-function getToken() { return sessionStorage.getItem('token') || '' }
-function authHeaders() { return { Authorization: `Bearer ${getToken()}`, 'Content-Type': 'application/json' } }
+import { TOPIC_TYPES, TONE_OPTIONS, PROMPT_MODES, BUSINESS_TYPES } from '@/lib/constants'
+import { authHeaders } from '@/lib/auth-client'
+import { useAsyncAction } from '@/hooks/useAsyncAction'
 
 export default function DraftInfoPage() {
   const router = useRouter()
@@ -49,7 +28,7 @@ export default function DraftInfoPage() {
   const [selectedTitle, setSelectedTitle] = useState('')
   const [generating, setGenerating] = useState(false)
   const [creating, setCreating] = useState(false)
-  const [toast, setToast] = useState<{ message: string; variant: 'success' | 'error' } | null>(null)
+  const { toast, clearToast, run } = useAsyncAction()
 
   // 마이페이지 설정 로드
   useEffect(() => {
@@ -70,7 +49,7 @@ export default function DraftInfoPage() {
     setGenerating(true)
     setTitles([])
     setSelectedTitle('')
-    try {
+    await run(async () => {
       const res = await fetch('/api/generate/titles', {
         method: 'POST',
         headers: authHeaders(),
@@ -87,17 +66,14 @@ export default function DraftInfoPage() {
       const data = await res.json()
       if (!data.success) throw new Error(data.error)
       setTitles(data.data.titles || [])
-    } catch (err) {
-      setToast({ message: (err as Error).message || '제목 생성 실패', variant: 'error' })
-    } finally {
-      setGenerating(false)
-    }
+    }, { errorMessage: '제목 생성 실패' })
+    setGenerating(false)
   }
 
   const handleStartDraft = async () => {
     if (!selectedTitle) return
     setCreating(true)
-    try {
+    await run(async () => {
       // 프로젝트 생성
       const projRes = await fetch('/api/projects', {
         method: 'POST',
@@ -130,10 +106,10 @@ export default function DraftInfoPage() {
 
       // STEP4 초안 생성 페이지로 이동
       router.push(`/create/generating?project_id=${projectId}`)
-    } catch (err) {
-      setToast({ message: (err as Error).message || '프로젝트 생성 실패', variant: 'error' })
-      setCreating(false)
-    }
+    }, {
+      errorMessage: '프로젝트 생성 실패',
+      onError: () => setCreating(false),
+    })
   }
 
   if (!keywordText) {
@@ -158,20 +134,18 @@ export default function DraftInfoPage() {
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-text-primary">비즈니스 유형</h3>
           <div className="flex gap-3">
-            {(['B2B', 'B2C'] as const).map(type => (
+            {BUSINESS_TYPES.map(bt => (
               <button
-                key={type}
-                onClick={() => setBusinessType(type)}
+                key={bt.value}
+                onClick={() => setBusinessType(bt.value)}
                 className={`flex-1 py-3 px-4 rounded-xl text-sm font-medium border-2 transition-all ${
-                  businessType === type
+                  businessType === bt.value
                     ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
                     : 'border-border-primary bg-surface-secondary text-text-tertiary hover:border-border-secondary'
                 }`}
               >
-                <div className="text-lg font-bold">{type}</div>
-                <div className="text-xs mt-1 opacity-75">
-                  {type === 'B2B' ? '논리·데이터 중심' : '감성·스토리 중심'}
-                </div>
+                <div className="text-lg font-bold">{bt.label}</div>
+                <div className="text-xs mt-1 opacity-75">{bt.desc}</div>
               </button>
             ))}
           </div>
@@ -301,7 +275,7 @@ export default function DraftInfoPage() {
         </div>
       )}
 
-      <Toast message={toast?.message || ''} variant={toast?.variant} visible={!!toast} onClose={() => setToast(null)} />
+      {toast && <Toast message={toast.message} variant={toast.variant} visible onClose={clearToast} />}
     </div>
     </SetupRequired>
   )

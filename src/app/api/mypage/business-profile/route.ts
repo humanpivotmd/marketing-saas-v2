@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { requireAuth } from '@/lib/auth'
 import { handleApiError } from '@/lib/errors'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { VALID_GENDERS, BUSINESS_TYPES } from '@/lib/constants'
 
 const BUSINESS_FIELDS = [
   'business_type', 'selected_channels', 'target_audience', 'target_gender',
@@ -43,10 +44,10 @@ export async function PUT(req: NextRequest) {
     }
 
     // 유효성 검사
-    if (updateData.business_type && !['B2B', 'B2C'].includes(updateData.business_type as string)) {
+    if (updateData.business_type && !BUSINESS_TYPES.some(bt => bt.value === updateData.business_type)) {
       return Response.json({ success: false, error: 'business_type은 B2B 또는 B2C여야 합니다.' }, { status: 400 })
     }
-    if (updateData.target_gender && !['male', 'female', 'all'].includes(updateData.target_gender as string)) {
+    if (updateData.target_gender && !(VALID_GENDERS as readonly string[]).includes(updateData.target_gender as string)) {
       return Response.json({ success: false, error: 'target_gender가 올바르지 않습니다.' }, { status: 400 })
     }
 

@@ -10,7 +10,7 @@ interface FlowGuardProps {
   children: ReactNode
 }
 
-function getToken() { return sessionStorage.getItem('token') || '' }
+import { getToken } from '@/lib/auth-client'
 
 export default function FlowGuard({ projectId, requiredStep, children }: FlowGuardProps) {
   const router = useRouter()
@@ -32,7 +32,12 @@ export default function FlowGuard({ projectId, requiredStep, children }: FlowGua
           return
         }
         const project = data.data
-        if (project.current_step < requiredStep) {
+        const prevStepKey = `s${requiredStep - 1}`
+        const prevStepDone =
+          requiredStep <= 1 ||
+          project.step_status?.[prevStepKey] === 'completed'
+
+        if (project.current_step < requiredStep - 1 || !prevStepDone) {
           setStatus('step_not_ready')
         } else {
           setStatus('ok')

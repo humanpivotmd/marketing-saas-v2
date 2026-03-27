@@ -2,7 +2,6 @@
 
 import { useState, useEffect, type FormEvent } from 'react'
 import Card from '@/components/ui/Card'
-import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Skeleton from '@/components/ui/Skeleton'
@@ -57,9 +56,7 @@ function getGradeColor(grade: string | null): string {
   return GRADE_COLORS[grade] || 'bg-bg-tertiary text-text-tertiary'
 }
 
-function getToken(): string | null {
-  return sessionStorage.getItem('token')
-}
+import { getToken } from '@/lib/auth-client'
 
 function getExperienceLevel(): string {
   try {

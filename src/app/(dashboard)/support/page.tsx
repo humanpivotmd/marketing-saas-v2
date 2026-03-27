@@ -7,6 +7,7 @@ import Input from '@/components/ui/Input'
 import Badge from '@/components/ui/Badge'
 import Toast from '@/components/ui/Toast'
 import EmptyState from '@/components/ui/EmptyState'
+import { useAsyncAction } from '@/hooks/useAsyncAction'
 
 interface Ticket {
   id: string
@@ -18,8 +19,7 @@ interface Ticket {
   created_at: string
 }
 
-function getToken() { return sessionStorage.getItem('token') || '' }
-function authHeaders() { return { Authorization: `Bearer ${getToken()}`, 'Content-Type': 'application/json' } }
+import { authHeaders } from '@/lib/auth-client'
 
 const STATUS_LABELS: Record<string, string> = {
   open: '접수',
@@ -38,49 +38,38 @@ const CATEGORY_OPTIONS = [
 
 export default function SupportPage() {
   const [tickets, setTickets] = useState<Ticket[]>([])
-  const [loading, setLoading] = useState(true)
   const [subject, setSubject] = useState('')
   const [message, setMessage] = useState('')
   const [category, setCategory] = useState('general')
   const [submitting, setSubmitting] = useState(false)
-  const [toast, setToast] = useState<{ message: string; variant: 'success' | 'error' } | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const { loading, toast, clearToast, run } = useAsyncAction(true)
 
   const fetchTickets = useCallback(() => {
-    setLoading(true)
-    fetch('/api/support', { headers: authHeaders() })
-      .then((r) => r.json())
-      .then((res) => { if (res.success) setTickets(res.data) })
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [])
+    run(async () => {
+      const r = await fetch('/api/support', { headers: authHeaders() })
+      const res = await r.json()
+      if (res.success) setTickets(res.data)
+    })
+  }, [run])
 
   useEffect(() => { fetchTickets() }, [fetchTickets])
 
   const handleSubmit = async () => {
-    if (!subject.trim() || !message.trim()) {
-      setToast({ message: '제목과 내용을 모두 입력해주세요.', variant: 'error' })
-      return
-    }
+    if (!subject.trim() || !message.trim()) return
     setSubmitting(true)
-    try {
+    await run(async () => {
       const res = await fetch('/api/support', {
         method: 'POST',
         headers: authHeaders(),
         body: JSON.stringify({ subject: subject.trim(), message: message.trim() }),
       })
       const data = await res.json()
-      if (data.success) {
-        setToast({ message: '문의가 등록되었습니다.', variant: 'success' })
-        setSubject('')
-        setMessage('')
-        fetchTickets()
-      } else {
-        setToast({ message: data.error || '오류가 발생했습니다.', variant: 'error' })
-      }
-    } catch {
-      setToast({ message: '네트워크 오류가 발생했습니다.', variant: 'error' })
-    }
+      if (!data.success) throw new Error(data.error || '오류가 발생했습니다.')
+      setSubject('')
+      setMessage('')
+      fetchTickets()
+    }, { successMessage: '문의가 등록되었습니다.', errorMessage: '네트워크 오류가 발생했습니다.' })
     setSubmitting(false)
   }
 
@@ -204,7 +193,7 @@ export default function SupportPage() {
         )}
       </div>
 
-      {toast && <Toast message={toast.message} variant={toast.variant} visible onClose={() => setToast(null)} />}
+      {toast && <Toast message={toast.message} variant={toast.variant} visible onClose={clearToast} />}
     </div>
   )
 }

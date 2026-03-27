@@ -7,6 +7,8 @@ import Input from '@/components/ui/Input'
 import Badge from '@/components/ui/Badge'
 import Modal from '@/components/ui/Modal'
 import Toast from '@/components/ui/Toast'
+import { authHeaders } from '@/lib/auth-client'
+import { useAsyncAction } from '@/hooks/useAsyncAction'
 
 interface Industry {
   id: string
@@ -18,13 +20,9 @@ interface Industry {
   children?: Industry[]
 }
 
-function getToken() { return sessionStorage.getItem('token') || '' }
-function authHeaders() { return { Authorization: `Bearer ${getToken()}`, 'Content-Type': 'application/json' } }
-
 export default function AdminIndustriesPage() {
   const [industries, setIndustries] = useState<Industry[]>([])
-  const [loading, setLoading] = useState(true)
-  const [toast, setToast] = useState<{ message: string; variant: 'success' | 'error' } | null>(null)
+  const { loading, toast, clearToast, run } = useAsyncAction(true)
 
   // 모달 상태
   const [showModal, setShowModal] = useState(false)
@@ -36,13 +34,12 @@ export default function AdminIndustriesPage() {
   const [saving, setSaving] = useState(false)
 
   const fetchData = useCallback(() => {
-    setLoading(true)
-    fetch('/api/admin/industries?active=false', { headers: authHeaders() })
-      .then(r => r.json())
-      .then(res => { if (res.success) setIndustries(res.data) })
-      .catch(() => setToast({ message: '업종 목록 로드 실패', variant: 'error' }))
-      .finally(() => setLoading(false))
-  }, [])
+    run(async () => {
+      const res = await fetch('/api/admin/industries?active=false', { headers: authHeaders() })
+      const json = await res.json()
+      if (json.success) setIndustries(json.data)
+    }, { errorMessage: '업종 목록 로드 실패' })
+  }, [run])
 
   useEffect(() => { fetchData() }, [fetchData])
 
@@ -67,20 +64,20 @@ export default function AdminIndustriesPage() {
   const handleSave = async () => {
     if (!formName.trim()) return
     setSaving(true)
-    try {
-      const url = editItem
-        ? `/api/admin/industries/${editItem.id}`
-        : '/api/admin/industries'
-      const method = editItem ? 'PUT' : 'POST'
-      const body: Record<string, unknown> = {
-        name: formName.trim(),
-        sort_order: formSortOrder,
-        is_active: formActive,
-      }
-      if (formParentId) body.parent_id = formParentId
-      if (!editItem && !formParentId) body.level = 1
-      if (!editItem && formParentId) body.level = 2
+    const url = editItem
+      ? `/api/admin/industries/${editItem.id}`
+      : '/api/admin/industries'
+    const method = editItem ? 'PUT' : 'POST'
+    const body: Record<string, unknown> = {
+      name: formName.trim(),
+      sort_order: formSortOrder,
+      is_active: formActive,
+    }
+    if (formParentId) body.parent_id = formParentId
+    if (!editItem && !formParentId) body.level = 1
+    if (!editItem && formParentId) body.level = 2
 
+    await run(async () => {
       const res = await fetch(url, {
         method,
         headers: authHeaders(),
@@ -88,30 +85,29 @@ export default function AdminIndustriesPage() {
       })
       const data = await res.json()
       if (!data.success) throw new Error(data.error)
-      setToast({ message: editItem ? '수정 완료' : '추가 완료', variant: 'success' })
       setShowModal(false)
       fetchData()
-    } catch (err) {
-      setToast({ message: (err as Error).message || '저장 실패', variant: 'error' })
-    } finally {
-      setSaving(false)
-    }
+    }, {
+      successMessage: editItem ? '수정 완료' : '추가 완료',
+      errorMessage: '저장 실패',
+    })
+    setSaving(false)
   }
 
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`"${name}" 업종을 삭제하시겠습니까? 하위 업종도 함께 삭제됩니다.`)) return
-    try {
+    await run(async () => {
       const res = await fetch(`/api/admin/industries/${id}`, {
         method: 'DELETE',
         headers: authHeaders(),
       })
       const data = await res.json()
       if (!data.success) throw new Error(data.error)
-      setToast({ message: '삭제 완료', variant: 'success' })
       fetchData()
-    } catch (err) {
-      setToast({ message: (err as Error).message || '삭제 실패', variant: 'error' })
-    }
+    }, {
+      successMessage: '삭제 완료',
+      errorMessage: '삭제 실패',
+    })
   }
 
   const renderTree = (items: Industry[], depth = 0) => {
@@ -196,7 +192,7 @@ export default function AdminIndustriesPage() {
           </div>
       </Modal>
 
-      <Toast message={toast?.message || ''} variant={toast?.variant} visible={!!toast} onClose={() => setToast(null)} />
+      {toast && <Toast message={toast.message} variant={toast.variant} visible onClose={clearToast} />}
     </div>
   )
 }

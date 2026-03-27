@@ -6,6 +6,7 @@ import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Toast from '@/components/ui/Toast'
 import FlowGuard from '@/components/FlowGuard'
+import { useAsyncAction } from '@/hooks/useAsyncAction'
 
 const AI_TOOLS = ['Midjourney', 'DALL-E', 'Stable Diffusion', 'Gemini', 'Ideogram', 'Flux']
 const STYLES = ['미니멀', '모던', '빈티지', '팝아트', '수채화', '3D', '플랫', '도시적', '세련된']
@@ -17,8 +18,7 @@ const SIZE_OPTIONS: Record<string, { label: string; value: string }[]> = {
   facebook: [{ label: '1200x630', value: '1200x630' }, { label: '1080x1920 (스토리)', value: '1080x1920' }],
 }
 
-function getToken() { return sessionStorage.getItem('token') || '' }
-function authHeaders() { return { Authorization: `Bearer ${getToken()}`, 'Content-Type': 'application/json' } }
+import { authHeaders } from '@/lib/auth-client'
 
 interface ImagePromptResult {
   channel: string
@@ -34,19 +34,23 @@ export default function ImageScriptPage() {
   const [aiTool, setAiTool] = useState('Midjourney')
   const [imageStyle, setImageStyle] = useState<'photo' | 'illustration'>('photo')
   const [styleDetail, setStyleDetail] = useState('미니멀')
-  const [generating, setGenerating] = useState(false)
   const [results, setResults] = useState<ImagePromptResult[]>([])
-  const [toast, setToast] = useState<{ message: string; variant: 'success' | 'error' } | null>(null)
+  const { loading: generating, toast, clearToast, run } = useAsyncAction()
 
   const handleGenerate = async () => {
-    setGenerating(true)
-    try {
+    await run(async () => {
       const res = await fetch(`/api/projects/${projectId}`, { headers: authHeaders() })
       const projData = await res.json()
       if (!projData.success) throw new Error('프로젝트 로드 실패')
 
       const project = projData.data
-      const channels = Object.keys(project.content_ids || {})
+      const channels = (project.contents || [])
+        .map((c: { type: string }) => c.type)
+        .filter((t: string) => t !== 'video_script')
+
+      if (channels.length === 0) {
+        throw new Error('채널 콘텐츠가 없습니다. 이전 단계로 돌아가주세요.')
+      }
       const generated: ImagePromptResult[] = []
 
       for (const channel of channels) {
@@ -75,12 +79,7 @@ export default function ImageScriptPage() {
       }
 
       setResults(generated)
-      setToast({ message: '이미지 프롬프트 생성 완료 (DB 저장됨)', variant: 'success' })
-    } catch (err) {
-      setToast({ message: (err as Error).message || '생성 실패', variant: 'error' })
-    } finally {
-      setGenerating(false)
-    }
+    }, { successMessage: '이미지 프롬프트 생성 완료 (DB 저장됨)', errorMessage: '생성 실패' })
   }
 
   return (
@@ -145,7 +144,7 @@ export default function ImageScriptPage() {
                   <code className="flex-1 text-xs text-accent-primary bg-bg-tertiary p-2 rounded overflow-x-auto">{img.prompt_en}</code>
                   <Button size="sm" variant="ghost" onClick={() => {
                     navigator.clipboard.writeText(img.prompt_en)
-                    setToast({ message: '복사됨', variant: 'success' })
+                    run(async () => {}, { successMessage: '복사됨' })
                   }}>복사</Button>
                 </div>
               </div>
@@ -158,7 +157,7 @@ export default function ImageScriptPage() {
                   <code className="flex-1 text-xs text-accent-primary bg-bg-tertiary p-2 rounded overflow-x-auto">{r.thumbnail.prompt_en}</code>
                   <Button size="sm" variant="ghost" onClick={() => {
                     navigator.clipboard.writeText(r.thumbnail!.prompt_en)
-                    setToast({ message: '복사됨', variant: 'success' })
+                    run(async () => {}, { successMessage: '복사됨' })
                   }}>복사</Button>
                 </div>
               </div>
@@ -180,7 +179,7 @@ export default function ImageScriptPage() {
         </div>
       )}
 
-      <Toast message={toast?.message || ''} variant={toast?.variant} visible={!!toast} onClose={() => setToast(null)} />
+      {toast && <Toast message={toast.message} variant={toast.variant} visible onClose={clearToast} />}
     </div>
     </FlowGuard>
   )

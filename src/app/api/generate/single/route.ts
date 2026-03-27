@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import { requireAuth } from '@/lib/auth'
-import { handleApiError, ValidationError } from '@/lib/errors'
+import { handleApiError } from '@/lib/errors'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { checkUsageLimit, logUsage } from '@/lib/usage'
 import { getActivePrompt, buildPrompt, STEP_PROMPTS } from '@/lib/prompts'

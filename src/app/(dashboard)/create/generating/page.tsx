@@ -6,9 +6,8 @@ import Card from '@/components/ui/Card'
 import Toast from '@/components/ui/Toast'
 import Button from '@/components/ui/Button'
 import FlowGuard from '@/components/FlowGuard'
-
-function getToken() { return sessionStorage.getItem('token') || '' }
-function authHeaders() { return { Authorization: `Bearer ${getToken()}`, 'Content-Type': 'application/json' } }
+import { authHeaders } from '@/lib/auth-client'
+import { useAsyncAction } from '@/hooks/useAsyncAction'
 
 export default function GeneratingPage() {
   const router = useRouter()
@@ -18,7 +17,7 @@ export default function GeneratingPage() {
   const [progress, setProgress] = useState(0)
   const [status, setStatus] = useState('초안을 작성하고 있습니다...')
   const [error, setError] = useState('')
-  const [toast, setToast] = useState<{ message: string; variant: 'success' | 'error' } | null>(null)
+  const { toast, clearToast } = useAsyncAction()
 
   useEffect(() => {
     if (!projectId) return
@@ -100,7 +99,7 @@ export default function GeneratingPage() {
         )}
       </Card>
 
-      <Toast message={toast?.message || ''} variant={toast?.variant} visible={!!toast} onClose={() => setToast(null)} />
+      {toast && <Toast message={toast.message} variant={toast.variant} visible onClose={clearToast} />}
     </div>
     </FlowGuard>
   )

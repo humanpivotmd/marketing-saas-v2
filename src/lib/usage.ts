@@ -111,11 +111,5 @@ export async function logUsage(
   })
 }
 
-export const ACTION_TYPE_MAP: Record<string, string> = {
-  blog: 'content_create',
-  threads: 'content_create',
-  instagram: 'content_create',
-  script: 'content_create',
-  keyword: 'keyword_analyze',
-  image: 'image_generate',
-}
+// Re-export for backward compatibility
+export { ACTION_TYPE_MAP } from '@/lib/constants'

@@ -1,9 +1,10 @@
 import { NextRequest } from 'next/server'
 import { requireAuth } from '@/lib/auth'
-import { handleApiError, ValidationError } from '@/lib/errors'
+import { handleApiError } from '@/lib/errors'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { validateRequest } from '@/lib/validations'
+import { parsePagination, paginatedResponse } from '@/lib/pagination'
 
 const keywordCreateSchema = z.object({
   keyword: z.string().min(1, '키워드를 입력하세요').max(200),
@@ -21,9 +22,7 @@ export async function GET(req: NextRequest) {
 
     const url = new URL(req.url)
     const group = url.searchParams.get('group')
-    const page = parseInt(url.searchParams.get('page') || '1')
-    const limit = Math.min(parseInt(url.searchParams.get('limit') || '50'), 100)
-    const offset = (page - 1) * limit
+    const { page, limit, offset } = parsePagination(url, { defaultLimit: 50 })
 
     let query = supabase
       .from('keywords')
@@ -37,19 +36,9 @@ export async function GET(req: NextRequest) {
     }
 
     const { data, count, error } = await query
-
     if (error) throw error
 
-    return Response.json({
-      success: true,
-      data: data || [],
-      pagination: {
-        page,
-        limit,
-        total: count || 0,
-        totalPages: Math.ceil((count || 0) / limit),
-      },
-    })
+    return paginatedResponse(data || [], count, { page, limit })
   } catch (error) {
     return handleApiError(error)
   }

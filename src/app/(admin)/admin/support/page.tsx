@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
 import Modal from '@/components/ui/Modal'
 import Toast from '@/components/ui/Toast'
+import { useAsyncAction } from '@/hooks/useAsyncAction'
 
 interface Ticket {
   id: string
@@ -18,8 +19,7 @@ interface Ticket {
   users: { email: string; name: string }
 }
 
-function getToken() { return sessionStorage.getItem('token') || '' }
-function authHeaders() { return { Authorization: `Bearer ${getToken()}`, 'Content-Type': 'application/json' } }
+import { authHeaders } from '@/lib/auth-client'
 
 const STATUS_LABELS: Record<string, string> = {
   open: '접수',
@@ -30,39 +30,35 @@ const STATUS_LABELS: Record<string, string> = {
 
 export default function AdminSupportPage() {
   const [tickets, setTickets] = useState<Ticket[]>([])
-  const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState('')
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
-  const [toast, setToast] = useState<{ message: string; variant: 'success' | 'error' } | null>(null)
+  const { loading, toast, clearToast, run } = useAsyncAction(true)
 
   const fetchTickets = () => {
-    setLoading(true)
-    const params = new URLSearchParams()
-    if (statusFilter) params.set('status', statusFilter)
+    run(async () => {
+      const params = new URLSearchParams()
+      if (statusFilter) params.set('status', statusFilter)
 
-    fetch(`/api/admin/support?${params}`, { headers: authHeaders() })
-      .then((r) => r.json())
-      .then((res) => { if (res.success) setTickets(res.data) })
-      .catch(() => {})
-      .finally(() => setLoading(false))
+      const r = await fetch(`/api/admin/support?${params}`, { headers: authHeaders() })
+      const res = await r.json()
+      if (res.success) setTickets(res.data)
+    })
   }
 
   useEffect(() => { fetchTickets() }, [statusFilter])
 
   const handleReply = async (id: string, reply: string, status: string) => {
-    const res = await fetch('/api/admin/support', {
-      method: 'PUT',
-      headers: authHeaders(),
-      body: JSON.stringify({ id, admin_reply: reply, status }),
-    })
-    const data = await res.json()
-    if (data.success) {
-      setToast({ message: '답변이 등록되었습니다.', variant: 'success' })
+    await run(async () => {
+      const res = await fetch('/api/admin/support', {
+        method: 'PUT',
+        headers: authHeaders(),
+        body: JSON.stringify({ id, admin_reply: reply, status }),
+      })
+      const data = await res.json()
+      if (!data.success) throw new Error(data.error || '오류가 발생했습니다.')
       setSelectedTicket(null)
       fetchTickets()
-    } else {
-      setToast({ message: data.error || '오류가 발생했습니다.', variant: 'error' })
-    }
+    }, { successMessage: '답변이 등록되었습니다.', errorMessage: '오류가 발생했습니다.' })
   }
 
   const statusVariant = (s: string) => {
@@ -135,7 +131,7 @@ export default function AdminSupportPage() {
         />
       )}
 
-      {toast && <Toast message={toast.message} variant={toast.variant} visible onClose={() => setToast(null)} />}
+      {toast && <Toast message={toast.message} variant={toast.variant} visible onClose={clearToast} />}
     </div>
   )
 }

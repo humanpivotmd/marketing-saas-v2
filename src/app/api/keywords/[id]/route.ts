@@ -1,9 +1,6 @@
 import { NextRequest } from 'next/server'
-import { requireAuth } from '@/lib/auth'
-import { handleApiError, NotFoundError } from '@/lib/errors'
-import { createServerSupabase } from '@/lib/supabase/server'
 import { z } from 'zod'
-import { validateRequest } from '@/lib/validations'
+import { getOwnedRecord, updateOwnedRecord, deleteOwnedRecord } from '@/lib/api-helpers'
 
 const keywordUpdateSchema = z.object({
   keyword: z.string().min(1).max(200).optional(),
@@ -19,78 +16,16 @@ const keywordUpdateSchema = z.object({
 })
 
 // GET: 키워드 상세
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const user = await requireAuth(req)
-    const { id } = await params
-    const supabase = createServerSupabase()
-
-    const { data, error } = await supabase
-      .from('keywords')
-      .select('*')
-      .eq('id', id)
-      .eq('user_id', user.userId)
-      .single()
-
-    if (error || !data) throw new NotFoundError('키워드를 찾을 수 없습니다.')
-
-    return Response.json({ success: true, data })
-  } catch (error) {
-    return handleApiError(error)
-  }
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  return getOwnedRecord(req, params, 'keywords')
 }
 
 // PUT: 키워드 수정
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const user = await requireAuth(req)
-    const { id } = await params
-    const body = await req.json()
-    const updates = validateRequest(keywordUpdateSchema, body)
-    const supabase = createServerSupabase()
-
-    const { data, error } = await supabase
-      .from('keywords')
-      .update(updates)
-      .eq('id', id)
-      .eq('user_id', user.userId)
-      .select()
-      .single()
-
-    if (error || !data) throw new NotFoundError('키워드를 찾을 수 없습니다.')
-
-    return Response.json({ success: true, data })
-  } catch (error) {
-    return handleApiError(error)
-  }
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  return updateOwnedRecord(req, params, 'keywords', keywordUpdateSchema, { addTimestamp: false })
 }
 
 // DELETE: 키워드 삭제
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const user = await requireAuth(req)
-    const { id } = await params
-    const supabase = createServerSupabase()
-
-    const { error } = await supabase
-      .from('keywords')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', user.userId)
-
-    if (error) throw error
-
-    return Response.json({ success: true })
-  } catch (error) {
-    return handleApiError(error)
-  }
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  return deleteOwnedRecord(req, params, 'keywords')
 }

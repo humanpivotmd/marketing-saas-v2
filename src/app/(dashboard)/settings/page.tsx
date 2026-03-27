@@ -8,6 +8,7 @@ import Badge from '@/components/ui/Badge'
 import Modal from '@/components/ui/Modal'
 import Toast from '@/components/ui/Toast'
 import EmptyState from '@/components/ui/EmptyState'
+import { BRAND_VOICE_PRESETS, PLATFORM_LABELS, NAVER_BLOG_TOPICS, PROMPT_STEPS, CHANNEL_OPTIONS, TONE_OPTIONS, PROMPT_MODES, BUSINESS_TYPES, GENDER_OPTIONS } from '@/lib/constants'
 
 // --- Types ---
 interface UserProfile {
@@ -53,73 +54,7 @@ interface Channel {
   created_at: string
 }
 
-// --- Helper ---
-function getToken() {
-  return sessionStorage.getItem('token') || ''
-}
-
-function authHeaders() {
-  return { Authorization: `Bearer ${getToken()}`, 'Content-Type': 'application/json' }
-}
-
-// --- Presets ---
-const BRAND_VOICE_PRESETS = [
-  { name: '카페/음식점', industry: '카페/음식점', tone: '친근한', description: '따뜻하고 감성적인 카페/음식점 마케팅 톤' },
-  { name: '뷰티/패션', industry: '뷰티/패션', tone: '트렌디한', description: '세련되고 트렌디한 뷰티/패션 브랜드 톤' },
-  { name: '교육/학원', industry: '교육', tone: '전문적인', description: '신뢰감 있는 교육 전문가 톤' },
-  { name: '부동산', industry: '부동산', tone: '신뢰감 있는', description: '전문적이고 신뢰를 주는 부동산 중개 톤' },
-  { name: 'IT/테크', industry: 'IT/테크', tone: '혁신적인', description: '혁신적이고 미래지향적인 테크 기업 톤' },
-]
-
-const PLATFORM_LABELS: Record<string, string> = {
-  instagram: 'Instagram',
-  threads: 'Threads',
-  youtube: 'YouTube',
-  naver_blog: '네이버 블로그',
-  kakao: '카카오',
-}
-
-// --- 네이버 블로그 주제 33개 ---
-const NAVER_BLOG_TOPICS = [
-  { group: '엔터테인먼트·예술', topics: ['문학·책', '영화', '미술·디자인', '공연·전시', '음악', '드라마', '스타·연예인', '만화·애니', '방송'] },
-  { group: '생활·노하우·쇼핑', topics: ['일상·생각', '육아·결혼', '애완·반려동물', '쇼핑', '요리·레시피', '상품리뷰', '원예·재배'] },
-  { group: '취미·여가·여행', topics: ['게임', '스포츠', '사진', '가드닝', '세계여행', '맛집'] },
-  { group: '지식·동향', topics: ['IT·컴퓨터', '사회·정치', '건강·의학', '비즈니스·경제', '어학·외국어', '교육·학문', '법률', '과학·기술', '인테리어', '자동차', '패션·뷰티'] },
-]
-
-// --- 채널별 프롬프트 STEP ---
-const PROMPT_STEPS = [
-  { step: 'blog', label: '블로그', description: '네이버 블로그 콘텐츠 생성 시 적용' },
-  { step: 'instagram', label: '인스타그램', description: '인스타그램 캡션 생성 시 적용' },
-  { step: 'threads', label: 'Threads', description: 'Threads 게시글 생성 시 적용' },
-  { step: 'facebook', label: '페이스북', description: '페이스북 게시물 생성 시 적용' },
-  { step: 'image', label: '이미지', description: 'AI 이미지 프롬프트 생성 시 적용' },
-  { step: 'video_script', label: '영상 스크립트', description: '영상 스크립트 생성 시 적용' },
-]
-
-// --- 운영 채널 옵션 ---
-const CHANNEL_OPTIONS = [
-  { id: 'blog', label: '블로그', icon: '📝' },
-  { id: 'threads', label: 'Threads', icon: '🧵' },
-  { id: 'instagram', label: '인스타그램', icon: '📸' },
-  { id: 'facebook', label: '페이스북', icon: '👤' },
-  { id: 'video', label: '영상', icon: '🎬' },
-]
-
-// --- 글 톤 옵션 ---
-const TONE_OPTIONS = [
-  { value: 'auto', label: '자동' },
-  { value: 'professional', label: '전문적' },
-  { value: 'friendly', label: '친근한' },
-  { value: 'formal', label: '격식체' },
-  { value: 'conversational', label: '대화체' },
-]
-
-const PROMPT_MODES = [
-  { value: 'priority', label: '내 프롬프트 우선', description: '내 프롬프트를 최우선으로 적용' },
-  { value: 'combine', label: '조합', description: '시스템 프롬프트와 내 프롬프트를 조합' },
-  { value: 'reference', label: '참고', description: '내 프롬프트를 참고 수준으로 반영' },
-]
+import { authHeaders } from '@/lib/auth-client'
 
 // --- Tab IDs ---
 const TABS = [
@@ -1337,25 +1272,29 @@ function BusinessProfileTab({ onToast }: { onToast: (t: { message: string; varia
 
   return (
     <div className="space-y-6">
+      {/* ── 업종 설정 영역 ── */}
+      <div className="flex items-center gap-3 pt-2">
+        <h2 className="text-base font-bold text-text-primary whitespace-nowrap">업종 설정</h2>
+        <div className="flex-1 h-px bg-border-primary" />
+      </div>
+
       {/* B2B/B2C 선택 */}
       <Card>
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-text-primary">비즈니스 유형</h3>
           <div className="flex gap-3">
-            {(['B2B', 'B2C'] as const).map(type => (
+            {BUSINESS_TYPES.map(bt => (
               <button
-                key={type}
-                onClick={() => setProfile(p => ({ ...p, business_type: type }))}
+                key={bt.value}
+                onClick={() => setProfile(p => ({ ...p, business_type: bt.value }))}
                 className={`flex-1 py-3 px-4 rounded-xl text-sm font-medium border-2 transition-all ${
-                  profile.business_type === type
+                  profile.business_type === bt.value
                     ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
                     : 'border-border-primary bg-surface-secondary text-text-tertiary hover:border-border-secondary'
                 }`}
               >
-                <div className="text-lg font-bold">{type}</div>
-                <div className="text-xs mt-1 opacity-75">
-                  {type === 'B2B' ? '기업 대상 (논리·데이터 중심)' : '소비자 대상 (감성·스토리 중심)'}
-                </div>
+                <div className="text-lg font-bold">{bt.value}</div>
+                <div className="text-xs mt-1 opacity-75">{bt.desc}</div>
               </button>
             ))}
           </div>
@@ -1389,6 +1328,36 @@ function BusinessProfileTab({ onToast }: { onToast: (t: { message: string; varia
           </select>
         </div>
       </Card>
+
+      {/* ── 블로그 주제 설정 영역 ── */}
+      {profile.selected_channels.includes('blog') && (
+        <>
+          <div className="flex items-center gap-3 pt-2">
+            <h2 className="text-base font-bold text-text-primary whitespace-nowrap">블로그 주제 설정</h2>
+            <div className="flex-1 h-px bg-border-primary" />
+          </div>
+          <Card>
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-text-primary">블로그 카테고리</h3>
+              <select
+                value={profile.blog_category}
+                onChange={e => setProfile(p => ({ ...p, blog_category: e.target.value }))}
+                className="w-full py-2.5 px-3 rounded-lg border border-border-primary text-sm"
+                style={{ backgroundColor: '#0d1117', color: '#e6edf3' }}
+              >
+                <option value="" style={{ backgroundColor: '#0d1117', color: '#e6edf3' }}>카테고리 선택</option>
+                {NAVER_BLOG_TOPICS.map(group => (
+                  <optgroup key={group.group} label={group.group} style={{ backgroundColor: '#161b22', color: '#8b949e' }}>
+                    {group.topics.map(topic => (
+                      <option key={topic} value={topic} style={{ backgroundColor: '#0d1117', color: '#e6edf3' }}>{topic}</option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            </div>
+          </Card>
+        </>
+      )}
 
       {/* 회사/서비스 정보 */}
       <Card>
@@ -1446,11 +1415,7 @@ function BusinessProfileTab({ onToast }: { onToast: (t: { message: string; varia
           <div>
             <label className="block text-xs font-medium text-text-secondary mb-1">성별</label>
             <div className="flex gap-2">
-              {([
-                { value: 'all', label: '전체' },
-                { value: 'male', label: '남성' },
-                { value: 'female', label: '여성' },
-              ] as const).map(g => (
+              {GENDER_OPTIONS.map(g => (
                 <button
                   key={g.value}
                   onClick={() => setProfile(p => ({ ...p, target_gender: g.value }))}
@@ -1515,30 +1480,6 @@ function BusinessProfileTab({ onToast }: { onToast: (t: { message: string; varia
           </div>
         </div>
       </Card>
-
-      {/* 블로그 카테고리 (블로그 선택 시만) */}
-      {profile.selected_channels.includes('blog') && (
-        <Card>
-          <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-text-primary">블로그 카테고리</h3>
-            <select
-              value={profile.blog_category}
-              onChange={e => setProfile(p => ({ ...p, blog_category: e.target.value }))}
-              className="w-full py-2.5 px-3 rounded-lg border border-border-primary text-sm"
-              style={{ backgroundColor: '#0d1117', color: '#e6edf3' }}
-            >
-              <option value="" style={{ backgroundColor: '#0d1117', color: '#e6edf3' }}>카테고리 선택</option>
-              {NAVER_BLOG_TOPICS.map(group => (
-                <optgroup key={group.group} label={group.group} style={{ backgroundColor: '#161b22', color: '#8b949e' }}>
-                  {group.topics.map(topic => (
-                    <option key={topic} value={topic} style={{ backgroundColor: '#0d1117', color: '#e6edf3' }}>{topic}</option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
-          </div>
-        </Card>
-      )}
 
       {/* 저장 */}
       <div className="flex justify-end">

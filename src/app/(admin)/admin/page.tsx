@@ -24,13 +24,7 @@ interface CostData {
   by_type: Record<string, { count: number; tokens: number; cost: number }>
 }
 
-function getToken() {
-  return sessionStorage.getItem('token') || ''
-}
-
-function authHeaders() {
-  return { Authorization: `Bearer ${getToken()}` }
-}
+import { authHeaders } from '@/lib/auth-client'
 
 function formatCurrency(n: number) {
   return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 }).format(n)

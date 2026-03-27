@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Card from '@/components/ui/Card'
-import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Toast from '@/components/ui/Toast'
+import { CONTENT_CREATE_CHANNELS, TONE_OPTIONS, CONTENT_STYLES, CHANNEL_COLOR_MAP } from '@/lib/constants'
+import { useAsyncAction } from '@/hooks/useAsyncAction'
 
 interface Keyword {
   id: string
@@ -36,19 +37,9 @@ interface GenerateResult {
   body?: string
 }
 
-const CHANNELS = [
-  { id: 'blog', label: '블로그', color: 'bg-blue-500/15 text-blue-400 border-blue-500/30' },
-  { id: 'threads', label: 'Threads', color: 'bg-gray-500/15 text-gray-300 border-gray-500/30' },
-  { id: 'instagram', label: '인스타그램', color: 'bg-pink-500/15 text-pink-400 border-pink-500/30' },
-  { id: 'script', label: '영상 스크립트', color: 'bg-green-500/15 text-green-400 border-green-500/30' },
-]
+const CHANNELS = CONTENT_CREATE_CHANNELS
 
-const TONES = ['professional', 'friendly', 'casual', 'humorous', 'authoritative']
-const TONE_LABELS: Record<string, string> = {
-  professional: '전문적', friendly: '친근한', casual: '캐주얼', humorous: '유머러스', authoritative: '권위있는',
-}
-
-const STYLES = ['정보 전달', '스토리텔링', '리스트형', '비교 분석', '가이드']
+const STYLES = CONTENT_STYLES
 
 export default function ContentNewPage() {
   const [step, setStep] = useState(1)
@@ -69,7 +60,7 @@ export default function ContentNewPage() {
   const [results, setResults] = useState<GenerateResult[]>([])
   const [resultBodies, setResultBodies] = useState<Record<string, string>>({})
   const [activeResultTab, setActiveResultTab] = useState('')
-  const [toast, setToast] = useState<{ visible: boolean; message: string; variant: 'info' | 'success' | 'error' | 'warning' }>({ visible: false, message: '', variant: 'info' })
+  const { toast, clearToast, showToast, run } = useAsyncAction()
   const [quickMode, setQuickMode] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
 
@@ -106,24 +97,18 @@ export default function ContentNewPage() {
     const keyword = getKeyword()
     if (!keyword) return
     setOutlineLoading(true)
-    try {
+    await run(async () => {
       const res = await fetch('/api/generate/outline', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ keyword, brandVoiceId: brandVoiceId || undefined, tone, length }),
       })
       const json = await res.json()
-      if (json.success) {
-        setOutline(json.data)
-        setStep(2.5)
-      } else {
-        setToast({ visible: true, message: json.error || '아웃라인 생성 실패', variant: 'error' })
-      }
-    } catch {
-      setToast({ visible: true, message: '아웃라인 생성 중 오류가 발생했습니다.', variant: 'error' })
-    } finally {
-      setOutlineLoading(false)
-    }
+      if (!json.success) throw new Error(json.error || '아웃라인 생성 실패')
+      setOutline(json.data)
+      setStep(2.5)
+    }, { errorMessage: '아웃라인 생성 중 오류가 발생했습니다.' })
+    setOutlineLoading(false)
   }
 
   const handleGenerate = async () => {
@@ -191,7 +176,7 @@ export default function ContentNewPage() {
                 } else if (event.type === 'done') {
                   setProgress(100)
                 } else if (event.type === 'error') {
-                  setToast({ visible: true, message: `${event.channel}: ${event.message}`, variant: 'warning' })
+                  showToast(`${event.channel}: ${event.message}`, 'error')
                 }
               } catch {
                 // skip
@@ -202,7 +187,7 @@ export default function ContentNewPage() {
       }
     } catch (err) {
       if ((err as Error).name !== 'AbortError') {
-        setToast({ visible: true, message: '콘텐츠 생성 중 오류가 발생했습니다.', variant: 'error' })
+        showToast('콘텐츠 생성 중 오류가 발생했습니다.', 'error')
       }
     } finally {
       setGenerating(false)
@@ -275,7 +260,7 @@ export default function ContentNewPage() {
                 } else if (event.type === 'done') {
                   setProgress(100)
                 } else if (event.type === 'error') {
-                  setToast({ visible: true, message: `${event.channel}: ${event.message}`, variant: 'warning' })
+                  showToast(`${event.channel}: ${event.message}`, 'error')
                 }
               } catch {
                 // skip
@@ -286,7 +271,7 @@ export default function ContentNewPage() {
       }
     } catch (err) {
       if ((err as Error).name !== 'AbortError') {
-        setToast({ visible: true, message: '콘텐츠 생성 중 오류가 발생했습니다.', variant: 'error' })
+        showToast('콘텐츠 생성 중 오류가 발생했습니다.', 'error')
       }
     } finally {
       setGenerating(false)
@@ -296,17 +281,17 @@ export default function ContentNewPage() {
   const handleCopy = (channel: string) => {
     const text = resultBodies[channel] || ''
     navigator.clipboard.writeText(text)
-    setToast({ visible: true, message: '클립보드에 복사되었습니다.', variant: 'success' })
-
-    // 복사 기록
-    const result = results.find((r) => r.channel === channel)
-    if (result?.contentId && token) {
-      fetch('/api/publish/clipboard', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ content_id: result.contentId }),
-      }).catch(() => {})
-    }
+    run(async () => {
+      // 복사 기록
+      const result = results.find((r) => r.channel === channel)
+      if (result?.contentId && token) {
+        await fetch('/api/publish/clipboard', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ content_id: result.contentId }),
+        })
+      }
+    }, { successMessage: '클립보드에 복사되었습니다.' })
   }
 
   const GRADE_COLORS: Record<string, string> = {
@@ -413,7 +398,7 @@ export default function ContentNewPage() {
                   }}
                   className={`
                     flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium border transition-all min-h-[44px]
-                    ${selectedChannels.includes(ch.id) ? ch.color + ' border-current' : 'bg-bg-tertiary text-text-tertiary border-transparent hover:text-text-secondary'}
+                    ${selectedChannels.includes(ch.id) ? (CHANNEL_COLOR_MAP[ch.id] || '') + ' border-current' : 'bg-bg-tertiary text-text-tertiary border-transparent hover:text-text-secondary'}
                   `}
                 >
                   {ch.id === 'blog' && (
@@ -473,7 +458,7 @@ export default function ContentNewPage() {
                   }}
                   className={`
                     px-4 py-2 rounded-lg text-sm font-medium border transition-all min-h-[44px]
-                    ${selectedChannels.includes(ch.id) ? ch.color + ' border-current' : 'bg-bg-tertiary text-text-tertiary border-transparent hover:text-text-secondary'}
+                    ${selectedChannels.includes(ch.id) ? (CHANNEL_COLOR_MAP[ch.id] || '') + ' border-current' : 'bg-bg-tertiary text-text-tertiary border-transparent hover:text-text-secondary'}
                   `}
                 >
                   {ch.label}
@@ -524,16 +509,16 @@ export default function ContentNewPage() {
           <div className="mb-6">
             <label className="text-sm font-medium text-text-primary mb-2 block">톤</label>
             <div className="flex flex-wrap gap-2">
-              {TONES.map((t) => (
+              {TONE_OPTIONS.map((t) => (
                 <button
-                  key={t}
-                  onClick={() => setTone(t)}
+                  key={t.value}
+                  onClick={() => setTone(t.value)}
                   className={`
                     px-3 py-2 rounded-lg text-sm border transition-all min-h-[44px]
-                    ${tone === t ? 'border-accent-primary bg-accent-primary/5 text-text-primary' : 'border-[rgba(240,246,252,0.1)] text-text-tertiary hover:text-text-secondary'}
+                    ${tone === t.value ? 'border-accent-primary bg-accent-primary/5 text-text-primary' : 'border-[rgba(240,246,252,0.1)] text-text-tertiary hover:text-text-secondary'}
                   `}
                 >
-                  {TONE_LABELS[t] || t}
+                  {t.label}
                 </button>
               ))}
             </div>
@@ -704,7 +689,7 @@ export default function ContentNewPage() {
                       if (!token) return
                       const keyword = getKeyword()
                       const result = results.find((r) => r.channel === activeResultTab)
-                      try {
+                      await run(async () => {
                         const res = await fetch('/api/generate/single', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -718,13 +703,9 @@ export default function ContentNewPage() {
                           }),
                         })
                         const json = await res.json()
-                        if (json.success) {
-                          setResultBodies((prev) => ({ ...prev, [activeResultTab]: json.data.body }))
-                          setToast({ visible: true, message: '재생성 완료', variant: 'success' })
-                        }
-                      } catch {
-                        setToast({ visible: true, message: '재생성 실패', variant: 'error' })
-                      }
+                        if (!json.success) throw new Error('재생성 실패')
+                        setResultBodies((prev) => ({ ...prev, [activeResultTab]: json.data.body }))
+                      }, { successMessage: '재생성 완료', errorMessage: '재생성 실패' })
                     }}
                   >
                     재생성
@@ -751,12 +732,7 @@ export default function ContentNewPage() {
         </div>
       )}
 
-      <Toast
-        message={toast.message}
-        variant={toast.variant}
-        visible={toast.visible}
-        onClose={() => setToast((t) => ({ ...t, visible: false }))}
-      />
+      {toast && <Toast message={toast.message} variant={toast.variant} visible onClose={clearToast} />}
     </div>
   )
 }

@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { requireAuth } from '@/lib/auth'
 import { handleApiError } from '@/lib/errors'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { deleteOwnedRecord } from '@/lib/api-helpers'
 
 // GET: 프로젝트 상세
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -71,20 +72,5 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 // DELETE: 프로젝트 삭제
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const authUser = await requireAuth(req)
-    const supabase = createServerSupabase()
-    const { id } = await params
-
-    const { error } = await supabase
-      .from('projects')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', authUser.userId)
-
-    if (error) throw error
-    return Response.json({ success: true })
-  } catch (err) {
-    return handleApiError(err)
-  }
+  return deleteOwnedRecord(req, params, 'projects')
 }

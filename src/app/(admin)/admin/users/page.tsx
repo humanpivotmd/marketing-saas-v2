@@ -7,6 +7,7 @@ import Badge from '@/components/ui/Badge'
 import Input from '@/components/ui/Input'
 import Modal from '@/components/ui/Modal'
 import Toast from '@/components/ui/Toast'
+import { useAsyncAction } from '@/hooks/useAsyncAction'
 
 interface User {
   id: string
@@ -32,8 +33,7 @@ interface Pagination {
   totalPages: number
 }
 
-function getToken() { return sessionStorage.getItem('token') || '' }
-function authHeaders() { return { Authorization: `Bearer ${getToken()}`, 'Content-Type': 'application/json' } }
+import { authHeaders } from '@/lib/auth-client'
 
 const STATUS_LABELS: Record<string, string> = {
   active: '활성',
@@ -53,29 +53,25 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
-  const [loading, setLoading] = useState(true)
   const [selectedUser, setSelectedUser] = useState<UserDetail | null>(null)
   const [showDetail, setShowDetail] = useState(false)
-  const [toast, setToast] = useState<{ message: string; variant: 'success' | 'error' } | null>(null)
+  const { loading, toast, clearToast, run } = useAsyncAction(true)
 
   const fetchUsers = useCallback((page = 1) => {
-    setLoading(true)
     const params = new URLSearchParams({ page: String(page), limit: '20' })
     if (search) params.set('search', search)
     if (roleFilter) params.set('role', roleFilter)
     if (statusFilter) params.set('status', statusFilter)
 
-    fetch(`/api/admin/users?${params}`, { headers: authHeaders() })
-      .then((r) => r.json())
-      .then((res) => {
-        if (res.success) {
-          setUsers(res.data)
-          setPagination(res.pagination)
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [search, roleFilter, statusFilter])
+    run(async () => {
+      const res = await fetch(`/api/admin/users?${params}`, { headers: authHeaders() })
+      const json = await res.json()
+      if (json.success) {
+        setUsers(json.data)
+        setPagination(json.pagination)
+      }
+    })
+  }, [search, roleFilter, statusFilter, run])
 
   useEffect(() => { fetchUsers() }, [fetchUsers])
 
@@ -89,27 +85,25 @@ export default function AdminUsersPage() {
   }
 
   const handleQuickAction = async (id: string, action: string, value: unknown) => {
-    const res = await fetch(`/api/admin/users/${id}`, {
-      method: 'PUT',
-      headers: authHeaders(),
-      body: JSON.stringify({ [action]: value }),
-    })
-    const data = await res.json()
-    if (data.success) {
-      setToast({ message: '변경되었습니다.', variant: 'success' })
+    await run(async () => {
+      const res = await fetch(`/api/admin/users/${id}`, {
+        method: 'PUT',
+        headers: authHeaders(),
+        body: JSON.stringify({ [action]: value }),
+      })
+      const data = await res.json()
+      if (!data.success) throw new Error(data.error || '오류가 발생했습니다.')
       fetchUsers(pagination.page)
-    } else {
-      setToast({ message: data.error || '오류가 발생했습니다.', variant: 'error' })
-    }
+    }, { successMessage: '변경되었습니다.' })
   }
 
   const handleUnlock = async (id: string) => {
-    const res = await fetch(`/api/admin/users/${id}/unlock`, { method: 'POST', headers: authHeaders() })
-    const data = await res.json()
-    if (data.success) {
-      setToast({ message: '잠금이 해제되었습니다.', variant: 'success' })
+    await run(async () => {
+      const res = await fetch(`/api/admin/users/${id}/unlock`, { method: 'POST', headers: authHeaders() })
+      const data = await res.json()
+      if (!data.success) throw new Error(data.error)
       fetchUsers(pagination.page)
-    }
+    }, { successMessage: '잠금이 해제되었습니다.' })
   }
 
   return (
@@ -224,21 +218,19 @@ export default function AdminUsersPage() {
           open={showDetail}
           onClose={() => { setShowDetail(false); setSelectedUser(null) }}
           user={selectedUser}
-          onToast={setToast}
           onRefresh={() => fetchUsers(pagination.page)}
         />
       )}
 
-      {toast && <Toast message={toast.message} variant={toast.variant} visible onClose={() => setToast(null)} />}
+      {toast && <Toast message={toast.message} variant={toast.variant} visible onClose={clearToast} />}
     </div>
   )
 }
 
-function UserDetailModal({ open, onClose, user, onToast, onRefresh }: {
+function UserDetailModal({ open, onClose, user, onRefresh }: {
   open: boolean
   onClose: () => void
   user: UserDetail
-  onToast: (t: { message: string; variant: 'success' | 'error' }) => void
   onRefresh: () => void
 }) {
   const [role, setRole] = useState(user.role)
@@ -246,41 +238,39 @@ function UserDetailModal({ open, onClose, user, onToast, onRefresh }: {
   const [saving, setSaving] = useState(false)
   const [grantType, setGrantType] = useState('content_create')
   const [grantAmount, setGrantAmount] = useState('1')
+  const { toast: modalToast, clearToast: clearModalToast, run: modalRun } = useAsyncAction()
 
   const handleSave = async () => {
     setSaving(true)
-    const res = await fetch(`/api/admin/users/${user.id}`, {
-      method: 'PUT',
-      headers: authHeaders(),
-      body: JSON.stringify({ role, status }),
-    })
-    const data = await res.json()
-    if (data.success) {
-      onToast({ message: '변경되었습니다.', variant: 'success' })
+    await modalRun(async () => {
+      const res = await fetch(`/api/admin/users/${user.id}`, {
+        method: 'PUT',
+        headers: authHeaders(),
+        body: JSON.stringify({ role, status }),
+      })
+      const data = await res.json()
+      if (!data.success) throw new Error(data.error || '오류가 발생했습니다.')
       onRefresh()
       onClose()
-    } else {
-      onToast({ message: data.error || '오류가 발생했습니다.', variant: 'error' })
-    }
+    }, { successMessage: '변경되었습니다.' })
     setSaving(false)
   }
 
   const handleGrant = async () => {
-    const res = await fetch(`/api/admin/users/${user.id}/usage-grant`, {
-      method: 'POST',
-      headers: authHeaders(),
-      body: JSON.stringify({ action_type: grantType, amount: parseInt(grantAmount) }),
-    })
-    const data = await res.json()
-    if (data.success) {
-      onToast({ message: data.message, variant: 'success' })
-    } else {
-      onToast({ message: data.error || '오류가 발생했습니다.', variant: 'error' })
-    }
+    await modalRun(async () => {
+      const res = await fetch(`/api/admin/users/${user.id}/usage-grant`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ action_type: grantType, amount: parseInt(grantAmount) }),
+      })
+      const data = await res.json()
+      if (!data.success) throw new Error(data.error || '오류가 발생했습니다.')
+    }, { successMessage: '사용량이 부여되었습니다.' })
   }
 
   return (
     <Modal open={open} onClose={onClose} title="회원 상세" size="lg">
+      {modalToast && <Toast message={modalToast.message} variant={modalToast.variant} visible onClose={clearModalToast} />}
       <div className="space-y-5">
         {/* Info */}
         <div className="grid grid-cols-2 gap-3 text-sm">

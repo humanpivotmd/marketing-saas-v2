@@ -6,22 +6,14 @@ import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Toast from '@/components/ui/Toast'
 import FlowGuard from '@/components/FlowGuard'
+import { useAsyncAction } from '@/hooks/useAsyncAction'
+import { VIDEO_FORMAT_OPTIONS, VIDEO_CHANNEL_OPTIONS, VIDEO_STYLES } from '@/lib/constants'
 
-const FORMAT_OPTIONS = [
-  { value: 'short', label: '숏폼 (세로)', desc: '60초 이내, 릴스/쇼츠' },
-  { value: 'normal', label: '일반 (가로)', desc: '3~5분, 유튜브' },
-]
+const FORMAT_OPTIONS = VIDEO_FORMAT_OPTIONS
+const CHANNEL_OPTIONS = VIDEO_CHANNEL_OPTIONS
+const STYLES = VIDEO_STYLES
 
-const CHANNEL_OPTIONS = [
-  { value: 'youtube', label: '유튜브' },
-  { value: 'instagram_reels', label: '인스타 릴스' },
-  { value: 'tiktok', label: '틱톡' },
-]
-
-const STYLES = ['미니멀', '모던', '빈티지', '도시적', '세련된', '따뜻한', '전문적']
-
-function getToken() { return sessionStorage.getItem('token') || '' }
-function authHeaders() { return { Authorization: `Bearer ${getToken()}`, 'Content-Type': 'application/json' } }
+import { authHeaders } from '@/lib/auth-client'
 
 interface Scene {
   scene: number
@@ -51,19 +43,14 @@ export default function VideoScriptPage() {
   const [sceneDuration, setSceneDuration] = useState(5)
   const [imageStyle, setImageStyle] = useState<'photo' | 'illustration'>('photo')
   const [styleDetail, setStyleDetail] = useState('모던')
-  const [generating, setGenerating] = useState(false)
   const [result, setResult] = useState<VideoResult | null>(null)
-  const [toast, setToast] = useState<{ message: string; variant: 'success' | 'error' } | null>(null)
+  const { loading: generating, toast, clearToast, run } = useAsyncAction()
 
   const handleGenerate = async () => {
-    setGenerating(true)
-    try {
+    await run(async () => {
       const projRes = await fetch(`/api/projects/${projectId}`, { headers: authHeaders() })
       const projData = await projRes.json()
       if (!projData.success) throw new Error('프로젝트 로드 실패')
-
-      const project = projData.data
-      const snapshot = project.settings_snapshot || {}
 
       const res = await fetch('/api/generate/video-script', {
         method: 'POST',
@@ -87,31 +74,22 @@ export default function VideoScriptPage() {
         total_duration: data.data.totalDuration || sceneCount * sceneDuration,
         scenes: data.data.storyboard || [],
       })
-
-      setToast({ message: '영상 스크립트 생성 완료 (DB 저장됨)', variant: 'success' })
-    } catch (err) {
-      setToast({ message: (err as Error).message || '생성 실패', variant: 'error' })
-    } finally {
-      setGenerating(false)
-    }
+    }, { successMessage: '영상 스크립트 생성 완료 (DB 저장됨)', errorMessage: '생성 실패' })
   }
 
   const handleComplete = async () => {
-    try {
+    await run(async () => {
       await fetch(`/api/projects/${projectId}`, {
         method: 'PATCH',
         headers: authHeaders(),
         body: JSON.stringify({
           status: 'completed',
           current_step: 7,
-          step_status: { s1: 'completed', s2: 'completed', s3: 'completed', s4: 'completed', s5: 'completed', s6: 'completed', s7: 'completed' },
+          step_status: { s7: 'completed' },
         }),
       })
-      setToast({ message: '프로젝트 완료', variant: 'success' })
       setTimeout(() => router.push('/contents'), 1000)
-    } catch {
-      setToast({ message: '완료 처리 실패', variant: 'error' })
-    }
+    }, { successMessage: '프로젝트 완료', errorMessage: '완료 처리 실패' })
   }
 
   return (
@@ -239,7 +217,7 @@ export default function VideoScriptPage() {
         </>
       )}
 
-      <Toast message={toast?.message || ''} variant={toast?.variant} visible={!!toast} onClose={() => setToast(null)} />
+      {toast && <Toast message={toast.message} variant={toast.variant} visible onClose={clearToast} />}
     </div>
     </FlowGuard>
   )

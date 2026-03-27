@@ -8,70 +8,49 @@ import Input from '@/components/ui/Input'
 import Skeleton from '@/components/ui/Skeleton'
 import EmptyState from '@/components/ui/EmptyState'
 import Toast from '@/components/ui/Toast'
+import { useAsyncAction } from '@/hooks/useAsyncAction'
+import { CONTENT_CHANNELS, CONTENT_STATUS_MAP, CHANNEL_COLOR_MAP, CHANNEL_LABEL_MAP } from '@/lib/constants'
 
 interface Content {
   id: string
-  keyword: string | null
   channel: string
   title: string | null
-  seo_score: number | null
   status: string
   created_at: string
-  published_at: string | null
+  updated_at?: string | null
+  project_id?: string | null
+  metadata?: Record<string, unknown> | null
+  // DB에 없지만 프론트에서 표시용으로 사용 (없으면 무시)
+  keyword?: string | null
+  seo_score?: number | null
 }
 
 const CHANNEL_TABS = [
   { id: 'all', label: '전체' },
   { id: 'projects', label: '프로젝트' },
-  { id: 'blog', label: '블로그' },
-  { id: 'threads', label: 'Threads' },
-  { id: 'instagram', label: '인스타그램' },
-  { id: 'facebook', label: '페이스북' },
-  { id: 'video_script', label: '영상 스크립트' },
+  ...CONTENT_CHANNELS,
 ]
 
-const CHANNEL_COLORS: Record<string, string> = {
-  blog: 'bg-blue-500/15 text-blue-400',
-  threads: 'bg-gray-500/15 text-gray-300',
-  instagram: 'bg-pink-500/15 text-pink-400',
-  script: 'bg-green-500/15 text-green-400',
-}
-
-const CHANNEL_LABELS: Record<string, string> = {
-  blog: '블로그',
-  threads: 'Threads',
-  instagram: '인스타그램',
-  script: '영상',
-}
-
-const STATUS_MAP: Record<string, { label: string; variant: 'default' | 'accent' | 'success' | 'warning' }> = {
-  draft: { label: '초안', variant: 'default' },
-  generated: { label: '생성됨', variant: 'accent' },
-  published: { label: '발행됨', variant: 'success' },
-}
+const STATUS_MAP = CONTENT_STATUS_MAP
 
 type SortKey = 'created_at' | 'title' | 'seo_score'
 
 export default function ContentsPage() {
   const [contents, setContents] = useState<Content[]>([])
-  const [loading, setLoading] = useState(true)
   const [activeChannel, setActiveChannel] = useState('all')
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<SortKey>('created_at')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-  const [toast, setToast] = useState<{ visible: boolean; message: string; variant: 'info' | 'success' | 'error' | 'warning' }>({ visible: false, message: '', variant: 'info' })
+  const { loading, toast, clearToast, run } = useAsyncAction(true)
 
   const [projects, setProjects] = useState<{ id: string; keyword_text: string; business_type: string; status: string; current_step: number; content_ids: Record<string, string>; updated_at: string; keywords?: { keyword: string; grade: string } }[]>([])
 
   const fetchContents = async () => {
-    setLoading(true)
-    const token = sessionStorage.getItem('token')
-    if (!token) return
-
-    // 프로젝트 탭이면 프로젝트 목록 조회
     if (activeChannel === 'projects') {
-      try {
+      await run(async () => {
+        const token = sessionStorage.getItem('token')
+        if (!token) throw new Error('로그인이 필요합니다.')
         const res = await fetch('/api/projects?limit=50', {
           headers: { Authorization: `Bearer ${token}` },
         })
@@ -80,11 +59,7 @@ export default function ContentsPage() {
           setProjects(json.data || [])
           setContents([])
         }
-      } catch {
-        setToast({ visible: true, message: '프로젝트 목록을 불러올 수 없습니다.', variant: 'error' as const })
-      } finally {
-        setLoading(false)
-      }
+      }, { errorMessage: '프로젝트 목록을 불러올 수 없습니다.' })
       return
     }
 
@@ -92,7 +67,9 @@ export default function ContentsPage() {
     if (activeChannel !== 'all') params.set('channel', activeChannel)
     if (search) params.set('search', search)
 
-    try {
+    await run(async () => {
+      const token = sessionStorage.getItem('token')
+      if (!token) throw new Error('로그인이 필요합니다.')
       const res = await fetch(`/api/contents?${params}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -101,11 +78,7 @@ export default function ContentsPage() {
         setContents(json.data)
         setTotalPages(json.pagination?.totalPages || 1)
       }
-    } catch {
-      setToast({ visible: true, message: '콘텐츠 목록을 불러올 수 없습니다.', variant: 'error' as const })
-    } finally {
-      setLoading(false)
-    }
+    }, { errorMessage: '콘텐츠 목록을 불러올 수 없습니다.' })
   }
 
   useEffect(() => {
@@ -121,21 +94,20 @@ export default function ContentsPage() {
   const handleDelete = async (id: string) => {
     if (!confirm('이 콘텐츠를 삭제하시겠습니까?')) return
 
-    const token = sessionStorage.getItem('token')
-    if (!token) return
-
-    try {
+    await run(async () => {
+      const token = sessionStorage.getItem('token')
+      if (!token) throw new Error('로그인이 필요합니다.')
       const res = await fetch(`/api/contents/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       })
       if (res.ok) {
         setContents((prev) => prev.filter((c) => c.id !== id))
-        setToast({ visible: true, message: '콘텐츠가 삭제되었습니다.', variant: 'success' as const })
       }
-    } catch {
-      setToast({ visible: true, message: '삭제에 실패했습니다.', variant: 'error' as const })
-    }
+    }, {
+      successMessage: '콘텐츠가 삭제되었습니다.',
+      errorMessage: '삭제에 실패했습니다.',
+    })
   }
 
   return (
@@ -267,10 +239,10 @@ export default function ContentsPage() {
               <Card hover className="flex flex-col sm:flex-row sm:items-center gap-3 mb-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1.5">
-                    <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${CHANNEL_COLORS[content.channel] || ''}`}>
-                      {CHANNEL_LABELS[content.channel] || content.channel}
+                    <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${CHANNEL_COLOR_MAP[content.channel] || ''}`}>
+                      {CHANNEL_LABEL_MAP[content.channel] || content.channel}
                     </span>
-                    <Badge variant={STATUS_MAP[content.status]?.variant || 'default'} size="sm">
+                    <Badge variant={(STATUS_MAP[content.status]?.variant || 'default') as 'default' | 'accent' | 'success' | 'warning'} size="sm">
                       {STATUS_MAP[content.status]?.label || content.status}
                     </Badge>
                   </div>
@@ -283,7 +255,7 @@ export default function ContentsPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
-                  {content.seo_score !== null && (
+                  {content.seo_score != null && (
                     <div className="text-center">
                       <div className="text-lg font-bold text-accent-primary">{content.seo_score}</div>
                       <div className="text-xs text-text-tertiary">SEO</div>
@@ -330,12 +302,7 @@ export default function ContentsPage() {
         </div>
       )}
 
-      <Toast
-        message={toast.message}
-        variant={toast.variant}
-        visible={toast.visible}
-        onClose={() => setToast((t) => ({ ...t, visible: false }))}
-      />
+      {toast && <Toast message={toast.message} variant={toast.variant} visible onClose={clearToast} />}
     </div>
   )
 }

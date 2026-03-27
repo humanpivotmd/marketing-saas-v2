@@ -83,9 +83,7 @@ function getGradeStyle(grade: string | null) {
   return GRADE_COLORS[grade] || { bg: 'bg-bg-tertiary', text: 'text-text-tertiary', border: 'border-[rgba(240,246,252,0.1)]' }
 }
 
-function getToken(): string | null {
-  return sessionStorage.getItem('token')
-}
+import { getToken } from '@/lib/auth-client'
 
 const SEO_LABELS: Record<string, string> = {
   titleKeyword: '제목 키워드',
@@ -111,7 +109,7 @@ export default function KeywordDetailPage({ params }: { params: Promise<{ id: st
   const { id } = use(params)
   const [keyword, setKeyword] = useState<Keyword | null>(null)
   const [gradeResult, setGradeResult] = useState<GradeResult | null>(null)
-  const [seoScore, setSeoScore] = useState<SeoScore | null>(null)
+  const [seoScore, _setSeoScore] = useState<SeoScore | null>(null)
   const [trends, setTrends] = useState<TrendData[]>([])
   const [opportunities, setOpportunities] = useState<Opportunity[]>([])
   const [loading, setLoading] = useState(true)

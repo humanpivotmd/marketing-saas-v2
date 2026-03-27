@@ -4,6 +4,18 @@ import { handleApiError } from '@/lib/errors'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { brandVoiceCreateSchema, validateRequest } from '@/lib/validations'
 
+// is_default 설정 시 기존 default 해제 (POST/PUT 공통)
+export async function clearDefaultBrandVoice(
+  supabase: ReturnType<typeof createServerSupabase>,
+  userId: string
+): Promise<void> {
+  await supabase
+    .from('brand_voices')
+    .update({ is_default: false })
+    .eq('user_id', userId)
+    .eq('is_default', true)
+}
+
 // GET: Brand Voice 목록
 export async function GET(req: NextRequest) {
   try {
@@ -32,14 +44,7 @@ export async function POST(req: NextRequest) {
     const data = validateRequest(brandVoiceCreateSchema, body)
     const supabase = createServerSupabase()
 
-    // is_default 설정 시 기존 default 해제
-    if (data.is_default) {
-      await supabase
-        .from('brand_voices')
-        .update({ is_default: false })
-        .eq('user_id', user.userId)
-        .eq('is_default', true)
-    }
+    if (data.is_default) await clearDefaultBrandVoice(supabase, user.userId)
 
     const { data: voice, error } = await supabase
       .from('brand_voices')

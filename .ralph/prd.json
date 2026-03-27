@@ -1,0 +1,42 @@
+{
+  "project": "MarketingFlow v2",
+  "goal": "기획서 기반 미구현 기능 완성",
+  "userStories": [
+    {
+      "id": "US-01",
+      "title": "토스페이먼츠 결제 연동",
+      "description": "payments/confirm API의 주석 처리된 토스페이먼츠 실제 연동 활성화",
+      "passes": false
+    },
+    {
+      "id": "US-02",
+      "title": "페이스북 자동 발행",
+      "description": "/api/publish/facebook API 구현 (Meta Graph API)",
+      "passes": false
+    },
+    {
+      "id": "US-03",
+      "title": "채널별 개별 컨펌",
+      "description": "channel-write 페이지에서 채널별 개별 컨펌 후 다음 단계 이동",
+      "passes": true
+    },
+    {
+      "id": "US-04",
+      "title": "자동 결제 갱신",
+      "description": "plan_expires_at 만료 시 자동 갱신 처리",
+      "passes": false
+    },
+    {
+      "id": "US-05",
+      "title": "블로그 직접 발행",
+      "description": "WordPress/네이버 블로그 API 연동 발행",
+      "passes": false
+    },
+    {
+      "id": "US-06",
+      "title": "SNS 채널 설정 개선",
+      "description": "페이스북 채널 추가 옵션 + 토큰 수정 UI",
+      "passes": true
+    }
+  ]
+}

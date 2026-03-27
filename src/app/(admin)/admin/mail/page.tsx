@@ -6,6 +6,8 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Badge from '@/components/ui/Badge'
 import Toast from '@/components/ui/Toast'
+import { useAsyncAction } from '@/hooks/useAsyncAction'
+import { authHeaders } from '@/lib/auth-client'
 
 interface EmailLog {
   id: string
@@ -16,16 +18,12 @@ interface EmailLog {
   created_at: string
 }
 
-function getToken() { return sessionStorage.getItem('token') || '' }
-function authHeaders() { return { Authorization: `Bearer ${getToken()}`, 'Content-Type': 'application/json' } }
-
 export default function AdminMailPage() {
   const [to, setTo] = useState('')
   const [subject, setSubject] = useState('')
   const [body, setBody] = useState('')
-  const [sending, setSending] = useState(false)
   const [history, setHistory] = useState<EmailLog[]>([])
-  const [toast, setToast] = useState<{ message: string; variant: 'success' | 'error' } | null>(null)
+  const { loading: sending, toast, clearToast, run } = useAsyncAction()
 
   useEffect(() => {
     fetch('/api/admin/mail/history?limit=20', { headers: authHeaders() })
@@ -36,11 +34,10 @@ export default function AdminMailPage() {
 
   const handleSend = async () => {
     if (!to || !subject || !body) {
-      setToast({ message: '모든 필드를 입력해주세요.', variant: 'error' })
+      await run(async () => { throw new Error('모든 필드를 입력해주세요.') })
       return
     }
-    setSending(true)
-    try {
+    await run(async () => {
       const recipients = to.includes(',') ? to.split(',').map((e) => e.trim()) : to.trim()
       const res = await fetch('/api/admin/mail/send', {
         method: 'POST',
@@ -48,22 +45,16 @@ export default function AdminMailPage() {
         body: JSON.stringify({ to: recipients, subject, body }),
       })
       const data = await res.json()
-      if (data.success) {
-        setToast({ message: data.message, variant: 'success' })
-        setTo('')
-        setSubject('')
-        setBody('')
-        // Refresh history
-        const histRes = await fetch('/api/admin/mail/history?limit=20', { headers: authHeaders() })
-        const histData = await histRes.json()
-        if (histData.success) setHistory(histData.data)
-      } else {
-        setToast({ message: data.error || '발송에 실패했습니다.', variant: 'error' })
-      }
-    } catch {
-      setToast({ message: '네트워크 오류가 발생했습니다.', variant: 'error' })
-    }
-    setSending(false)
+      if (!data.success) throw new Error(data.error || '발송에 실패했습니다.')
+      setTo('')
+      setSubject('')
+      setBody('')
+      // Refresh history
+      const histRes = await fetch('/api/admin/mail/history?limit=20', { headers: authHeaders() })
+      const histData = await histRes.json()
+      if (histData.success) setHistory(histData.data)
+      return data.message
+    }, { successMessage: '메일이 발송되었습니다.', errorMessage: '네트워크 오류가 발생했습니다.' })
   }
 
   return (
@@ -136,7 +127,7 @@ export default function AdminMailPage() {
         </div>
       </Card>
 
-      {toast && <Toast message={toast.message} variant={toast.variant} visible onClose={() => setToast(null)} />}
+      {toast && <Toast message={toast.message} variant={toast.variant} visible onClose={clearToast} />}
     </div>
   )
 }

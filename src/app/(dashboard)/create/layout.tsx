@@ -23,8 +23,6 @@ export default function CreateLayout({ children }: { children: ReactNode }) {
         {STEPS.map((step, i) => {
           const isCompleted = i < currentIdx
           const isCurrent = i === currentIdx
-          const isPending = i > currentIdx
-
           return (
             <div key={step.num} className="flex items-center">
               <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border transition-colors ${

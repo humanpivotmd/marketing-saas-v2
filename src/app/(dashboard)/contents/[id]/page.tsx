@@ -6,6 +6,8 @@ import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import Toast from '@/components/ui/Toast'
+import { useAsyncAction } from '@/hooks/useAsyncAction'
+import { CHANNEL_LABEL_MAP, CHANNEL_COLOR_MAP } from '@/lib/constants'
 
 interface ContentDetail {
   id: string
@@ -23,17 +25,6 @@ interface ContentDetail {
   updated_at: string | null
 }
 
-const CHANNEL_LABELS: Record<string, string> = {
-  blog: '블로그', threads: 'Threads', instagram: '인스타그램', script: '영상 스크립트',
-}
-
-const CHANNEL_COLORS: Record<string, string> = {
-  blog: 'bg-blue-500/15 text-blue-400',
-  threads: 'bg-gray-500/15 text-gray-300',
-  instagram: 'bg-pink-500/15 text-pink-400',
-  script: 'bg-green-500/15 text-green-400',
-}
-
 const STATUS_MAP: Record<string, { label: string; variant: 'default' | 'accent' | 'success' }> = {
   draft: { label: '초안', variant: 'default' },
   generated: { label: '생성됨', variant: 'accent' },
@@ -45,36 +36,33 @@ export default function ContentDetailPage() {
   const router = useRouter()
   const id = params.id as string
   const [content, setContent] = useState<ContentDetail | null>(null)
-  const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
   const [editBody, setEditBody] = useState('')
   const [editTitle, setEditTitle] = useState('')
   const [saving, setSaving] = useState(false)
-  const [toast, setToast] = useState<{ visible: boolean; message: string; variant: 'info' | 'success' | 'error' | 'warning' }>({ visible: false, message: '', variant: 'info' })
+  const { loading, toast, clearToast, run } = useAsyncAction(true)
 
   const token = typeof window !== 'undefined' ? sessionStorage.getItem('token') : null
 
   useEffect(() => {
     if (!token || !id) return
-    fetch(`/api/contents/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.success) {
-          setContent(d.data)
-          setEditBody(d.data.body || '')
-          setEditTitle(d.data.title || '')
-        }
+    run(async () => {
+      const res = await fetch(`/api/contents/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
       })
-      .catch(() => setToast({ visible: true, message: '콘텐츠를 불러올 수 없습니다.', variant: 'error' }))
-      .finally(() => setLoading(false))
-  }, [token, id])
+      const d = await res.json()
+      if (d.success) {
+        setContent(d.data)
+        setEditBody(d.data.body || '')
+        setEditTitle(d.data.title || '')
+      }
+    }, { errorMessage: '콘텐츠를 불러올 수 없습니다.' })
+  }, [token, id, run])
 
   const handleSave = async () => {
     if (!token || !content) return
     setSaving(true)
-    try {
+    await run(async () => {
       const res = await fetch(`/api/contents/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -84,19 +72,18 @@ export default function ContentDetailPage() {
       if (json.success) {
         setContent(json.data)
         setEditing(false)
-        setToast({ visible: true, message: '저장되었습니다.', variant: 'success' })
       }
-    } catch {
-      setToast({ visible: true, message: '저장에 실패했습니다.', variant: 'error' })
-    } finally {
-      setSaving(false)
-    }
+    }, {
+      successMessage: '저장되었습니다.',
+      errorMessage: '저장에 실패했습니다.',
+    })
+    setSaving(false)
   }
 
   const handleCopy = () => {
     if (!content?.body) return
     navigator.clipboard.writeText(content.body)
-    setToast({ visible: true, message: '클립보드에 복사되었습니다.', variant: 'success' })
+    run(async () => {}, { successMessage: '클립보드에 복사되었습니다.' })
 
     if (token && content.id) {
       fetch('/api/publish/clipboard', {
@@ -109,19 +96,19 @@ export default function ContentDetailPage() {
 
   const handleDuplicate = async () => {
     if (!token || !content) return
-    try {
+    await run(async () => {
       const res = await fetch(`/api/contents/${id}/duplicate`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       })
       const json = await res.json()
       if (json.success) {
-        setToast({ visible: true, message: '복제되었습니다.', variant: 'success' })
         router.push(`/contents/${json.data.id}`)
       }
-    } catch {
-      setToast({ visible: true, message: '복제에 실패했습니다.', variant: 'error' })
-    }
+    }, {
+      successMessage: '복제되었습니다.',
+      errorMessage: '복제에 실패했습니다.',
+    })
   }
 
   if (loading) {
@@ -153,8 +140,8 @@ export default function ContentDetailPage() {
               ← 콘텐츠 목록
             </a>
             <div className="flex items-center gap-2 mb-1">
-              <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${CHANNEL_COLORS[content.channel] || ''}`}>
-                {CHANNEL_LABELS[content.channel] || content.channel}
+              <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${CHANNEL_COLOR_MAP[content.channel] || ''}`}>
+                {CHANNEL_LABEL_MAP[content.channel] || content.channel}
               </span>
               <Badge variant={STATUS_MAP[content.status]?.variant || 'default'}>
                 {STATUS_MAP[content.status]?.label || content.status}
@@ -291,8 +278,8 @@ export default function ContentDetailPage() {
                     </Button>
                   )}
                   {content.channel === 'instagram' && (
-                    <Button fullWidth size="sm" onClick={async () => {
-                      setToast({ visible: true, message: 'Instagram 발행을 위해 이미지가 필요합니다.', variant: 'warning' })
+                    <Button fullWidth size="sm" onClick={() => {
+                      run(async () => {}, { successMessage: 'Instagram 발행을 위해 이미지가 필요합니다.' })
                     }}>
                       Instagram 발행
                     </Button>
@@ -300,7 +287,7 @@ export default function ContentDetailPage() {
                   {content.channel === 'threads' && (
                     <Button fullWidth size="sm" onClick={async () => {
                       if (!token) return
-                      try {
+                      await run(async () => {
                         const res = await fetch('/api/publish/threads', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -309,13 +296,13 @@ export default function ContentDetailPage() {
                         const json = await res.json()
                         if (json.success) {
                           setContent({ ...content, status: 'published', published_at: json.data.published_at })
-                          setToast({ visible: true, message: 'Threads에 발행되었습니다.', variant: 'success' })
                         } else {
-                          setToast({ visible: true, message: json.error || '발행 실패', variant: 'error' })
+                          throw new Error(json.error || '발행 실패')
                         }
-                      } catch {
-                        setToast({ visible: true, message: '발행 중 오류가 발생했습니다.', variant: 'error' })
-                      }
+                      }, {
+                        successMessage: 'Threads에 발행되었습니다.',
+                        errorMessage: '발행 중 오류가 발생했습니다.',
+                      })
                     }}>
                       Threads 발행
                     </Button>
@@ -330,12 +317,7 @@ export default function ContentDetailPage() {
         </div>
       </div>
 
-      <Toast
-        message={toast.message}
-        variant={toast.variant}
-        visible={toast.visible}
-        onClose={() => setToast((t) => ({ ...t, visible: false }))}
-      />
+      {toast && <Toast message={toast.message} variant={toast.variant} visible onClose={clearToast} />}
     </div>
   )
 }

@@ -3,6 +3,8 @@ import { requireAuth } from '@/lib/auth'
 import { handleApiError, NotFoundError } from '@/lib/errors'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { brandVoiceCreateSchema, validateRequest } from '@/lib/validations'
+import { deleteOwnedRecord } from '@/lib/api-helpers'
+import { clearDefaultBrandVoice } from '../route'
 
 // PUT: Brand Voice 수정
 export async function PUT(
@@ -16,13 +18,7 @@ export async function PUT(
     const updates = validateRequest(brandVoiceCreateSchema.partial(), body)
     const supabase = createServerSupabase()
 
-    if (updates.is_default) {
-      await supabase
-        .from('brand_voices')
-        .update({ is_default: false })
-        .eq('user_id', user.userId)
-        .eq('is_default', true)
-    }
+    if (updates.is_default) await clearDefaultBrandVoice(supabase, user.userId)
 
     const { data, error } = await supabase
       .from('brand_voices')
@@ -41,25 +37,6 @@ export async function PUT(
 }
 
 // DELETE: Brand Voice 삭제
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const user = await requireAuth(req)
-    const { id } = await params
-    const supabase = createServerSupabase()
-
-    const { error } = await supabase
-      .from('brand_voices')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', user.userId)
-
-    if (error) throw error
-
-    return Response.json({ success: true })
-  } catch (error) {
-    return handleApiError(error)
-  }
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  return deleteOwnedRecord(req, params, 'brand_voices')
 }
