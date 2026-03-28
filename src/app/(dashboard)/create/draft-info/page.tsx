@@ -27,6 +27,7 @@ export default function DraftInfoPage() {
   const [promptMode, setPromptMode] = useState('combine')
   const [titles, setTitles] = useState<string[]>([])
   const [selectedTitle, setSelectedTitle] = useState('')
+  const [customTitle, setCustomTitle] = useState('')
   const [generating, setGenerating] = useState(false)
   const [creating, setCreating] = useState(false)
   const { toast, clearToast, run } = useAsyncAction()
@@ -72,8 +73,9 @@ export default function DraftInfoPage() {
     setGenerating(false)
   }
 
+  const finalTitle = customTitle.trim() || selectedTitle
   const handleStartDraft = async () => {
-    if (!selectedTitle) return
+    if (!finalTitle) return
     setCreating(true)
     await run(async () => {
       // 프로젝트 생성
@@ -97,7 +99,7 @@ export default function DraftInfoPage() {
         headers: authHeaders(),
         body: JSON.stringify({
           topic_type: topicType,
-          selected_title: selectedTitle,
+          selected_title: finalTitle,
           title_candidates: titles,
           custom_prompt: customPrompt || null,
           prompt_mode: promptMode,
@@ -265,9 +267,9 @@ export default function DraftInfoPage() {
             {titles.map((title, i) => (
               <button
                 key={i}
-                onClick={() => setSelectedTitle(title)}
+                onClick={() => { setSelectedTitle(title); setCustomTitle('') }}
                 className={`w-full text-left py-3 px-4 rounded-lg border text-sm transition-all ${
-                  selectedTitle === title
+                  selectedTitle === title && !customTitle.trim()
                     ? 'border-accent-primary bg-accent-primary/10 text-accent-primary font-medium'
                     : 'border-border-primary text-text-secondary hover:border-border-secondary'
                 }`}
@@ -276,11 +278,27 @@ export default function DraftInfoPage() {
               </button>
             ))}
           </div>
+
+          {/* 직접 입력 */}
+          <div className="mt-4 pt-4 border-t border-border-primary">
+            <h4 className="text-sm font-medium text-text-secondary mb-2">또는 직접 입력</h4>
+            <Input
+              placeholder="제목을 직접 입력하세요"
+              value={customTitle}
+              onChange={(e) => {
+                setCustomTitle(e.target.value)
+                if (e.target.value.trim()) setSelectedTitle('')
+              }}
+            />
+            {customTitle.trim() && (
+              <p className="text-xs text-accent-primary mt-1">직접 입력한 제목으로 진행합니다.</p>
+            )}
+          </div>
         </Card>
       )}
 
       {/* 초안 작성 시작 */}
-      {selectedTitle && (
+      {finalTitle && (
         <div className="flex justify-between items-center">
           <button onClick={() => router.back()} className="text-sm text-text-tertiary hover:text-text-secondary">
             이전

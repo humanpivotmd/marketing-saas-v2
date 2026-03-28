@@ -64,6 +64,9 @@ export default function ChannelWritePage() {
   // Track which channels have completed image generation
   const [imageCompleted, setImageCompleted] = useState<Record<string, boolean>>({})
 
+  // 발행 메모 날짜
+  const [scheduledDate, setScheduledDate] = useState('')
+
   useEffect(() => {
     if (!projectId) return
     loadProject()
@@ -356,6 +359,35 @@ export default function ChannelWritePage() {
                     ))}
                   </div>
                 )}
+
+                {/* 발행 예정일 메모 */}
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-surface-secondary border border-border-primary">
+                  <span className="text-sm text-text-secondary shrink-0">📅 발행 예정일</span>
+                  <input
+                    type="date"
+                    value={scheduledDate}
+                    onChange={(e) => setScheduledDate(e.target.value)}
+                    className="py-1.5 px-2 rounded-lg bg-bg-tertiary border border-border-primary text-text-primary text-sm min-h-[44px]"
+                  />
+                  {scheduledDate && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={async () => {
+                        await run(async () => {
+                          await fetch(`/api/contents/${activeContent.id}`, {
+                            method: 'PUT',
+                            headers: authHeaders(),
+                            body: JSON.stringify({ scheduled_date: scheduledDate }),
+                          })
+                        }, { successMessage: '발행 예정일 저장됨', errorMessage: '저장 실패' })
+                      }}
+                    >
+                      저장
+                    </Button>
+                  )}
+                  <span className="text-xs text-text-tertiary">(선택사항)</span>
+                </div>
 
                 {/* 컨펌 + 이미지 만들기 */}
                 <div className="flex items-center justify-between border-t border-border-primary pt-4">

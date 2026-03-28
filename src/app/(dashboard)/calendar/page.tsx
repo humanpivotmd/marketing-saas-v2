@@ -7,7 +7,7 @@ import Button from '@/components/ui/Button'
 import Toast from '@/components/ui/Toast'
 import { useAsyncAction } from '@/hooks/useAsyncAction'
 import { authHeaders } from '@/lib/auth-client'
-import { CHANNEL_LABEL_MAP, CHANNEL_COLOR_MAP, CHANNEL_DOT_MAP } from '@/lib/constants'
+import { CHANNEL_LABEL_MAP, CHANNEL_COLOR_MAP } from '@/lib/constants'
 
 interface CalendarContent {
   id: string
@@ -18,12 +18,25 @@ interface CalendarContent {
   confirmed_at: string | null
   word_count: number | null
   project_id: string | null
+  created_at?: string
+  published_at?: string | null
+}
+
+// 프로젝트 단위로 그룹핑된 캘린더 아이템
+interface CalendarProject {
+  project_id: string
+  keyword: string
+  business_type: string
+  contents: CalendarContent[]
+  dateType: 'created' | 'memo' | 'published'
 }
 
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [byDate, setByDate] = useState<Record<string, CalendarContent[]>>({})
+  const [projectMap, setProjectMap] = useState<Record<string, { keyword_text: string; business_type: string }>>({})
+  const [editingDate, setEditingDate] = useState<{ contentId: string; date: string } | null>(null)
   const { loading, toast, clearToast, run } = useAsyncAction(true)
 
   const year = currentDate.getFullYear()
@@ -38,6 +51,17 @@ export default function CalendarPage() {
       const res = await fetch(`/api/calendar?from=${from}&to=${to}`, { headers: authHeaders() })
       const data = await res.json()
       if (data.success) setByDate(data.data || {})
+
+      // 프로젝트 정보도 로드
+      const projRes = await fetch('/api/projects?limit=100', { headers: authHeaders() })
+      const projData = await projRes.json()
+      if (projData.success) {
+        const map: Record<string, { keyword_text: string; business_type: string }> = {}
+        for (const p of projData.data || []) {
+          map[p.id] = { keyword_text: p.keyword_text || '키워드 없음', business_type: p.business_type || 'B2C' }
+        }
+        setProjectMap(map)
+      }
     })
   }, [year, month, run])
 
@@ -73,12 +97,77 @@ export default function CalendarPage() {
 
   const selectedContents = selectedDate ? byDate[selectedDate] || [] : []
 
+  // 콘텐츠를 프로젝트 단위로 그룹핑
+  function groupByProject(contents: CalendarContent[]): CalendarProject[] {
+    const groups: Record<string, CalendarProject> = {}
+    for (const c of contents) {
+      const pid = c.project_id || c.id
+      if (!groups[pid]) {
+        const projInfo = c.project_id ? projectMap[c.project_id] : null
+        groups[pid] = {
+          project_id: pid,
+          keyword: projInfo?.keyword_text || '개별 콘텐츠',
+          business_type: projInfo?.business_type || 'B2C',
+          contents: [],
+          dateType: c.published_at ? 'published' : c.scheduled_date ? 'memo' : 'created',
+        }
+      }
+      groups[pid].contents.push(c)
+    }
+    return Object.values(groups)
+  }
+
+  // 날짜별 점 색상 결정
+  function getDotColor(contents: CalendarContent[]): string {
+    const hasPublished = contents.some(c => c.status === 'published')
+    if (hasPublished) return 'bg-green-400' // 초록: 발행 완료
+    const hasMemo = contents.some(c => c.scheduled_date)
+    if (hasMemo) return 'bg-blue-400' // 파란: 발행 메모
+    return 'bg-gray-400' // 회색: 생성일
+  }
+
+  // 날짜 변경
+  const handleDateChange = async (contentId: string, newDate: string) => {
+    await run(async () => {
+      await fetch(`/api/contents/${contentId}`, {
+        method: 'PUT',
+        headers: authHeaders(),
+        body: JSON.stringify({ scheduled_date: newDate }),
+      })
+      setEditingDate(null)
+      await fetchCalendar()
+    }, { successMessage: '날짜가 변경되었습니다.', errorMessage: '변경 실패' })
+  }
+
+  const projectGroups = groupByProject(selectedContents)
+
   return (
     <div className="p-4 lg:p-8 max-w-6xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">캘린더</h1>
-          <p className="text-sm text-text-secondary mt-1">콘텐츠 발행 일정을 관리하세요</p>
+          <p className="text-sm text-text-secondary mt-1">키워드별 콘텐츠 일정을 관리하세요</p>
+        </div>
+      </div>
+
+      {/* 안내 문구 */}
+      <div className="mb-6 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 text-sm text-blue-300">
+        날짜는 발행 예정 메모입니다. 실제 발행은 직접 SNS에서 해주세요.
+      </div>
+
+      {/* 색상 범례 */}
+      <div className="flex flex-wrap gap-4 mb-4">
+        <div className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-full bg-gray-400" />
+          <span className="text-xs text-text-tertiary">생성일 (자동)</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-full bg-blue-400" />
+          <span className="text-xs text-text-tertiary">발행 메모 (사용자 설정)</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-full bg-green-400" />
+          <span className="text-xs text-text-tertiary">발행 완료</span>
         </div>
       </div>
 
@@ -87,14 +176,14 @@ export default function CalendarPage() {
         <div className="lg:col-span-2">
           <Card>
             <div className="flex items-center justify-between mb-4 px-2">
-              <button onClick={prevMonth} className="p-2 hover:bg-surface-secondary rounded-lg transition-colors">
+              <button onClick={prevMonth} className="p-2 hover:bg-surface-secondary rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M10 4L6 8l4 4"/></svg>
               </button>
               <div className="flex items-center gap-3">
                 <h2 className="text-lg font-bold text-text-primary">{year}년 {month + 1}월</h2>
                 <Button size="sm" variant="ghost" onClick={goToday}>오늘</Button>
               </div>
-              <button onClick={nextMonth} className="p-2 hover:bg-surface-secondary rounded-lg transition-colors">
+              <button onClick={nextMonth} className="p-2 hover:bg-surface-secondary rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 4l4 4-4 4"/></svg>
               </button>
             </div>
@@ -112,8 +201,8 @@ export default function CalendarPage() {
                 const dateStr = day.month === 'current' ? getDateString(day.date) : ''
                 const isToday = dateStr === today
                 const isSelected = dateStr === selectedDate
-                const hasContent = dateStr && byDate[dateStr]?.length > 0
                 const dayContents = dateStr ? byDate[dateStr] || [] : []
+                const hasContent = dayContents.length > 0
 
                 return (
                   <button
@@ -133,14 +222,12 @@ export default function CalendarPage() {
                     }`}>
                       {day.date}
                     </span>
-                    {/* 채널별 점 표시 */}
+                    {/* 색상 점 */}
                     {hasContent && (
                       <div className="flex gap-0.5 mt-1 flex-wrap">
-                        {dayContents.slice(0, 4).map((c, i) => (
-                          <span key={i} className={`w-1.5 h-1.5 rounded-full ${CHANNEL_DOT_MAP[c.type] || 'bg-text-tertiary'}`} />
-                        ))}
-                        {dayContents.length > 4 && (
-                          <span className="text-[8px] text-text-tertiary">+{dayContents.length - 4}</span>
+                        <span className={`w-2 h-2 rounded-full ${getDotColor(dayContents)}`} />
+                        {dayContents.length > 1 && (
+                          <span className="text-[8px] text-text-tertiary ml-0.5">+{dayContents.length - 1}</span>
                         )}
                       </div>
                     )}
@@ -148,51 +235,84 @@ export default function CalendarPage() {
                 )
               })}
             </div>
-
-            {/* 범례 */}
-            <div className="flex flex-wrap gap-3 mt-4 px-2">
-              {Object.entries(CHANNEL_LABEL_MAP).map(([key, label]) => (
-                <div key={key} className="flex items-center gap-1.5">
-                  <span className={`w-2 h-2 rounded-full ${CHANNEL_DOT_MAP[key]}`} />
-                  <span className="text-xs text-text-tertiary">{label}</span>
-                </div>
-              ))}
-            </div>
           </Card>
         </div>
 
-        {/* 선택된 날짜의 콘텐츠 목록 */}
+        {/* 선택된 날짜의 키워드별 콘텐츠 목록 */}
         <div>
           <Card>
             <h3 className="text-sm font-semibold text-text-primary mb-3">
               {selectedDate
-                ? `${selectedDate.replace(/-/g, '.')} 발행 예정`
+                ? `${selectedDate.replace(/-/g, '.')} 일정`
                 : '날짜를 선택하세요'
               }
             </h3>
             {!selectedDate ? (
               <p className="text-xs text-text-tertiary py-4 text-center">캘린더에서 날짜를 클릭하면 해당 날짜의 콘텐츠를 볼 수 있습니다.</p>
-            ) : selectedContents.length === 0 ? (
+            ) : projectGroups.length === 0 ? (
               <p className="text-xs text-text-tertiary py-4 text-center">이 날짜에 예정된 콘텐츠가 없습니다.</p>
             ) : (
-              <div className="space-y-2">
-                {selectedContents.map(c => (
-                  <a key={c.id} href={`/contents/${c.id}`}>
-                    <div className="p-3 rounded-lg bg-surface-secondary hover:bg-[rgba(240,246,252,0.06)] transition-colors cursor-pointer">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${CHANNEL_COLOR_MAP[c.type] || ''}`}>
-                          {CHANNEL_LABEL_MAP[c.type] || c.type}
-                        </span>
-                        <Badge variant={c.status === 'confirmed' ? 'success' : 'default'} size="sm">
-                          {c.status === 'confirmed' ? '확정' : c.status === 'generated' ? '생성됨' : c.status}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-text-primary truncate">{c.title || '제목 없음'}</p>
-                      {c.word_count && (
-                        <p className="text-xs text-text-tertiary mt-0.5">{c.word_count}자</p>
+              <div className="space-y-4">
+                {projectGroups.map(group => (
+                  <div key={group.project_id} className="p-3 rounded-lg bg-surface-secondary">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-sm font-medium text-text-primary">{group.keyword}</span>
+                      <Badge variant={group.business_type === 'B2B' ? 'accent' : 'success'} size="sm">
+                        {group.business_type}
+                      </Badge>
+                    </div>
+                    <div className="space-y-1.5">
+                      {group.contents.map(c => (
+                        <div key={c.id} className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium shrink-0 ${CHANNEL_COLOR_MAP[c.type] || ''}`}>
+                              {CHANNEL_LABEL_MAP[c.type] || c.type}
+                            </span>
+                            <span className="text-xs text-text-secondary truncate">{c.title || '제목 없음'}</span>
+                          </div>
+                          <Badge
+                            variant={c.status === 'published' ? 'success' : c.confirmed_at ? 'accent' : 'default'}
+                            size="sm"
+                          >
+                            {c.status === 'published' ? '발행됨' : c.confirmed_at ? '확정' : '대기'}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* 날짜 변경 */}
+                    <div className="mt-2 pt-2 border-t border-[rgba(240,246,252,0.08)]">
+                      {editingDate?.contentId === group.contents[0]?.id ? (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="date"
+                            value={editingDate.date}
+                            onChange={(e) => setEditingDate({ ...editingDate, date: e.target.value })}
+                            className="py-1 px-2 rounded bg-bg-tertiary border border-border-primary text-text-primary text-xs"
+                          />
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => {
+                              for (const c of group.contents) {
+                                handleDateChange(c.id, editingDate.date)
+                              }
+                            }}
+                          >
+                            변경
+                          </Button>
+                          <button onClick={() => setEditingDate(null)} className="text-xs text-text-tertiary">취소</button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setEditingDate({ contentId: group.contents[0]?.id, date: selectedDate || '' })}
+                          className="text-xs text-accent-primary hover:underline"
+                        >
+                          날짜 변경
+                        </button>
                       )}
                     </div>
-                  </a>
+                  </div>
                 ))}
               </div>
             )}
@@ -205,18 +325,24 @@ export default function CalendarPage() {
               <p className="text-xs text-text-tertiary">로딩 중...</p>
             ) : (
               <div className="space-y-2">
-                {Object.entries(CHANNEL_LABEL_MAP).map(([key, label]) => {
-                  const count = Object.values(byDate).flat().filter(c => c.type === key).length
-                  return (
-                    <div key={key} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className={`w-2 h-2 rounded-full ${CHANNEL_DOT_MAP[key]}`} />
-                        <span className="text-xs text-text-secondary">{label}</span>
-                      </div>
-                      <span className="text-xs font-medium text-text-primary">{count}건</span>
-                    </div>
-                  )
-                })}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-blue-400" />
+                    <span className="text-xs text-text-secondary">발행 메모</span>
+                  </div>
+                  <span className="text-xs font-medium text-text-primary">
+                    {Object.values(byDate).flat().filter(c => c.scheduled_date && c.status !== 'published').length}건
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-green-400" />
+                    <span className="text-xs text-text-secondary">발행 완료</span>
+                  </div>
+                  <span className="text-xs font-medium text-text-primary">
+                    {Object.values(byDate).flat().filter(c => c.status === 'published').length}건
+                  </span>
+                </div>
                 <div className="border-t border-border-primary pt-2 mt-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-text-secondary">총 예정</span>

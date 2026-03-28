@@ -6,9 +6,9 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Skeleton from '@/components/ui/Skeleton'
 import EmptyState from '@/components/ui/EmptyState'
-import Tabs from '@/components/ui/Tabs'
 import Toast from '@/components/ui/Toast'
 import SetupRequired from '@/components/SetupRequired'
+import { getToken, authHeaders } from '@/lib/auth-client'
 
 interface Keyword {
   id: string
@@ -18,6 +18,7 @@ interface Keyword {
   competition: string | null
   cpc: number | null
   group_name: string | null
+  trend_data: Record<string, unknown> | null
   last_analyzed: string | null
   created_at: string
 }
@@ -56,33 +57,17 @@ function getGradeColor(grade: string | null): string {
   return GRADE_COLORS[grade] || 'bg-bg-tertiary text-text-tertiary'
 }
 
-import { getToken, authHeaders } from '@/lib/auth-client'
-
-function getExperienceLevel(): string {
-  try {
-    const user = sessionStorage.getItem('user')
-    if (user) {
-      const parsed = JSON.parse(user)
-      return parsed.experience_level || 'beginner'
-    }
-  } catch { /* ignore */ }
-  return 'beginner'
-}
-
 export default function KeywordsPage() {
   const [keywords, setKeywords] = useState<Keyword[]>([])
   const [loading, setLoading] = useState(true)
   const [newKeyword, setNewKeyword] = useState('')
   const [serviceName, setServiceName] = useState<string | null>(null)
   const [includeServiceName, setIncludeServiceName] = useState(true)
-  const [newGroup, setNewGroup] = useState('')
-  const [adding, setAdding] = useState(false)
-  const [analyzing, setAnalyzing] = useState(false)
-  const [gradeResults, setGradeResults] = useState<GradeResult[]>([])
-  const [mode, setMode] = useState<'beginner' | 'expert'>('beginner')
+  const [searching, setSearching] = useState(false)
+  const [gradeResults, setGradeResults] = useState<Record<string, GradeResult>>({})
   const [toast, setToast] = useState({ visible: false, message: '', variant: 'error' as 'error' | 'info' | 'success' })
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const [compareOpen, setCompareOpen] = useState(false)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/mypage/business-profile', { headers: authHeaders() })
@@ -96,7 +81,6 @@ export default function KeywordsPage() {
   }, [])
 
   useEffect(() => {
-    setMode(getExperienceLevel() as 'beginner' | 'expert')
     fetchKeywords()
   }, [])
 
@@ -117,109 +101,83 @@ export default function KeywordsPage() {
     setLoading(false)
   }
 
-  async function handleAdd(e: FormEvent) {
+  // 검색 = 자동 등록 + 등급 분석
+  async function handleSearch(e: FormEvent) {
     e.preventDefault()
     if (!newKeyword.trim()) return
     const token = getToken()
     if (!token) return
 
-    setAdding(true)
+    setSearching(true)
     try {
-      const res = await fetch('/api/keywords', {
+      const keywordText = includeServiceName && serviceName
+        ? `${newKeyword.trim()} ${serviceName}`
+        : newKeyword.trim()
+
+      // 1. 자동 등록
+      const addRes = await fetch('/api/keywords', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          keyword: includeServiceName && serviceName
-            ? `${newKeyword.trim()} ${serviceName}`
-            : newKeyword.trim(),
-          group_name: newGroup.trim() || undefined,
-        }),
+        body: JSON.stringify({ keyword: keywordText }),
       })
-      const data = await res.json()
-      if (data.success) {
-        setKeywords((prev) => [data.data, ...prev])
-        setNewKeyword('')
-        setNewGroup('')
-        setToast({ visible: true, message: '키워드가 등록되었습니다.', variant: 'success' })
-      } else {
-        setToast({ visible: true, message: data.error || '등록에 실패했습니다.', variant: 'error' })
+      const addData = await addRes.json()
+      if (!addData.success) {
+        setToast({ visible: true, message: addData.error || '등록에 실패했습니다.', variant: 'error' })
+        setSearching(false)
+        return
       }
-    } catch {
-      setToast({ visible: true, message: '네트워크 오류가 발생했습니다.', variant: 'error' })
-    }
-    setAdding(false)
-  }
 
-  async function handleAnalyzeAll() {
-    const kws = keywords.map((k) => k.keyword)
-    if (kws.length === 0) return
-    const token = getToken()
-    if (!token) return
+      const newKw: Keyword = addData.data
+      setKeywords((prev) => [newKw, ...prev])
+      setNewKeyword('')
 
-    setAnalyzing(true)
-    try {
-      const res = await fetch('/api/keywords/grade', {
+      // 2. 자동 등급 분석
+      const gradeRes = await fetch('/api/keywords/grade', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ keywords: kws.slice(0, 10) }),
+        body: JSON.stringify({ keywords: [keywordText] }),
       })
-      const data = await res.json()
-      if (data.success) {
-        setGradeResults(data.data.results)
-        // Update keywords with grade data
-        const gradeMap = new Map<string, GradeResult>(data.data.results.map((r: GradeResult) => [r.keyword, r]))
+      const gradeData = await gradeRes.json()
+      if (gradeData.success && gradeData.data.results.length > 0) {
+        const result: GradeResult = gradeData.data.results[0]
+        setGradeResults((prev) => ({ ...prev, [keywordText]: result }))
+
+        // 키워드 정보 업데이트
         setKeywords((prev) =>
-          prev.map((kw) => {
-            const gr = gradeMap.get(kw.keyword)
-            if (gr) {
-              return {
-                ...kw,
-                grade: gr.grade,
-                monthly_search: gr.monthly_search,
-                cpc: gr.avg_cpc,
-                last_analyzed: new Date().toISOString(),
-              }
-            }
-            return kw
-          })
+          prev.map((kw) =>
+            kw.id === newKw.id
+              ? { ...kw, grade: result.grade, monthly_search: result.monthly_search, cpc: result.avg_cpc, last_analyzed: new Date().toISOString() }
+              : kw
+          )
         )
-        // Also update via API
-        for (const kw of keywords) {
-          const gr = gradeMap.get(kw.keyword)
-          if (gr) {
-            fetch(`/api/keywords/${kw.id}`, {
-              method: 'PUT',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({
-                grade: gr.grade,
-                monthly_search: gr.monthly_search,
-                cpc: gr.avg_cpc,
-                last_analyzed: new Date().toISOString(),
-              }),
-            }).catch(() => {})
-          }
-        }
-        const bestKeywords = data.data.results.filter((r: GradeResult) => r.grade.startsWith('C'))
-        const analysisMsg = bestKeywords.length > 0
-          ? `${data.data.results.length}개 키워드 분석 완료! C등급(적정 경쟁) 키워드 ${bestKeywords.length}개가 공략하기 좋습니다.`
-          : `${data.data.results.length}개 키워드 분석 완료`
-        setToast({ visible: true, message: analysisMsg, variant: 'success' })
+
+        // DB 업데이트
+        fetch(`/api/keywords/${newKw.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({
+            grade: result.grade,
+            monthly_search: result.monthly_search,
+            cpc: result.avg_cpc,
+            last_analyzed: new Date().toISOString(),
+          }),
+        }).catch(() => {})
+
+        setExpandedId(newKw.id)
+        setToast({ visible: true, message: `"${keywordText}" 등급: ${result.grade} — ${result.opportunity}`, variant: 'success' })
       } else {
-        setToast({ visible: true, message: data.error || '분석에 실패했습니다.', variant: 'error' })
+        setToast({ visible: true, message: '키워드 등록 완료 (등급 분석 결과 없음)', variant: 'info' })
       }
     } catch {
-      setToast({ visible: true, message: '분석 중 오류가 발생했습니다.', variant: 'error' })
+      setToast({ visible: true, message: '검색 중 오류가 발생했습니다.', variant: 'error' })
     }
-    setAnalyzing(false)
+    setSearching(false)
   }
 
   async function handleDelete(ids: string[]) {
@@ -228,16 +186,14 @@ export default function KeywordsPage() {
     try {
       const res = await fetch('/api/keywords', {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ ids }),
       })
       const data = await res.json()
       if (data.success) {
         setKeywords((prev) => prev.filter((k) => !ids.includes(k.id)))
         setSelectedIds(new Set())
+        if (ids.includes(expandedId || '')) setExpandedId(null)
         setToast({ visible: true, message: '삭제되었습니다.', variant: 'info' })
       }
     } catch {
@@ -254,45 +210,79 @@ export default function KeywordsPage() {
     })
   }
 
-  // Beginner mode: natural language description of analysis results
-  function renderBeginnerInsight(result: GradeResult) {
-    const gradeText =
-      result.grade.startsWith('D') ? '경쟁은 낮지만 검색량도 적어요.' :
-      result.grade.startsWith('C') ? '괜찮아요. 경쟁이 보통이에요.' :
-      result.grade.startsWith('B') ? '경쟁이 높아요.' :
-      '경쟁이 매우 치열해요!'
+  // 인라인 열기 시 등급 분석 실행 (아직 분석되지 않은 경우)
+  async function handleExpand(kw: Keyword) {
+    if (expandedId === kw.id) {
+      setExpandedId(null)
+      return
+    }
+    setExpandedId(kw.id)
 
-    const searchText =
-      result.monthly_search >= 10000 ? '많은 사람들이 검색하고 있고' :
-      result.monthly_search >= 1000 ? '꾸준히 검색되고 있고' :
-      result.monthly_search >= 100 ? '적당한 검색량이 있고' :
-      '검색량은 적지만'
+    if (kw.grade && gradeResults[kw.keyword]) return
+    if (kw.grade) return // 이미 분석됨
 
-    const trendText =
-      result.trend === '상승' ? '최근 검색 트렌드도 올라가는 중이에요.' :
-      result.trend === '하락' ? '최근 검색 트렌드는 줄어드는 추세에요.' :
-      '검색 트렌드는 안정적이에요.'
+    const token = getToken()
+    if (!token) return
 
-    return (
-      <p className="text-sm text-text-secondary mt-2 leading-relaxed">
-        이 키워드는 <strong className="text-text-primary">{gradeText}</strong>{' '}
-        월 {result.monthly_search.toLocaleString()}명이 {searchText}{' '}
-        {trendText}{' '}
-        {result.grade.startsWith('D')
-          ? '타겟 키워드로 활용하면 효과적이에요.'
-          : result.grade.startsWith('C')
-          ? '꾸준히 콘텐츠를 올리면 충분히 노출될 수 있어요.'
-          : '다른 키워드와 함께 사용하면 더 효과적이에요.'}
-      </p>
-    )
+    try {
+      const res = await fetch('/api/keywords/grade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ keywords: [kw.keyword] }),
+      })
+      const data = await res.json()
+      if (data.success && data.data.results.length > 0) {
+        const result: GradeResult = data.data.results[0]
+        setGradeResults((prev) => ({ ...prev, [kw.keyword]: result }))
+        setKeywords((prev) =>
+          prev.map((k) =>
+            k.id === kw.id
+              ? { ...k, grade: result.grade, monthly_search: result.monthly_search, cpc: result.avg_cpc, last_analyzed: new Date().toISOString() }
+              : k
+          )
+        )
+        fetch(`/api/keywords/${kw.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ grade: result.grade, monthly_search: result.monthly_search, cpc: result.avg_cpc, last_analyzed: new Date().toISOString() }),
+        }).catch(() => {})
+      }
+    } catch { /* ignore */ }
   }
 
-  const keywordListContent = (
-    <>
-      {/* Add Form */}
+  return (
+    <SetupRequired>
+    <div className="p-4 lg:p-8 max-w-4xl">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-text-primary">키워드 분석</h1>
+        <p className="text-sm text-text-secondary mt-1">
+          키워드를 검색하면 자동으로 등록 + 등급 분석이 실행됩니다.
+        </p>
+        {/* 등급 범례 */}
+        <div className="mt-3 flex flex-wrap gap-3">
+          <span className="inline-flex items-center gap-1.5 text-xs">
+            <span className={`px-1.5 py-0.5 rounded font-bold ${GRADE_COLORS['A+']}`}>A+~A</span>
+            <span className="text-text-secondary">경쟁 치열</span>
+          </span>
+          <span className="inline-flex items-center gap-1.5 text-xs">
+            <span className={`px-1.5 py-0.5 rounded font-bold ${GRADE_COLORS['B+']}`}>B+~B-</span>
+            <span className="text-text-secondary">경쟁 높음</span>
+          </span>
+          <span className="inline-flex items-center gap-1.5 text-xs">
+            <span className={`px-1.5 py-0.5 rounded font-bold ${GRADE_COLORS['C+']}`}>C+~C-</span>
+            <span className="text-text-secondary">도전 가능</span>
+          </span>
+          <span className="inline-flex items-center gap-1.5 text-xs">
+            <span className={`px-1.5 py-0.5 rounded font-bold ${GRADE_COLORS['D']}`}>D+~D-</span>
+            <span className="text-text-secondary">경쟁 낮음</span>
+          </span>
+        </div>
+      </div>
+
+      {/* 검색 폼 */}
       <Card className="mb-6">
-        <h2 className="text-base font-semibold text-text-primary mb-4">키워드 등록</h2>
-        <form onSubmit={handleAdd} className="flex flex-col sm:flex-row gap-3">
+        <h2 className="text-base font-semibold text-text-primary mb-4">키워드 검색</h2>
+        <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1">
             <Input
               placeholder="키워드 입력 (예: 강남 카페 추천)"
@@ -301,16 +291,8 @@ export default function KeywordsPage() {
               aria-label="키워드"
             />
           </div>
-          <div className="w-full sm:w-48">
-            <Input
-              placeholder="그룹 (선택)"
-              value={newGroup}
-              onChange={(e) => setNewGroup(e.target.value)}
-              aria-label="그룹명"
-            />
-          </div>
-          <Button type="submit" loading={adding}>
-            등록
+          <Button type="submit" loading={searching}>
+            검색
           </Button>
         </form>
         {serviceName && (
@@ -337,66 +319,29 @@ export default function KeywordsPage() {
         )}
       </Card>
 
-      {/* Actions */}
+      {/* 키워드 목록 헤더 */}
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <h2 className="text-base font-semibold text-text-primary">
-            등록된 키워드 <span className="text-text-tertiary font-normal">({keywords.length})</span>
-          </h2>
-          {selectedIds.size > 0 && (
-            <Button
-              variant="danger"
-              size="sm"
-              onClick={() => handleDelete(Array.from(selectedIds))}
-            >
-              {selectedIds.size}개 삭제
-            </Button>
-          )}
-        </div>
-        <div className="flex items-center gap-3">
-          {/* Mode Toggle */}
-          <div className="flex items-center gap-2 bg-bg-tertiary rounded-lg p-0.5">
-            <button
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                mode === 'beginner'
-                  ? 'bg-accent-primary text-white'
-                  : 'text-text-tertiary hover:text-text-secondary'
-              }`}
-              onClick={() => setMode('beginner')}
-            >
-              초보자
-            </button>
-            <button
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                mode === 'expert'
-                  ? 'bg-accent-primary text-white'
-                  : 'text-text-tertiary hover:text-text-secondary'
-              }`}
-              onClick={() => setMode('expert')}
-            >
-              전문가
-            </button>
-          </div>
+        <h2 className="text-base font-semibold text-text-primary">
+          등록된 키워드 <span className="text-text-tertiary font-normal">({keywords.length})</span>
+        </h2>
+        {selectedIds.size > 0 && (
           <Button
-            variant="secondary"
+            variant="danger"
             size="sm"
-            loading={analyzing}
-            onClick={handleAnalyzeAll}
-            disabled={keywords.length === 0}
+            onClick={() => handleDelete(Array.from(selectedIds))}
           >
-            전체 등급 분석
+            {selectedIds.size}개 삭제
           </Button>
-        </div>
+        )}
       </div>
 
-      {/* Keyword List */}
+      {/* 키워드 리스트 */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
             <Card key={i}>
               <Skeleton variant="title" />
               <Skeleton variant="text" className="mt-2" />
-              <Skeleton variant="text" width="60%" className="mt-1" />
             </Card>
           ))}
         </div>
@@ -409,47 +354,45 @@ export default function KeywordsPage() {
             </svg>
           }
           title="등록된 키워드가 없습니다"
-          description="키워드를 등록하고 등급 분석을 시작하세요."
+          description="키워드를 검색하면 자동으로 등록과 등급 분석이 실행됩니다."
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
           {keywords.map((kw) => {
-            const gradeResult = gradeResults.find((r) => r.keyword === kw.keyword)
+            const isExpanded = expandedId === kw.id
+            const gradeResult = gradeResults[kw.keyword]
+
             return (
-              <Card
-                key={kw.id}
-                hover
-                className="relative cursor-pointer"
-                onClick={() => {
-                  window.location.href = `/keywords/${kw.id}`
-                }}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.has(kw.id)}
-                      onChange={(e) => {
-                        e.stopPropagation()
-                        toggleSelect(kw.id)
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                      className="mt-0.5 rounded border-[rgba(240,246,252,0.2)] bg-bg-tertiary"
-                      aria-label={`${kw.keyword} 선택`}
-                    />
-                    <div className="min-w-0">
-                      <h3 className="text-sm font-semibold text-text-primary truncate">{kw.keyword}</h3>
-                      {kw.group_name && (
-                        <span className="text-xs text-text-tertiary">{kw.group_name}</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
+              <Card key={kw.id} className="overflow-hidden">
+                {/* 리스트 행 */}
+                <div
+                  className="flex items-center gap-3 cursor-pointer"
+                  onClick={() => handleExpand(kw)}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(kw.id)}
+                    onChange={() => toggleSelect(kw.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="rounded border-[rgba(240,246,252,0.2)] bg-bg-tertiary shrink-0"
+                    aria-label={`${kw.keyword} 선택`}
+                  />
+                  <div className="flex-1 min-w-0 flex items-center gap-3">
+                    <h3 className="text-sm font-semibold text-text-primary truncate">{kw.keyword}</h3>
                     {kw.grade && (
-                      <span className={`inline-flex items-center px-3 py-1 text-sm font-bold rounded-lg ${getGradeColor(kw.grade)}`}>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 text-xs font-bold rounded-lg shrink-0 ${getGradeColor(kw.grade)}`}>
                         {kw.grade}
                       </span>
                     )}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <a
+                      href={`/create/draft-info?keyword_id=${kw.id}&keyword=${encodeURIComponent(kw.keyword)}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="px-3 py-1.5 text-xs font-medium text-accent-primary hover:bg-accent-primary/10 rounded-lg transition-colors min-h-[44px] flex items-center"
+                    >
+                      콘텐츠 생성
+                    </a>
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
@@ -457,240 +400,83 @@ export default function KeywordsPage() {
                           handleDelete([kw.id])
                         }
                       }}
-                      className="p-1.5 rounded-md text-text-tertiary hover:text-accent-danger hover:bg-accent-danger/10 transition-colors"
+                      className="p-1.5 rounded-md text-text-tertiary hover:text-accent-danger hover:bg-accent-danger/10 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                       aria-label={`${kw.keyword} 삭제`}
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M18 6L6 18M6 6l12 12" />
                       </svg>
                     </button>
+                    <svg
+                      width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
+                      className={`text-text-tertiary transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                    >
+                      <path d="M4 6l4 4 4-4" />
+                    </svg>
                   </div>
                 </div>
 
-                {mode === 'beginner' && gradeResult && renderBeginnerInsight(gradeResult)}
-
-                {mode === 'expert' && kw.monthly_search !== null && (
-                  <div className="mt-3 grid grid-cols-3 gap-3">
-                    <div>
-                      <p className="text-xs text-text-tertiary">월간 검색량</p>
-                      <p className="text-sm font-semibold text-text-primary">
-                        {kw.monthly_search?.toLocaleString() || '-'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-text-tertiary">경쟁도</p>
-                      <p className="text-sm font-semibold text-text-primary">{kw.competition || '-'}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-text-tertiary">CPC</p>
-                      <p className="text-sm font-semibold text-text-primary">
-                        {kw.cpc ? `${kw.cpc.toLocaleString()}원` : '-'}
-                      </p>
-                    </div>
+                {/* 인라인 상세 (열림/닫힘) */}
+                {isExpanded && (
+                  <div className="mt-4 pt-4 border-t border-[rgba(240,246,252,0.08)]">
+                    {kw.grade || gradeResult ? (
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div>
+                          <p className="text-xs text-text-tertiary">월간 검색량</p>
+                          <p className="text-lg font-bold text-text-primary">
+                            {(gradeResult?.monthly_search ?? kw.monthly_search)?.toLocaleString() || '-'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-text-tertiary">경쟁도</p>
+                          <p className="text-lg font-bold text-text-primary">
+                            {gradeResult ? `${gradeResult.saturation.toFixed(1)}%` : kw.competition || '-'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-text-tertiary">CPC</p>
+                          <p className="text-lg font-bold text-text-primary">
+                            {(gradeResult?.avg_cpc ?? kw.cpc) ? `${(gradeResult?.avg_cpc ?? kw.cpc)?.toLocaleString()}원` : '-'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-text-tertiary">트렌드</p>
+                          <p className={`text-lg font-bold ${
+                            gradeResult?.trend === '상승' ? 'text-accent-success' :
+                            gradeResult?.trend === '하락' ? 'text-accent-error' :
+                            'text-text-primary'
+                          }`}>
+                            {gradeResult?.trend || '-'}
+                            {gradeResult?.trend_change ? ` (${gradeResult.trend_change > 0 ? '+' : ''}${gradeResult.trend_change}%)` : ''}
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-sm text-text-tertiary">
+                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" className="opacity-25" />
+                          <path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="opacity-75" />
+                        </svg>
+                        등급 분석 중...
+                      </div>
+                    )}
+                    {gradeResult && (
+                      <div className="mt-3 flex flex-wrap gap-3 text-xs text-text-tertiary">
+                        <span>난이도: {gradeResult.difficulty}</span>
+                        <span>기회: {gradeResult.opportunity}</span>
+                        <span>점수: {gradeResult.total_score}점</span>
+                        {kw.last_analyzed && (
+                          <span>분석: {new Date(kw.last_analyzed).toLocaleDateString('ko-KR')}</span>
+                        )}
+                      </div>
+                    )}
                   </div>
-                )}
-
-                {mode === 'expert' && gradeResult && (
-                  <div className="mt-3 grid grid-cols-4 gap-2">
-                    <div>
-                      <p className="text-xs text-text-tertiary">포화도</p>
-                      <p className="text-sm font-semibold text-text-primary">{gradeResult.saturation.toFixed(1)}%</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-text-tertiary">점수</p>
-                      <p className="text-sm font-semibold text-text-primary">{gradeResult.total_score}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-text-tertiary">트렌드</p>
-                      <p className={`text-sm font-semibold ${
-                        gradeResult.trend === '상승' ? 'text-accent-success' :
-                        gradeResult.trend === '하락' ? 'text-accent-error' :
-                        'text-text-primary'
-                      }`}>
-                        {gradeResult.trend} {gradeResult.trend_change !== 0 ? `(${gradeResult.trend_change > 0 ? '+' : ''}${gradeResult.trend_change}%)` : ''}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-text-tertiary">난이도</p>
-                      <p className="text-sm font-semibold text-text-primary">{gradeResult.difficulty}</p>
-                    </div>
-                  </div>
-                )}
-
-                {mode === 'beginner' && gradeResult && gradeResult.grade.startsWith('C') && (
-                  <div className="mt-2 pt-2 border-t border-[rgba(240,246,252,0.05)]">
-                    <a
-                      href={`/create/draft-info?keyword=${encodeURIComponent(kw.keyword)}`}
-                      className="text-xs text-accent-primary hover:underline"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      이 키워드로 바로 글 쓰기 &rarr;
-                    </a>
-                  </div>
-                )}
-
-                {!kw.grade && !gradeResult && (
-                  <p className="text-xs text-text-tertiary mt-2">
-                    아직 분석되지 않았습니다. &quot;전체 등급 분석&quot;을 실행하세요.
-                  </p>
                 )}
               </Card>
             )
           })}
         </div>
       )}
-    </>
-  )
-
-  // Recommendations tab
-  const recommendationsContent = gradeResults.length === 0 ? (
-    <EmptyState
-      title="분석 결과가 없습니다"
-      description="키워드를 등록하고 '전체 등급 분석'을 실행하면 추천을 받을 수 있습니다."
-    />
-  ) : (
-    <div className="space-y-6">
-      {[
-        { label: '추천 · 적정 경쟁 (C등급)', items: gradeResults.filter((r) => r.grade.startsWith('C')), color: 'text-emerald-400' },
-        { label: '경쟁 낮음 · 노출 적음 (D등급)', items: gradeResults.filter((r) => r.grade.startsWith('D')), color: 'text-blue-400' },
-        { label: '경쟁 높음 · 차별화 필요 (B등급)', items: gradeResults.filter((r) => r.grade.startsWith('B')), color: 'text-amber-400' },
-        { label: '경쟁 치열 · 비추천 (A등급)', items: gradeResults.filter((r) => r.grade.startsWith('A')), color: 'text-red-400' },
-      ].map((group) => group.items.length > 0 && (
-        <div key={group.label}>
-          <h3 className={`text-sm font-semibold ${group.color} mb-3`}>{group.label}</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {group.items.map((r) => (
-              <Card key={r.keyword} padding="sm">
-                <div className="flex items-center justify-between px-2">
-                  <span className="text-sm font-medium text-text-primary">{r.keyword}</span>
-                  <span className={`px-2 py-0.5 text-xs font-bold rounded-md ${getGradeColor(r.grade)}`}>
-                    {r.grade}
-                  </span>
-                </div>
-                {mode === 'beginner' ? (
-                  <div className="mt-1 px-2">
-                    <p className="text-xs text-text-secondary">{r.opportunity}</p>
-                    {r.grade.startsWith('C') && (
-                      <a
-                        href={`/create/draft-info?keyword=${encodeURIComponent(r.keyword)}`}
-                        className="text-xs text-accent-primary hover:underline mt-1 inline-block"
-                      >
-                        이 키워드로 글 쓰기 &rarr;
-                      </a>
-                    )}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-3 gap-2 mt-2 px-2 text-xs text-text-tertiary">
-                    <span>검색 {r.monthly_search.toLocaleString()}</span>
-                    <span>포화 {r.saturation.toFixed(1)}%</span>
-                    <span>점수 {r.total_score}</span>
-                  </div>
-                )}
-              </Card>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-
-  // Grade compare table
-  const gradedKeywords = keywords
-    .filter(kw => kw.grade)
-    .sort((a, b) => (a.grade || '').localeCompare(b.grade || ''))
-    .slice(0, 10)
-
-  const gradeCompareContent = gradedKeywords.length === 0 ? (
-    <EmptyState
-      title="분석된 키워드가 없습니다"
-      description="키워드를 등록하고 '전체 등급 분석'을 실행하세요."
-    />
-  ) : (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-text-primary">
-          등급 분석 비교 <span className="text-text-tertiary font-normal">({gradedKeywords.length}개)</span>
-        </h3>
-        <button
-          onClick={() => setCompareOpen(v => !v)}
-          className="text-xs text-accent-primary hover:underline min-h-[44px] flex items-center"
-        >
-          {compareOpen ? '접기' : '펼치기'}
-        </button>
-      </div>
-      {compareOpen && (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border-primary text-text-tertiary text-xs">
-                <th className="text-left py-2 pr-4 font-medium">키워드</th>
-                <th className="text-center py-2 px-3 font-medium">등급</th>
-                <th className="text-right py-2 px-3 font-medium">월검색량</th>
-                <th className="text-center py-2 px-3 font-medium">경쟁도</th>
-                <th className="text-right py-2 pl-3 font-medium">분석일</th>
-              </tr>
-            </thead>
-            <tbody>
-              {gradedKeywords.map(kw => (
-                <tr key={kw.id} className="border-b border-border-primary/50 hover:bg-surface-secondary/50">
-                  <td className="py-2.5 pr-4 text-text-primary font-medium truncate max-w-[200px]">{kw.keyword}</td>
-                  <td className="py-2.5 px-3 text-center">
-                    <span className={`inline-flex items-center px-2 py-0.5 text-xs font-bold rounded-md ${getGradeColor(kw.grade)}`}>
-                      {kw.grade}
-                    </span>
-                  </td>
-                  <td className="py-2.5 px-3 text-right text-text-secondary">
-                    {kw.monthly_search?.toLocaleString() || '-'}
-                  </td>
-                  <td className="py-2.5 px-3 text-center text-text-secondary">{kw.competition || '-'}</td>
-                  <td className="py-2.5 pl-3 text-right text-text-tertiary text-xs">
-                    {kw.last_analyzed ? new Date(kw.last_analyzed).toLocaleDateString('ko-KR') : '-'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  )
-
-  return (
-    <SetupRequired>
-    <div className="p-4 lg:p-8 max-w-6xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-text-primary">키워드 분석</h1>
-        <p className="text-sm text-text-secondary mt-1">
-          키워드를 등록하고 네이버 검색 데이터 기반 등급 분석을 받으세요.
-        </p>
-        {/* 등급 범례 */}
-        <div className="mt-3 flex flex-wrap gap-3">
-          <span className="inline-flex items-center gap-1.5 text-xs">
-            <span className={`px-1.5 py-0.5 rounded font-bold ${GRADE_COLORS['A+']}`}>A+~A</span>
-            <span className="text-text-secondary">경쟁 치열 · 비추천</span>
-          </span>
-          <span className="inline-flex items-center gap-1.5 text-xs">
-            <span className={`px-1.5 py-0.5 rounded font-bold ${GRADE_COLORS['B+']}`}>B+~B-</span>
-            <span className="text-text-secondary">경쟁 높음 · 차별화 필요</span>
-          </span>
-          <span className="inline-flex items-center gap-1.5 text-xs">
-            <span className={`px-1.5 py-0.5 rounded font-bold ${GRADE_COLORS['C+']}`}>C+~C-</span>
-            <span className="text-text-secondary">경쟁 보통 · 도전 가능</span>
-          </span>
-          <span className="inline-flex items-center gap-1.5 text-xs">
-            <span className={`px-1.5 py-0.5 rounded font-bold ${GRADE_COLORS['D']}`}>D+~D-</span>
-            <span className="text-text-secondary">경쟁 낮음 · 노출 적음</span>
-          </span>
-        </div>
-      </div>
-
-      <Tabs
-        tabs={[
-          { id: 'keywords', label: '키워드 관리', content: keywordListContent },
-          { id: 'recommendations', label: '추천', content: recommendationsContent },
-          { id: 'compare', label: '등급 비교', content: gradeCompareContent },
-        ]}
-      />
 
       <Toast
         message={toast.message}
