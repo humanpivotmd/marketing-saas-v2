@@ -73,6 +73,12 @@
       "title": "STEP3 core_message API 반영",
       "description": "titles/draft API에 핵심 전달 내용 반영",
       "passes": true
+    },
+    {
+      "id": "US-15",
+      "title": "에이전시 팀 자동화 테스트",
+      "description": "4개 시나리오 Playwright 자동화 (블로그/인스타/B2B/관리자)",
+      "passes": true
     }
   ]
 }
