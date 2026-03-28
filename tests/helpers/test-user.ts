@@ -176,11 +176,18 @@ export async function setupBusinessProfile(page: Page, options: TestUserOptions)
   await page.waitForTimeout(2000)
 }
 
-/** 키워드 등록 */
+/** 키워드 등록 (검색 = 자동 등록 + 등급 분석) */
 export async function registerKeyword(page: Page, keyword: string) {
   await page.goto(`${BASE}/keywords`)
   await page.waitForLoadState('networkidle')
   await page.waitForTimeout(1500)
+
+  // 서비스명 조합 토글 OFF (순수 키워드만 등록)
+  const toggle = page.locator('button[role="switch"][aria-checked="true"]').first()
+  if (await toggle.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await toggle.click()
+    await page.waitForTimeout(300)
+  }
 
   const keywordInput = page.locator('input[placeholder*="키워드 입력"]').first()
   await expect(keywordInput).toBeVisible({ timeout: 5000 })
@@ -188,9 +195,12 @@ export async function registerKeyword(page: Page, keyword: string) {
 
   const searchBtn = page.locator('button:has-text("검색")').first()
   await searchBtn.click()
-  await page.waitForTimeout(5000)
 
-  await expect(page.locator(`text=${keyword}`)).toBeVisible({ timeout: 10000 })
+  // 자동 등록 + 등급 분석 대기 (등급 분석은 시간이 걸림)
+  await page.waitForTimeout(8000)
+
+  // 키워드가 목록에 표시되는지 확인 (이미 등록된 경우도 포함)
+  await expect(page.locator(`text=${keyword}`).first()).toBeVisible({ timeout: 15000 })
 }
 
 /** STEP3: 초안 정보 입력 → 제목 생성 → 선택 → 프로젝트 생성 */
