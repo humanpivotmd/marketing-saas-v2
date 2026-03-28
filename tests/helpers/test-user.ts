@@ -87,6 +87,26 @@ export async function loginUser(page: Page, user: TestUser) {
   await page.waitForFunction(() => !window.location.pathname.includes('/login'), { timeout: 15000 })
 }
 
+/** 기존 테스트 계정으로 로그인 (회원가입 불필요) */
+export async function loginTestAccount(page: Page) {
+  const email = process.env.TEST_EMAIL || 'smoke-test@marketingflow.kr'
+  const password = process.env.TEST_PASSWORD || 'test1234!'
+
+  await page.goto(`${BASE}/login`)
+  await page.waitForSelector('input[placeholder="you@example.com"], input[type="email"]', { timeout: 5000 })
+
+  const emailInput = page.locator('input[placeholder="you@example.com"], input[type="email"]').first()
+  await emailInput.fill(email)
+
+  const pwInput = page.locator('input[type="password"]').first()
+  await pwInput.fill(password)
+
+  const submitBtn = page.locator('button[type="submit"]:visible').first()
+  await submitBtn.click()
+
+  await page.waitForFunction(() => !window.location.pathname.includes('/login'), { timeout: 15000 })
+}
+
 /** 마이페이지 비즈니스 프로필 설정 */
 export async function setupBusinessProfile(page: Page, options: TestUserOptions) {
   await page.goto(`${BASE}/settings#business`)

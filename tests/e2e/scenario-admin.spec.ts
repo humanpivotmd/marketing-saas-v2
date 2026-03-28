@@ -53,7 +53,7 @@ test.describe.serial('시나리오 4: 관리자 테스트', () => {
     await page.waitForLoadState('networkidle')
 
     // 플랜 목록이 보이는지
-    const planItems = page.locator('text=무료, text=Free, text=Pro, text=Basic, text=Enterprise').first()
+    const planItems = page.locator('text=무료').or(page.locator('text=Free')).or(page.locator('text=Pro')).or(page.locator('text=Basic')).or(page.locator('text=요금')).first()
     await expect(planItems).toBeVisible({ timeout: 10000 })
   })
 

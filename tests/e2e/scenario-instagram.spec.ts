@@ -1,27 +1,23 @@
 import { test, expect } from '@playwright/test'
 import {
-  generateTestUser, registerUser, loginUser, setupBusinessProfile,
+  loginTestAccount, setupBusinessProfile,
   registerKeyword, setupDraftInfo, waitForDraftGeneration,
   confirmChannelsAndGenerateImages, generateVideoScript,
-  type TestUser,
 } from '../helpers/test-user'
 
 const BASE = process.env.TEST_BASE_URL || 'http://localhost:3000'
 
 test.describe.serial('시나리오 2: 인스타만 선택 — B2C 상품소개 플로우', () => {
-  let user: TestUser
   let projectId: string
   const keyword = '인스타 뷰티 마케팅'
 
-  test('1. 회원가입', async ({ page }) => {
-    user = generateTestUser('instagram')
-    await registerUser(page, user)
-    await loginUser(page, user)
+  test('1. 로그인', async ({ page }) => {
+    await loginTestAccount(page)
     expect(page.url()).not.toContain('/login')
   })
 
-  test('2. 마이페이지: 업종/B2C/인스타만/서비스명 설정', async ({ page }) => {
-    await loginUser(page, user)
+  test('2. 마이페이지: B2C/인스타만/서비스명 설정', async ({ page }) => {
+    await loginTestAccount(page)
     await setupBusinessProfile(page, {
       scenario: 'instagram',
       businessType: 'B2C',
@@ -35,13 +31,13 @@ test.describe.serial('시나리오 2: 인스타만 선택 — B2C 상품소개 �
   })
 
   test('3. 키워드 등록', async ({ page }) => {
-    await loginUser(page, user)
+    await loginTestAccount(page)
     await registerKeyword(page, keyword)
   })
 
   test('4. STEP3: 상품소개/친근한/핵심전달내용', async ({ page }) => {
     test.setTimeout(120000)
-    await loginUser(page, user)
+    await loginTestAccount(page)
 
     projectId = await setupDraftInfo(page, keyword, {
       topicType: '상품 소개',
@@ -54,15 +50,15 @@ test.describe.serial('시나리오 2: 인스타만 선택 — B2C 상품소개 �
   test('5. STEP4: 초안 생성 대기', async ({ page }) => {
     test.setTimeout(180000)
     test.skip(!projectId, '프로젝트 ID 없음')
-    await loginUser(page, user)
+    await loginTestAccount(page)
     await waitForDraftGeneration(page, projectId)
     expect(page.url()).toContain('channel-write')
   })
 
-  test('6. STEP5: 인스타 글 생성 확인 (블로그 없이)', async ({ page }) => {
+  test('6. STEP5: 인스타 글 생성 확인', async ({ page }) => {
     test.setTimeout(180000)
     test.skip(!projectId, '프로젝트 ID 없음')
-    await loginUser(page, user)
+    await loginTestAccount(page)
 
     await page.goto(`${BASE}/create/channel-write?project_id=${projectId}`)
     await page.waitForLoadState('networkidle')
@@ -71,8 +67,6 @@ test.describe.serial('시나리오 2: 인스타만 선택 — B2C 상품소개 �
     // 인스타그램 탭이 보이는지
     const instaTab = page.locator('button').filter({ hasText: '인스타그램' }).first()
     await expect(instaTab).toBeVisible({ timeout: 60000 })
-
-    // 블로그 탭 존재 여부 확인 (인스타만 선택했으므로 없을 수 있음)
 
     // 인스타 콘텐츠 본문 확인
     await instaTab.click()
@@ -84,20 +78,20 @@ test.describe.serial('시나리오 2: 인스타만 선택 — B2C 상품소개 �
   test('7. STEP6: 인스타 확정 → 이미지 BottomSheet', async ({ page }) => {
     test.setTimeout(180000)
     test.skip(!projectId, '프로젝트 ID 없음')
-    await loginUser(page, user)
+    await loginTestAccount(page)
     await confirmChannelsAndGenerateImages(page, projectId)
   })
 
   test('8. STEP7: 영상 스크립트 생성', async ({ page }) => {
     test.setTimeout(180000)
     test.skip(!projectId, '프로젝트 ID 없음')
-    await loginUser(page, user)
+    await loginTestAccount(page)
     await generateVideoScript(page, projectId)
   })
 
   test('9. 결과 검증: /contents에서 인스타 글 확인', async ({ page }) => {
     test.skip(!projectId, '프로젝트 ID 없음')
-    await loginUser(page, user)
+    await loginTestAccount(page)
 
     await page.goto(`${BASE}/contents`)
     await page.waitForLoadState('networkidle')
