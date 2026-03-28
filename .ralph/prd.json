@@ -79,6 +79,36 @@
       "title": "에이전시 팀 자동화 테스트",
       "description": "4개 시나리오 Playwright 자동화 (블로그/인스타/B2B/관리자)",
       "passes": true
+    },
+    {
+      "id": "US-16",
+      "title": "키워드 페이지 전면 개편",
+      "description": "탭 제거, 검색=자동등록+등급분석, 인라인 확장, 초보자/전문가 토글 제거",
+      "passes": true
+    },
+    {
+      "id": "US-17",
+      "title": "콘텐츠 페이지 키워드 단위",
+      "description": "채널별→키워드(프로젝트) 단위 카드 리스트, 채널 상태 표시, 발행 메모",
+      "passes": true
+    },
+    {
+      "id": "US-18",
+      "title": "캘린더 발행 메모 기능",
+      "description": "프로젝트 단위 표시, 회색/파랑/초록 색상 구분, 날짜 변경 가능",
+      "passes": true
+    },
+    {
+      "id": "US-19",
+      "title": "제목 직접 입력 추가",
+      "description": "draft-info 페이지에서 자동 생성 제목 외 직접 입력 가능",
+      "passes": true
+    },
+    {
+      "id": "US-20",
+      "title": "발행 메모 channel-write 연동",
+      "description": "채널 확정 버튼 위 발행 예정일 날짜 선택 + scheduled_date 저장",
+      "passes": true
     }
   ]
 }

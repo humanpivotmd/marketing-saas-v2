@@ -82,11 +82,17 @@ test.describe('Smoke Tests — Dashboard Pages', () => {
     await page.goto(`${BASE}/contents`)
     await page.waitForLoadState('networkidle')
 
-    const firstItem = page.locator('a[href^="/contents/"]').first()
-    if (await firstItem.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await firstItem.click()
-      await page.waitForLoadState('networkidle')
-      await assertNoErrorPage(page)
+    // 프로젝트 카드에서 "전체 보기" 클릭 → 펼침 내 콘텐츠 링크 클릭
+    const expandBtn = page.locator('text=전체 보기').first()
+    if (await expandBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await expandBtn.click()
+      await page.waitForTimeout(500)
+      const firstItem = page.locator('a[href^="/contents/"]').first()
+      if (await firstItem.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await firstItem.click()
+        await page.waitForLoadState('networkidle')
+        await assertNoErrorPage(page)
+      }
     }
     expect(errors).toHaveLength(0)
   })

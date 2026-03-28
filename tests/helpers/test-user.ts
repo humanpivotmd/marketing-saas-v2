@@ -186,11 +186,11 @@ export async function registerKeyword(page: Page, keyword: string) {
   await expect(keywordInput).toBeVisible({ timeout: 5000 })
   await keywordInput.fill(keyword)
 
-  const registerBtn = page.locator('button:has-text("등록")').first()
-  await registerBtn.click()
-  await page.waitForTimeout(2000)
+  const searchBtn = page.locator('button:has-text("검색")').first()
+  await searchBtn.click()
+  await page.waitForTimeout(5000)
 
-  await expect(page.locator(`text=${keyword}`)).toBeVisible({ timeout: 5000 })
+  await expect(page.locator(`text=${keyword}`)).toBeVisible({ timeout: 10000 })
 }
 
 /** STEP3: 초안 정보 입력 → 제목 생성 → 선택 → 프로젝트 생성 */
