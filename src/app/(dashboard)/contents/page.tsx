@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
@@ -37,6 +37,24 @@ interface ProjectItem {
 }
 
 type SortKey = 'updated_at' | 'keyword_text'
+
+const CHANNEL_LIST = ['blog', 'instagram', 'threads'] as const
+
+function getChannelStatus(contents: ProjectContent[]) {
+  return CHANNEL_LIST.map((ch) => {
+    const content = contents.find((c) => c.type === ch)
+    const hasText = !!content
+    return { channel: ch, hasText, content }
+  })
+}
+
+function getScheduledDate(contents: ProjectContent[]): string | null {
+  for (const c of contents) {
+    const sc = (c as unknown as { scheduled_date?: string }).scheduled_date
+    if (sc) return sc
+  }
+  return null
+}
 
 export default function ContentsPage() {
   const [projects, setProjects] = useState<ProjectItem[]>([])
@@ -95,38 +113,20 @@ export default function ContentsPage() {
     }, { successMessage: '발행 메모 저장됨', errorMessage: '저장 실패' })
   }
 
-  // 필터 + 정렬
-  const filtered = projects
-    .filter((p) => {
-      if (!search) return true
-      const kw = (p.keywords?.keyword || p.keyword_text || '').toLowerCase()
-      return kw.includes(search.toLowerCase())
-    })
-    .sort((a, b) => {
-      if (sort === 'keyword_text') return (a.keyword_text || '').localeCompare(b.keyword_text || '')
-      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-    })
-
-  // 채널별 상태 체크
-  function getChannelStatus(contents: ProjectContent[]) {
-    const channels = ['blog', 'instagram', 'threads']
-    return channels.map((ch) => {
-      const content = contents.find((c) => c.type === ch)
-      const hasText = !!content
-      const hasImage = contents.some((c) => c.type === `${ch}_image` || c.type === 'image_script')
-      const hasScript = contents.some((c) => c.type === 'video_script')
-      return { channel: ch, hasText, hasImage, hasScript, content }
-    })
-  }
-
-  // 프로젝트에 대한 발행 메모 날짜 가져오기
-  function getScheduledDate(contents: ProjectContent[]): string | null {
-    for (const c of contents) {
-      const sc = (c as unknown as { scheduled_date?: string }).scheduled_date
-      if (sc) return sc
-    }
-    return null
-  }
+  // 필터 + 정렬 (메모이제이션)
+  const filtered = useMemo(() =>
+    projects
+      .filter((p) => {
+        if (!search) return true
+        const kw = (p.keywords?.keyword || p.keyword_text || '').toLowerCase()
+        return kw.includes(search.toLowerCase())
+      })
+      .sort((a, b) => {
+        if (sort === 'keyword_text') return (a.keyword_text || '').localeCompare(b.keyword_text || '')
+        return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+      }),
+    [projects, search, sort]
+  )
 
   return (
     <div className="p-4 lg:p-8 space-y-6">

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
@@ -56,14 +56,14 @@ export default function DashboardPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  const usageCards = usage
+  const usageCards = useMemo(() => usage
     ? [
         { label: '콘텐츠', used: usage.content.used, limit: usage.content.limit, color: 'text-accent-primary' },
         { label: '키워드 분석', used: usage.keyword.used, limit: usage.keyword.limit, color: 'text-accent-secondary' },
         { label: 'AI 이미지', used: usage.image.used, limit: usage.image.limit, color: 'text-accent-success' },
         { label: '저장 키워드', used: usage.saved_keywords.used, limit: usage.saved_keywords.limit, color: 'text-accent-warning' },
       ]
-    : []
+    : [], [usage])
 
   const getGreeting = () => {
     const hour = new Date().getHours()

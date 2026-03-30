@@ -9,6 +9,14 @@ import { useAsyncAction } from '@/hooks/useAsyncAction'
 import { authHeaders } from '@/lib/auth-client'
 import { CHANNEL_LABEL_MAP, CHANNEL_COLOR_MAP } from '@/lib/constants'
 
+const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const
+
+function getDotColor(contents: CalendarContent[]): string {
+  if (contents.some(c => c.status === 'published')) return 'bg-green-400'
+  if (contents.some(c => c.scheduled_date)) return 'bg-blue-400'
+  return 'bg-gray-400'
+}
+
 interface CalendarContent {
   id: string
   type: string
@@ -97,10 +105,23 @@ export default function CalendarPage() {
 
   const selectedContents = selectedDate ? byDate[selectedDate] || [] : []
 
-  // 콘텐츠를 프로젝트 단위로 그룹핑
-  function groupByProject(contents: CalendarContent[]): CalendarProject[] {
+  // 날짜 변경
+  const handleDateChange = async (contentId: string, newDate: string) => {
+    await run(async () => {
+      await fetch(`/api/contents/${contentId}`, {
+        method: 'PUT',
+        headers: authHeaders(),
+        body: JSON.stringify({ scheduled_date: newDate }),
+      })
+      setEditingDate(null)
+      await fetchCalendar()
+    }, { successMessage: '날짜가 변경되었습니다.', errorMessage: '변경 실패' })
+  }
+
+  // 프로젝트 그룹핑 메모이제이션
+  const projectGroups = useMemo(() => {
     const groups: Record<string, CalendarProject> = {}
-    for (const c of contents) {
+    for (const c of selectedContents) {
       const pid = c.project_id || c.id
       if (!groups[pid]) {
         const projInfo = c.project_id ? projectMap[c.project_id] : null
@@ -115,31 +136,7 @@ export default function CalendarPage() {
       groups[pid].contents.push(c)
     }
     return Object.values(groups)
-  }
-
-  // 날짜별 점 색상 결정
-  function getDotColor(contents: CalendarContent[]): string {
-    const hasPublished = contents.some(c => c.status === 'published')
-    if (hasPublished) return 'bg-green-400' // 초록: 발행 완료
-    const hasMemo = contents.some(c => c.scheduled_date)
-    if (hasMemo) return 'bg-blue-400' // 파란: 발행 메모
-    return 'bg-gray-400' // 회색: 생성일
-  }
-
-  // 날짜 변경
-  const handleDateChange = async (contentId: string, newDate: string) => {
-    await run(async () => {
-      await fetch(`/api/contents/${contentId}`, {
-        method: 'PUT',
-        headers: authHeaders(),
-        body: JSON.stringify({ scheduled_date: newDate }),
-      })
-      setEditingDate(null)
-      await fetchCalendar()
-    }, { successMessage: '날짜가 변경되었습니다.', errorMessage: '변경 실패' })
-  }
-
-  const projectGroups = groupByProject(selectedContents)
+  }, [selectedContents, projectMap])
 
   return (
     <div className="p-4 lg:p-8 max-w-6xl mx-auto">
@@ -190,7 +187,7 @@ export default function CalendarPage() {
 
             {/* 요일 헤더 */}
             <div className="grid grid-cols-7 mb-1">
-              {['일', '월', '화', '수', '목', '금', '토'].map(d => (
+              {WEEKDAYS.map(d => (
                 <div key={d} className="text-center text-xs font-medium text-text-tertiary py-2">{d}</div>
               ))}
             </div>
