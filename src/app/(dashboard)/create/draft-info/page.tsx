@@ -10,6 +10,7 @@ import SetupRequired from '@/components/SetupRequired'
 import { TOPIC_TYPES, TONE_OPTIONS, PROMPT_MODES, BUSINESS_TYPES } from '@/lib/constants'
 import { authHeaders } from '@/lib/auth-client'
 import { useAsyncAction } from '@/hooks/useAsyncAction'
+import { useBusinessProfile } from '@/hooks/useBusinessProfile'
 
 export default function DraftInfoPage() {
   const router = useRouter()
@@ -17,6 +18,7 @@ export default function DraftInfoPage() {
   const keywordId = searchParams.get('keyword_id') || ''
   const keywordText = searchParams.get('keyword') || ''
 
+  const { profile: bizProfile } = useBusinessProfile()
   const [businessType, setBusinessType] = useState<'B2B' | 'B2C'>('B2C')
   const [companyName, setCompanyName] = useState('')
   const [serviceName, setServiceName] = useState('')
@@ -32,20 +34,15 @@ export default function DraftInfoPage() {
   const [creating, setCreating] = useState(false)
   const { toast, clearToast, run } = useAsyncAction()
 
-  // 마이페이지 설정 로드
+  // Context에서 비즈니스 프로필 반영
   useEffect(() => {
-    fetch('/api/mypage/business-profile', { headers: authHeaders() })
-      .then(r => r.json())
-      .then(res => {
-        if (res.success && res.data) {
-          setBusinessType(res.data.business_type || 'B2C')
-          setCompanyName(res.data.company_name || '')
-          setServiceName(res.data.service_name || '')
-          setTone(res.data.writing_tone || 'auto')
-        }
-      })
-      .catch(() => {})
-  }, [])
+    if (bizProfile) {
+      setBusinessType((bizProfile.business_type as 'B2B' | 'B2C') || 'B2C')
+      setCompanyName(bizProfile.company_name || '')
+      setServiceName(bizProfile.service_name || '')
+      setTone(bizProfile.writing_tone || 'auto')
+    }
+  }, [bizProfile])
 
   const handleGenerateTitles = async () => {
     setGenerating(true)

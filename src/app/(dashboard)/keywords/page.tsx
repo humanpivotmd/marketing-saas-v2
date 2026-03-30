@@ -9,6 +9,7 @@ import EmptyState from '@/components/ui/EmptyState'
 import Toast from '@/components/ui/Toast'
 import SetupRequired from '@/components/SetupRequired'
 import { getToken, authHeaders } from '@/lib/auth-client'
+import { useBusinessProfile } from '@/hooks/useBusinessProfile'
 
 interface Keyword {
   id: string
@@ -61,7 +62,8 @@ export default function KeywordsPage() {
   const [keywords, setKeywords] = useState<Keyword[]>([])
   const [loading, setLoading] = useState(true)
   const [newKeyword, setNewKeyword] = useState('')
-  const [serviceName, setServiceName] = useState<string | null>(null)
+  const { profile: bizProfile } = useBusinessProfile()
+  const serviceName = bizProfile?.service_name || null
   const [includeServiceName, setIncludeServiceName] = useState(true)
   const [searching, setSearching] = useState(false)
   const [gradeResults, setGradeResults] = useState<Record<string, GradeResult>>({})
@@ -73,22 +75,14 @@ export default function KeywordsPage() {
     const token = getToken()
     if (!token) { setLoading(false); return }
 
-    // 병렬 호출: business-profile + keywords
-    Promise.all([
-      fetch('/api/mypage/business-profile', { headers: authHeaders() })
-        .then(r => r.json()).catch(() => null),
-      fetch('/api/keywords', { headers: { Authorization: `Bearer ${token}` } })
-        .then(r => r.json()).catch(() => null),
-    ]).then(([profileData, keywordsData]) => {
-      if (profileData?.success && profileData.data?.service_name) {
-        setServiceName(profileData.data.service_name)
-      }
-      if (keywordsData?.success) {
-        setKeywords(keywordsData.data)
-      } else if (keywordsData) {
-        setToast({ visible: true, message: '키워드 목록을 불러오지 못했습니다.', variant: 'error' })
-      }
-    }).finally(() => setLoading(false))
+    fetch('/api/keywords', { headers: authHeaders() })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) setKeywords(data.data)
+        else setToast({ visible: true, message: '키워드 목록을 불러오지 못했습니다.', variant: 'error' })
+      })
+      .catch(() => setToast({ visible: true, message: '키워드 목록을 불러오지 못했습니다.', variant: 'error' }))
+      .finally(() => setLoading(false))
   }, [])
 
   // 검색 = 자동 등록 + 등급 분석

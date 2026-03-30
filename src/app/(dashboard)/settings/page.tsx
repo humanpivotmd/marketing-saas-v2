@@ -55,6 +55,7 @@ interface Channel {
 }
 
 import { authHeaders } from '@/lib/auth-client'
+import { useBusinessProfile } from '@/hooks/useBusinessProfile'
 
 // --- Tab IDs ---
 const TABS = [
@@ -1210,6 +1211,7 @@ interface IndustryNode {
 }
 
 function BusinessProfileTab({ onToast }: { onToast: (t: { message: string; variant: 'success' | 'error' }) => void }) {
+  const { profile: bizProfile, refresh: refreshBizProfile } = useBusinessProfile()
   const [profile, setProfile] = useState<BusinessProfile>({
     business_type: 'B2C',
     selected_channels: [],
@@ -1227,6 +1229,14 @@ function BusinessProfileTab({ onToast }: { onToast: (t: { message: string; varia
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
 
+  // Context에서 프로필 반영
+  useEffect(() => {
+    if (bizProfile) {
+      setProfile(p => ({ ...p, ...bizProfile }))
+      setLoading(false)
+    }
+  }, [bizProfile])
+
   useEffect(() => {
     // 업종 캐싱 (자주 안 바뀌는 데이터)
     const cachedIndustries = sessionStorage.getItem('industries_cache')
@@ -1234,18 +1244,17 @@ function BusinessProfileTab({ onToast }: { onToast: (t: { message: string; varia
       try { setIndustries(JSON.parse(cachedIndustries)) } catch { /* ignore */ }
     }
 
-    // 병렬 호출: business-profile + industries
-    Promise.all([
-      fetch('/api/mypage/business-profile', { headers: authHeaders() }).then(r => r.json()).catch(() => null),
-      fetch('/api/industries', { headers: authHeaders() }).then(r => r.json()).catch(() => null),
-    ]).then(([profileRes, industriesRes]) => {
-      if (profileRes?.success && profileRes.data) setProfile(p => ({ ...p, ...profileRes.data }))
-      if (industriesRes?.success) {
-        setIndustries(industriesRes.data)
-        sessionStorage.setItem('industries_cache', JSON.stringify(industriesRes.data))
-      }
-    }).finally(() => setLoading(false))
-  }, [])
+    fetch('/api/industries', { headers: authHeaders() })
+      .then(r => r.json())
+      .then(res => {
+        if (res.success) {
+          setIndustries(res.data)
+          sessionStorage.setItem('industries_cache', JSON.stringify(res.data))
+        }
+      })
+      .catch(() => {})
+      .finally(() => { if (!bizProfile) setLoading(false) })
+  }, [bizProfile])
 
   const toggleChannel = (ch: string) => {
     setProfile(p => ({
@@ -1278,6 +1287,7 @@ function BusinessProfileTab({ onToast }: { onToast: (t: { message: string; varia
       const data = await res.json()
       if (!data.success) throw new Error(data.error)
       onToast({ message: '마이페이지 설정이 저장되었습니다.', variant: 'success' })
+      refreshBizProfile()
     } catch (err) {
       onToast({ message: (err as Error).message || '저장 실패', variant: 'error' })
     } finally {

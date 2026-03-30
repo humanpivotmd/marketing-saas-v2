@@ -3,6 +3,7 @@
 import { useState, useEffect, type ReactNode } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Badge from '@/components/ui/Badge'
+import { BusinessProfileProvider } from '@/hooks/useBusinessProfile'
 
 interface NavItem {
   icon: string
@@ -54,17 +55,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       return
     }
 
-    // 마이페이지 설정 상태를 sessionStorage에 저장 (각 페이지에서 참조)
-    fetch('/api/mypage/business-profile', { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.json())
-      .then(data => {
-        if (data.success && data.data) {
-          const p = data.data
-          const isSetup = !!(p.business_type && (p.selected_channels?.length > 0) && p.company_name)
-          sessionStorage.setItem('business_setup', isSetup ? 'done' : 'needed')
-        }
-      })
-      .catch(() => {})
+    // business-profile은 BusinessProfileProvider에서 관리
   }, [router, pathname])
 
   useEffect(() => {
@@ -249,7 +240,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </header>
 
         <div className="px-4 lg:px-8 pt-6 pb-8">
-          {children}
+          <BusinessProfileProvider>
+            {children}
+          </BusinessProfileProvider>
         </div>
       </main>
     </div>

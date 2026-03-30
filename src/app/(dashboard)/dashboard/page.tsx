@@ -6,6 +6,8 @@ import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import Skeleton from '@/components/ui/Skeleton'
 import EmptyState from '@/components/ui/EmptyState'
+import { useBusinessProfile } from '@/hooks/useBusinessProfile'
+import { authHeaders } from '@/lib/auth-client'
 
 interface UsageData {
   plan: string
@@ -27,7 +29,8 @@ export default function DashboardPage() {
   const [user, setUser] = useState<UserData | null>(null)
   const [usage, setUsage] = useState<UsageData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [needsSetup, setNeedsSetup] = useState(false)
+  const { isSetup } = useBusinessProfile()
+  const needsSetup = !isSetup
 
   useEffect(() => {
     const userData = sessionStorage.getItem('user')
@@ -41,31 +44,16 @@ export default function DashboardPage() {
       try { setUsage(JSON.parse(cachedUsage)); setLoading(false) } catch { /* ignore */ }
     }
 
-    const token = sessionStorage.getItem('token')
-    if (!token) { setLoading(false); return }
-
-    const setupStatus = sessionStorage.getItem('business_setup')
-    if (setupStatus === 'needed') setNeedsSetup(true)
-
-    // 병렬 호출
-    Promise.all([
-      fetch('/api/mypage/business-profile', { headers: { Authorization: `Bearer ${token}` } })
-        .then(r => r.json())
-        .catch(() => null),
-      fetch('/api/mypage/usage', { headers: { Authorization: `Bearer ${token}` } })
-        .then(r => r.json())
-        .catch(() => null),
-    ]).then(([profileData, usageData]) => {
-      if (profileData?.success && profileData.data) {
-        const p = profileData.data
-        const done = !!(p.business_type && p.selected_channels?.length > 0 && p.company_name)
-        setNeedsSetup(!done)
-      }
-      if (usageData?.success && usageData.data) {
-        setUsage(usageData.data)
-        sessionStorage.setItem('dashboard_usage', JSON.stringify(usageData.data))
-      }
-    }).finally(() => setLoading(false))
+    fetch('/api/mypage/usage', { headers: authHeaders() })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && data.data) {
+          setUsage(data.data)
+          sessionStorage.setItem('dashboard_usage', JSON.stringify(data.data))
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
   }, [])
 
   const usageCards = usage

@@ -1,42 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import Button from '@/components/ui/Button'
+import { useBusinessProfile } from '@/hooks/useBusinessProfile'
 
 interface SetupRequiredProps {
   children: React.ReactNode
 }
 
 export default function SetupRequired({ children }: SetupRequiredProps) {
-  const [needsSetup, setNeedsSetup] = useState<boolean | null>(null)
+  const { isSetup, loading } = useBusinessProfile()
 
-  useEffect(() => {
-    const status = sessionStorage.getItem('business_setup')
-    if (status === 'done') {
-      setNeedsSetup(false)
-      return
-    }
-
-    const token = sessionStorage.getItem('token')
-    if (!token) { setNeedsSetup(false); return }
-
-    fetch('/api/mypage/business-profile', { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.json())
-      .then(data => {
-        if (data.success && data.data) {
-          const p = data.data
-          const done = !!(p.business_type && p.selected_channels?.length > 0 && p.company_name)
-          setNeedsSetup(!done)
-          sessionStorage.setItem('business_setup', done ? 'done' : 'needed')
-        } else {
-          setNeedsSetup(false)
-        }
-      })
-      .catch(() => setNeedsSetup(false))
-  }, [])
-
-  if (needsSetup === null) return null // 로딩 중
-  if (!needsSetup) return <>{children}</>
+  if (loading) return null
+  if (isSetup) return <>{children}</>
 
   return (
     <div className="py-16 text-center max-w-md mx-auto space-y-4">
