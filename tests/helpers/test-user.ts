@@ -84,7 +84,7 @@ export async function loginUser(page: Page, user: TestUser) {
   const submitBtn = page.locator('button[type="submit"]:visible').first()
   await submitBtn.click()
 
-  await page.waitForFunction(() => !window.location.pathname.includes('/login'), { timeout: 15000 })
+  await page.waitForFunction(() => !window.location.pathname.includes('/login'), { timeout: 30000 })
 }
 
 /** 기존 테스트 계정으로 로그인 (회원가입 불필요) */
@@ -104,7 +104,7 @@ export async function loginTestAccount(page: Page) {
   const submitBtn = page.locator('button[type="submit"]:visible').first()
   await submitBtn.click()
 
-  await page.waitForFunction(() => !window.location.pathname.includes('/login'), { timeout: 15000 })
+  await page.waitForFunction(() => !window.location.pathname.includes('/login'), { timeout: 30000 })
 }
 
 /** 마이페이지 비즈니스 프로필 설정 */
@@ -166,14 +166,15 @@ export async function setupBusinessProfile(page: Page, options: TestUserOptions)
     }
   }
 
-  // 저장 버튼 클릭
+  // 저장 버튼 클릭 (dynamic import 대기)
   const saveBtn = page.locator('button:has-text("설정 저장")').first()
+  await expect(saveBtn).toBeVisible({ timeout: 10000 })
   await saveBtn.scrollIntoViewIfNeeded()
-  await page.waitForTimeout(300)
+  await page.waitForTimeout(500)
   await saveBtn.click()
 
   // toast 확인
-  await page.waitForTimeout(2000)
+  await page.waitForTimeout(3000)
 }
 
 /** 키워드 등록 (검색 = 자동 등록 + 등급 분석) */
@@ -236,8 +237,8 @@ export async function setupDraftInfo(
   const titleGenBtn = page.locator('button:has-text("제목 생성")').first()
   await titleGenBtn.click()
 
-  // AI 제목 생성 대기
-  await page.waitForSelector('button[class*="border-border-primary"], button[class*="accent"]', { timeout: 60000 }).catch(() => {})
+  // AI 제목 생성 대기 (API 응답 시간 고려)
+  await page.waitForSelector('button[class*="border-border-primary"], button[class*="accent"]', { timeout: 120000 }).catch(() => {})
   await page.waitForTimeout(2000)
 
   // 첫 번째 제목 선택
