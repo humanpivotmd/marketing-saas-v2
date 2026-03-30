@@ -10,6 +10,7 @@ import EmptyState from '@/components/ui/EmptyState'
 import Toast from '@/components/ui/Toast'
 import { useAsyncAction } from '@/hooks/useAsyncAction'
 import { CHANNEL_LABEL_MAP, CHANNEL_COLOR_MAP } from '@/lib/constants'
+import { getToken, authHeaders } from '@/lib/auth-client'
 
 interface ProjectContent {
   id: string
@@ -73,11 +74,11 @@ export default function ContentsPage() {
     }
 
     await run(async () => {
-      const token = sessionStorage.getItem('token')
+      const token = getToken()
       if (!token) throw new Error('로그인이 필요합니다.')
       // include=contents로 1회 호출 (N+1 제거)
       const res = await fetch('/api/projects?limit=50&include=contents', {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: authHeaders(),
       })
       const json = await res.json()
       if (json.success) {
@@ -97,13 +98,13 @@ export default function ContentsPage() {
   const handleSaveMemo = async (contentIds: string[]) => {
     if (!memoDate) return
     await run(async () => {
-      const token = sessionStorage.getItem('token')
+      const token = getToken()
       if (!token) throw new Error('로그인이 필요합니다.')
       // 모든 콘텐츠의 scheduled_date 업데이트
       for (const cid of contentIds) {
         await fetch(`/api/contents/${cid}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          headers: authHeaders(),
           body: JSON.stringify({ scheduled_date: memoDate }),
         })
       }

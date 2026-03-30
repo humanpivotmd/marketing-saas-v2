@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
+import { getToken, authHeaders } from '@/lib/auth-client'
 
 const Badge = dynamic(() => import('@/components/ui/Badge'), { ssr: false })
 
@@ -114,14 +115,14 @@ export default function PricingPage() {
     }
 
     // 서버에서 플랜 정보 조회 시도 (admin만 호출)
-    const token = sessionStorage.getItem('token')
+    const token = getToken()
     if (token) {
       try {
         const userParsed = JSON.parse(userData || '{}')
         const isAdmin = userParsed.role === 'admin' || userParsed.role === 'super_admin'
         if (isAdmin) {
           fetch('/api/admin/plan-limits', {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: authHeaders(),
           })
             .then(r => r.json())
             .then(data => {

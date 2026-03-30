@@ -3,6 +3,7 @@
 import { useState, useEffect, type ReactNode } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Badge from '@/components/ui/Badge'
+import { getToken } from '@/lib/auth-client'
 
 interface NavItem {
   icon: string
@@ -27,7 +28,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<{ name: string; role: string } | null>(null)
 
   useEffect(() => {
-    const token = sessionStorage.getItem('token')
+    const token = getToken()
     const userData = sessionStorage.getItem('user')
     if (!token || !userData) {
       router.push('/login')

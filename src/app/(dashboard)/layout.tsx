@@ -4,6 +4,7 @@ import { useState, useEffect, type ReactNode } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Badge from '@/components/ui/Badge'
 import { BusinessProfileProvider } from '@/hooks/useBusinessProfile'
+import { authHeaders } from '@/lib/auth-client'
 
 interface NavItem {
   icon: string
@@ -62,7 +63,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     const token = sessionStorage.getItem('token')
     if (!token) return
     fetch('/api/mypage/usage', {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: authHeaders(),
     })
       .then((r) => r.json())
       .then((data) => {

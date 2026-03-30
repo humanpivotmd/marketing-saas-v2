@@ -7,6 +7,7 @@ import Input from '@/components/ui/Input'
 import Toast from '@/components/ui/Toast'
 import { CONTENT_CREATE_CHANNELS, TONE_OPTIONS, CONTENT_STYLES, CHANNEL_COLOR_MAP } from '@/lib/constants'
 import { useAsyncAction } from '@/hooks/useAsyncAction'
+import { getToken, authHeaders } from '@/lib/auth-client'
 
 interface Keyword {
   id: string
@@ -64,17 +65,17 @@ export default function ContentNewPage() {
   const [quickMode, setQuickMode] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
 
-  const token = typeof window !== 'undefined' ? sessionStorage.getItem('token') : null
+  const token = getToken() || null
 
   useEffect(() => {
     if (!token) return
     // 키워드 목록
-    fetch('/api/keywords?limit=100', { headers: { Authorization: `Bearer ${token}` } })
+    fetch('/api/keywords?limit=100', { headers: authHeaders() })
       .then((r) => r.json())
       .then((d) => { if (d.success) setKeywords(d.data) })
       .catch(() => {})
     // Brand Voice 목록
-    fetch('/api/brand-voices', { headers: { Authorization: `Bearer ${token}` } })
+    fetch('/api/brand-voices', { headers: authHeaders() })
       .then((r) => r.json())
       .then((d) => {
         if (d.success) {
@@ -100,7 +101,7 @@ export default function ContentNewPage() {
     await run(async () => {
       const res = await fetch('/api/generate/outline', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: authHeaders(),
         body: JSON.stringify({ keyword, brandVoiceId: brandVoiceId || undefined, tone, length }),
       })
       const json = await res.json()
@@ -129,7 +130,7 @@ export default function ContentNewPage() {
     try {
       const res = await fetch('/api/generate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: authHeaders(),
         body: JSON.stringify({
           keywordId: selectedKeywordId || undefined,
           keyword,
@@ -214,7 +215,7 @@ export default function ContentNewPage() {
     try {
       const res = await fetch('/api/generate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: authHeaders(),
         body: JSON.stringify({
           keywordId: selectedKeywordId || undefined,
           keyword,
@@ -287,7 +288,7 @@ export default function ContentNewPage() {
       if (result?.contentId && token) {
         await fetch('/api/publish/clipboard', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          headers: authHeaders(),
           body: JSON.stringify({ content_id: result.contentId }),
         })
       }
@@ -692,7 +693,7 @@ export default function ContentNewPage() {
                       await run(async () => {
                         const res = await fetch('/api/generate/single', {
                           method: 'POST',
-                          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                          headers: authHeaders(),
                           body: JSON.stringify({
                             contentId: result?.contentId,
                             keyword,

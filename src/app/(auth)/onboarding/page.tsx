@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Card from '@/components/ui/Card'
 import Toast from '@/components/ui/Toast'
+import { getToken, authHeaders } from '@/lib/auth-client'
 
 const industries = [
   { id: 'cafe', label: '카페/음료', icon: '☕', tone: '친근하고 따뜻한', target: '20-40대 여성' },
@@ -32,7 +33,7 @@ export default function OnboardingPage() {
   const [toast, setToast] = useState({ visible: false, message: '', variant: 'error' as 'success' | 'error' })
 
   useEffect(() => {
-    const token = sessionStorage.getItem('token')
+    const token = getToken()
     if (!token) {
       router.push('/login')
     }
@@ -63,12 +64,12 @@ export default function OnboardingPage() {
   const handleComplete = async () => {
     setLoading(true)
     try {
-      const token = sessionStorage.getItem('token')
+      const token = getToken()
       if (!token) { router.push('/login'); return }
 
       // Save onboarding data
       const res = await fetch('/api/auth/me', {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: authHeaders(),
       })
       if (!res.ok) { router.push('/login'); return }
 

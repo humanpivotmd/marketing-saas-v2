@@ -8,6 +8,7 @@ import Button from '@/components/ui/Button'
 import Toast from '@/components/ui/Toast'
 import { useAsyncAction } from '@/hooks/useAsyncAction'
 import { CHANNEL_LABEL_MAP, CHANNEL_COLOR_MAP } from '@/lib/constants'
+import { getToken, authHeaders } from '@/lib/auth-client'
 
 interface ContentDetail {
   id: string
@@ -42,13 +43,13 @@ export default function ContentDetailPage() {
   const [saving, setSaving] = useState(false)
   const { loading, toast, clearToast, run } = useAsyncAction(true)
 
-  const token = typeof window !== 'undefined' ? sessionStorage.getItem('token') : null
+  const token = getToken() || null
 
   useEffect(() => {
     if (!token || !id) return
     run(async () => {
       const res = await fetch(`/api/contents/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: authHeaders(),
       })
       const d = await res.json()
       if (d.success) {
@@ -65,7 +66,7 @@ export default function ContentDetailPage() {
     await run(async () => {
       const res = await fetch(`/api/contents/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: authHeaders(),
         body: JSON.stringify({ title: editTitle, body: editBody }),
       })
       const json = await res.json()
@@ -88,7 +89,7 @@ export default function ContentDetailPage() {
     if (token && content.id) {
       fetch('/api/publish/clipboard', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: authHeaders(),
         body: JSON.stringify({ content_id: content.id }),
       }).catch(() => {})
     }
@@ -99,7 +100,7 @@ export default function ContentDetailPage() {
     await run(async () => {
       const res = await fetch(`/api/contents/${id}/duplicate`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: authHeaders(),
       })
       const json = await res.json()
       if (json.success) {
@@ -290,7 +291,7 @@ export default function ContentDetailPage() {
                       await run(async () => {
                         const res = await fetch('/api/publish/threads', {
                           method: 'POST',
-                          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                          headers: authHeaders(),
                           body: JSON.stringify({ content_id: content.id }),
                         })
                         const json = await res.json()

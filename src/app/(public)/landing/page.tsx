@@ -5,6 +5,7 @@ import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import Toast from '@/components/ui/Toast'
+import { getToken } from '@/lib/auth-client'
 
 const features = [
   {
@@ -83,7 +84,7 @@ export default function LandingPage() {
   const [userName, setUserName] = useState('')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   useEffect(() => {
-    const token = sessionStorage.getItem('token')
+    const token = getToken()
     const userData = sessionStorage.getItem('user')
     if (token && userData) {
       try {
