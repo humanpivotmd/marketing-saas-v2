@@ -70,36 +70,26 @@ export default function KeywordsPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch('/api/mypage/business-profile', { headers: authHeaders() })
-      .then(r => r.json())
-      .then(res => {
-        if (res.success && res.data?.service_name) {
-          setServiceName(res.data.service_name)
-        }
-      })
-      .catch(() => {})
-  }, [])
-
-  useEffect(() => {
-    fetchKeywords()
-  }, [])
-
-  async function fetchKeywords() {
     const token = getToken()
-    if (!token) return
-    try {
-      const res = await fetch('/api/keywords', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      const data = await res.json()
-      if (data.success) {
-        setKeywords(data.data)
+    if (!token) { setLoading(false); return }
+
+    // 병렬 호출: business-profile + keywords
+    Promise.all([
+      fetch('/api/mypage/business-profile', { headers: authHeaders() })
+        .then(r => r.json()).catch(() => null),
+      fetch('/api/keywords', { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.json()).catch(() => null),
+    ]).then(([profileData, keywordsData]) => {
+      if (profileData?.success && profileData.data?.service_name) {
+        setServiceName(profileData.data.service_name)
       }
-    } catch {
-      setToast({ visible: true, message: '키워드 목록을 불러오지 못했습니다.', variant: 'error' })
-    }
-    setLoading(false)
-  }
+      if (keywordsData?.success) {
+        setKeywords(keywordsData.data)
+      } else if (keywordsData) {
+        setToast({ visible: true, message: '키워드 목록을 불러오지 못했습니다.', variant: 'error' })
+      }
+    }).finally(() => setLoading(false))
+  }, [])
 
   // 검색 = 자동 등록 + 등급 분석
   async function handleSearch(e: FormEvent) {

@@ -48,6 +48,12 @@ export default function ContentsPage() {
   const { loading, toast, clearToast, run } = useAsyncAction(true)
 
   const fetchProjects = async () => {
+    // 캐시된 데이터 즉시 표시
+    const cached = sessionStorage.getItem('contents_projects')
+    if (cached) {
+      try { setProjects(JSON.parse(cached)) } catch { /* ignore */ }
+    }
+
     await run(async () => {
       const token = sessionStorage.getItem('token')
       if (!token) throw new Error('로그인이 필요합니다.')
@@ -56,7 +62,7 @@ export default function ContentsPage() {
       })
       const json = await res.json()
       if (json.success) {
-        // 각 프로젝트에 콘텐츠 상세 로드
+        // 각 프로젝트에 콘텐츠 상세 병렬 로드
         const enriched = await Promise.all(
           (json.data || []).map(async (proj: ProjectItem) => {
             try {
@@ -72,6 +78,7 @@ export default function ContentsPage() {
           })
         )
         setProjects(enriched)
+        sessionStorage.setItem('contents_projects', JSON.stringify(enriched))
       }
     }, { errorMessage: '프로젝트 목록을 불러올 수 없습니다.' })
   }
@@ -175,10 +182,26 @@ export default function ContentsPage() {
       </div>
 
       {/* 프로젝트(키워드) 카드 리스트 */}
-      {loading ? (
-        <div className="space-y-4">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} variant="card" />
+      {loading && projects.length === 0 ? (
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Skeleton variant="text" width="40%" />
+                    <Skeleton variant="text" width="40px" />
+                  </div>
+                  <Skeleton variant="text" width="30%" />
+                  <div className="flex gap-2 mt-1">
+                    <Skeleton variant="text" width="80px" />
+                    <Skeleton variant="text" width="80px" />
+                    <Skeleton variant="text" width="80px" />
+                  </div>
+                </div>
+                <Skeleton variant="text" width="60px" />
+              </div>
+            </Card>
           ))}
         </div>
       ) : filtered.length === 0 ? (

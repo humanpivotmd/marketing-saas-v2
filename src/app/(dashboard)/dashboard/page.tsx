@@ -35,35 +35,37 @@ export default function DashboardPage() {
       try { setUser(JSON.parse(userData)) } catch { /* ignore */ }
     }
 
+    // 캐시된 usage가 있으면 즉시 표시
+    const cachedUsage = sessionStorage.getItem('dashboard_usage')
+    if (cachedUsage) {
+      try { setUsage(JSON.parse(cachedUsage)); setLoading(false) } catch { /* ignore */ }
+    }
+
     const token = sessionStorage.getItem('token')
     if (!token) { setLoading(false); return }
 
-    // 마이페이지 설정 확인
     const setupStatus = sessionStorage.getItem('business_setup')
     if (setupStatus === 'needed') setNeedsSetup(true)
-    // 직접 확인도 (sessionStorage 미반영 시)
-    fetch('/api/mypage/business-profile', { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.json())
-      .then(data => {
-        if (data.success && data.data) {
-          const p = data.data
-          const done = !!(p.business_type && p.selected_channels?.length > 0 && p.company_name)
-          setNeedsSetup(!done)
-        }
-      })
-      .catch(() => {})
 
-    fetch('/api/mypage/usage', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.success && data.data) {
-          setUsage(data.data)
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false))
+    // 병렬 호출
+    Promise.all([
+      fetch('/api/mypage/business-profile', { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.json())
+        .catch(() => null),
+      fetch('/api/mypage/usage', { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.json())
+        .catch(() => null),
+    ]).then(([profileData, usageData]) => {
+      if (profileData?.success && profileData.data) {
+        const p = profileData.data
+        const done = !!(p.business_type && p.selected_channels?.length > 0 && p.company_name)
+        setNeedsSetup(!done)
+      }
+      if (usageData?.success && usageData.data) {
+        setUsage(usageData.data)
+        sessionStorage.setItem('dashboard_usage', JSON.stringify(usageData.data))
+      }
+    }).finally(() => setLoading(false))
   }, [])
 
   const usageCards = usage
