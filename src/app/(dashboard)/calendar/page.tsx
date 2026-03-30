@@ -48,16 +48,16 @@ export default function CalendarPage() {
     const to = `${year}-${String(month + 1).padStart(2, '0')}-${lastDay}`
 
     await run(async () => {
-      const res = await fetch(`/api/calendar?from=${from}&to=${to}`, { headers: authHeaders() })
-      const data = await res.json()
-      if (data.success) setByDate(data.data || {})
+      // 병렬 호출: calendar + projects
+      const [calRes, projRes] = await Promise.all([
+        fetch(`/api/calendar?from=${from}&to=${to}`, { headers: authHeaders() }).then(r => r.json()),
+        fetch('/api/projects?limit=100', { headers: authHeaders() }).then(r => r.json()),
+      ])
 
-      // 프로젝트 정보도 로드
-      const projRes = await fetch('/api/projects?limit=100', { headers: authHeaders() })
-      const projData = await projRes.json()
-      if (projData.success) {
+      if (calRes.success) setByDate(calRes.data || {})
+      if (projRes.success) {
         const map: Record<string, { keyword_text: string; business_type: string }> = {}
-        for (const p of projData.data || []) {
+        for (const p of projRes.data || []) {
           map[p.id] = { keyword_text: p.keyword_text || '키워드 없음', business_type: p.business_type || 'B2C' }
         }
         setProjectMap(map)

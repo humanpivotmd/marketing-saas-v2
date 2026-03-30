@@ -187,7 +187,11 @@ function ProfileTab({ onToast }: { onToast: (t: { message: string; variant: 'suc
   }
 
   if (!profile) {
-    return <Card><div className="animate-pulse space-y-4"><div className="h-4 bg-bg-tertiary rounded w-1/3" /><div className="h-4 bg-bg-tertiary rounded w-2/3" /></div></Card>
+    return (
+      <div className="space-y-6">
+        <Card><div className="space-y-4"><div className="h-5 bg-bg-tertiary rounded w-1/4 animate-pulse" /><div className="h-10 bg-bg-tertiary rounded animate-pulse" /><div className="h-10 bg-bg-tertiary rounded animate-pulse" /><div className="h-10 bg-bg-tertiary rounded w-1/3 animate-pulse" /></div></Card>
+      </div>
+    )
   }
 
   return (
@@ -345,13 +349,21 @@ function DeleteAccountModal({ open, onClose, onToast }: {
 // Plan Tab
 // =========================================
 function PlanTab() {
-  const [usage, setUsage] = useState<UsageData | null>(null)
+  const [usage, setUsage] = useState<UsageData | null>(() => {
+    // 캐시된 usage 즉시 사용
+    const cached = typeof window !== 'undefined' ? sessionStorage.getItem('dashboard_usage') : null
+    if (cached) try { return JSON.parse(cached) } catch { /* ignore */ }
+    return null
+  })
 
   useEffect(() => {
     fetch('/api/mypage/usage', { headers: authHeaders() })
       .then((r) => r.json())
       .then((res) => {
-        if (res.success) setUsage(res.data)
+        if (res.success) {
+          setUsage(res.data)
+          sessionStorage.setItem('dashboard_usage', JSON.stringify(res.data))
+        }
       })
       .catch(() => {})
   }, [])
@@ -1216,18 +1228,23 @@ function BusinessProfileTab({ onToast }: { onToast: (t: { message: string; varia
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // 프로필 로드
-    fetch('/api/mypage/business-profile', { headers: authHeaders() })
-      .then(r => r.json())
-      .then(res => { if (res.success && res.data) setProfile(p => ({ ...p, ...res.data })) })
-      .catch(() => {})
-      .finally(() => setLoading(false))
+    // 업종 캐싱 (자주 안 바뀌는 데이터)
+    const cachedIndustries = sessionStorage.getItem('industries_cache')
+    if (cachedIndustries) {
+      try { setIndustries(JSON.parse(cachedIndustries)) } catch { /* ignore */ }
+    }
 
-    // 업종 로드
-    fetch('/api/industries', { headers: authHeaders() })
-      .then(r => r.json())
-      .then(res => { if (res.success) setIndustries(res.data) })
-      .catch(() => {})
+    // 병렬 호출: business-profile + industries
+    Promise.all([
+      fetch('/api/mypage/business-profile', { headers: authHeaders() }).then(r => r.json()).catch(() => null),
+      fetch('/api/industries', { headers: authHeaders() }).then(r => r.json()).catch(() => null),
+    ]).then(([profileRes, industriesRes]) => {
+      if (profileRes?.success && profileRes.data) setProfile(p => ({ ...p, ...profileRes.data }))
+      if (industriesRes?.success) {
+        setIndustries(industriesRes.data)
+        sessionStorage.setItem('industries_cache', JSON.stringify(industriesRes.data))
+      }
+    }).finally(() => setLoading(false))
   }, [])
 
   const toggleChannel = (ch: string) => {
@@ -1268,7 +1285,12 @@ function BusinessProfileTab({ onToast }: { onToast: (t: { message: string; varia
     }
   }
 
-  if (loading) return <div className="py-12 text-center text-text-tertiary">로딩 중...</div>
+  if (loading) return (
+    <div className="space-y-6">
+      <Card><div className="space-y-4"><div className="h-5 bg-bg-tertiary rounded w-1/4 animate-pulse" /><div className="h-10 bg-bg-tertiary rounded animate-pulse" /><div className="h-10 bg-bg-tertiary rounded animate-pulse" /></div></Card>
+      <Card><div className="space-y-4"><div className="h-5 bg-bg-tertiary rounded w-1/3 animate-pulse" /><div className="grid grid-cols-2 gap-3">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-14 bg-bg-tertiary rounded animate-pulse" />)}</div></div></Card>
+    </div>
+  )
 
   return (
     <div className="space-y-6">
