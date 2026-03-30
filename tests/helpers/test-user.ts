@@ -112,8 +112,9 @@ export async function setupBusinessProfile(page: Page, options: TestUserOptions)
   await page.goto(`${BASE}/settings#business`)
   await page.waitForLoadState('networkidle')
 
-  // 데이터 로딩 대기
-  await page.waitForTimeout(2000)
+  // dynamic import + 데이터 로딩 대기
+  await page.waitForSelector('button:has-text("설정 저장")', { timeout: 30000 })
+  await page.waitForTimeout(1000)
 
   // B2B/B2C 선택
   const btBtn = page.locator(`button:has-text("${options.businessType}")`).first()
