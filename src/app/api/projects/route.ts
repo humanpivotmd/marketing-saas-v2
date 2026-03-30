@@ -12,6 +12,7 @@ export async function GET(req: NextRequest) {
     const url = new URL(req.url)
     const status = url.searchParams.get('status') || ''
     const keyword_id = url.searchParams.get('keyword_id') || ''
+    const include = url.searchParams.get('include') || ''
     const page = parseInt(url.searchParams.get('page') || '1')
     const limit = parseInt(url.searchParams.get('limit') || '20')
 
@@ -29,6 +30,30 @@ export async function GET(req: NextRequest) {
       .range(from, from + limit - 1)
 
     if (error) throw error
+
+    // include=contents: 각 프로젝트에 채널별 콘텐츠도 포함
+    if (include === 'contents' && data && data.length > 0) {
+      const projectIds = data.map((p: { id: string }) => p.id)
+      const { data: contents } = await supabase
+        .from('contents')
+        .select('id, type, title, status, confirmed_at, seo_score, created_at, project_id, scheduled_date')
+        .in('project_id', projectIds)
+        .order('created_at', { ascending: true })
+
+      const contentsByProject: Record<string, typeof contents> = {}
+      for (const c of contents || []) {
+        const pid = c.project_id as string
+        if (!contentsByProject[pid]) contentsByProject[pid] = []
+        contentsByProject[pid].push(c)
+      }
+
+      const enriched = data.map((p: { id: string }) => ({
+        ...p,
+        contents: contentsByProject[p.id] || [],
+      }))
+      return Response.json({ success: true, data: enriched, total: count })
+    }
+
     return Response.json({ success: true, data, total: count })
   } catch (err) {
     return handleApiError(err)

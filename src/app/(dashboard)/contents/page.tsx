@@ -57,28 +57,14 @@ export default function ContentsPage() {
     await run(async () => {
       const token = sessionStorage.getItem('token')
       if (!token) throw new Error('로그인이 필요합니다.')
-      const res = await fetch('/api/projects?limit=50', {
+      // include=contents로 1회 호출 (N+1 제거)
+      const res = await fetch('/api/projects?limit=50&include=contents', {
         headers: { Authorization: `Bearer ${token}` },
       })
       const json = await res.json()
       if (json.success) {
-        // 각 프로젝트에 콘텐츠 상세 병렬 로드
-        const enriched = await Promise.all(
-          (json.data || []).map(async (proj: ProjectItem) => {
-            try {
-              const detailRes = await fetch(`/api/projects/${proj.id}`, {
-                headers: { Authorization: `Bearer ${token}` },
-              })
-              const detailJson = await detailRes.json()
-              if (detailJson.success) {
-                return { ...proj, contents: detailJson.data.contents || [] }
-              }
-            } catch { /* ignore */ }
-            return { ...proj, contents: [] }
-          })
-        )
-        setProjects(enriched)
-        sessionStorage.setItem('contents_projects', JSON.stringify(enriched))
+        setProjects(json.data || [])
+        sessionStorage.setItem('contents_projects', JSON.stringify(json.data || []))
       }
     }, { errorMessage: '프로젝트 목록을 불러올 수 없습니다.' })
   }
