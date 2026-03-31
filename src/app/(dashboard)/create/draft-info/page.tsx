@@ -91,7 +91,7 @@ export default function DraftInfoPage() {
       const projectId = projData.data.id
 
       // 프로젝트에 STEP3 데이터 저장
-      await fetch(`/api/projects/${projectId}`, {
+      const patchRes = await fetch(`/api/projects/${projectId}`, {
         method: 'PATCH',
         headers: authHeaders(),
         body: JSON.stringify({
@@ -105,6 +105,8 @@ export default function DraftInfoPage() {
           step_status: { s1: 'completed', s2: 'completed', s3: 'completed', s4: 'pending', s5: 'pending', s6: 'pending', s7: 'pending' },
         }),
       })
+      const patchData = await patchRes.json()
+      if (!patchData.success) throw new Error(patchData.error || 'STEP3 저장 실패')
 
       // STEP4 초안 생성 페이지로 이동
       router.push(`/create/generating?project_id=${projectId}`)
