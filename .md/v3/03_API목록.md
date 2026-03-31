@@ -41,14 +41,14 @@
 
 - 인증: requireAuth
 - 소유권: user_id = 인증 사용자
-- 응답: 프로젝트 전체 필드 + `contents` 배열 (id, type, title, body, hashtags, status, confirmed_at, word_count, seo_score, created_at)
+- 응답: 프로젝트 전체 필드 + `contents` 배열 (id, channel, title, body, status, confirmed_at, metadata, created_at)
 
 ### PATCH /api/projects/:id
 프로젝트 업데이트 (단계 진행, 데이터 저장).
 
 - 인증: requireAuth
 - 소유권: user_id = 인증 사용자
-- 허용 필드: `current_step`, `step_status`, `topic_type`, `selected_title`, `title_candidates`, `custom_prompt`, `prompt_mode`, `draft_content`, `content_ids`, `status`, `confirmed_at`, `business_type`
+- 허용 필드: `current_step`, `step_status`, `topic_type`, `selected_title`, `title_candidates`, `custom_prompt`, `prompt_mode`, `draft_content`, `content_ids`, `status`, `confirmed_at`, `business_type`, `core_message`
 - 요청 예시:
 ```json
 {
@@ -71,7 +71,7 @@
 모든 생성 API에 공통 적용:
 - Rate Limit: `generateRateLimit` (분당 10회, IP + path 기반)
 - AI 모델: `claude-sonnet-4-20250514`
-- API 키: `ANTHROPIC_API_KEY || CLAUDE_API_KEY`
+- API 키: `ANTHROPIC_API_KEY || CLAUDE_API_KEY` (Railway에는 `CLAUDE_API_KEY`로 등록됨)
 
 ### POST /api/generate/titles
 제목 5개 생성 (STEP3).
@@ -283,7 +283,7 @@ data: {"type":"error","channel":"threads","message":"threads 생성 실패"}
   "success": true,
   "data": {
     "2026-03-25": [
-      { "id": "uuid", "type": "blog", "title": "...", "status": "confirmed", "scheduled_date": "2026-03-25", "word_count": 2500 }
+      { "id": "uuid", "channel": "blog", "title": "...", "status": "confirmed", "scheduled_date": "2026-03-25" }
     ]
   }
 }
