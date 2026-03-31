@@ -66,7 +66,7 @@ export default function DraftInfoPage() {
       const data = await res.json()
       if (!data.success) throw new Error(data.error)
       setTitles(data.data.titles || [])
-    }, { errorMessage: '제목 생성 실패' })
+    })
     setGenerating(false)
   }
 

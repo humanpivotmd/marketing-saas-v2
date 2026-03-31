@@ -55,7 +55,7 @@ export class UsageLimitError extends AppError {
 export function handleApiError(error: unknown): Response {
   if (error instanceof AppError) {
     return Response.json(
-      { error: error.message, code: error.code },
+      { success: false, error: error.message, code: error.code },
       { status: error.statusCode }
     )
   }
@@ -67,7 +67,7 @@ export function handleApiError(error: unknown): Response {
   console.error('[API Error]', error)
 
   return Response.json(
-    { error: message, code: 'INTERNAL_ERROR' },
+    { success: false, error: message, code: 'INTERNAL_ERROR' },
     { status: 500 }
   )
 }

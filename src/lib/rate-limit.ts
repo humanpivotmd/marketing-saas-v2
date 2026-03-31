@@ -69,7 +69,7 @@ export function checkRateLimitOrRespond(
     const entry = rateLimitMap.get(key)
     const retryAfter = entry ? Math.ceil((entry.resetAt - Date.now()) / 1000) : 60
     return new Response(
-      JSON.stringify({ error: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.', code: 'RATE_LIMIT_EXCEEDED' }),
+      JSON.stringify({ success: false, error: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.', code: 'RATE_LIMIT_EXCEEDED' }),
       {
         status: 429,
         headers: {
