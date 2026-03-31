@@ -88,8 +88,14 @@ export async function POST(req: NextRequest) {
             })
 
             if (!claudeRes.ok) {
+              const errorBody = await claudeRes.text()
+              console.error(`[pipeline] Claude API error for ${channel}:`, {
+                status: claudeRes.status,
+                body: errorBody,
+                apiKeyPrefix: apiKey!.slice(0, 10) + '...',
+              })
               controller.enqueue(encoder.encode(
-                `data: ${JSON.stringify({ type: 'error', channel, message: `${channel} 생성 실패` })}\n\n`
+                `data: ${JSON.stringify({ type: 'error', channel, message: `${channel} 생성 실패 (${claudeRes.status}): ${errorBody.slice(0, 200)}` })}\n\n`
               ))
               continue
             }
@@ -159,8 +165,9 @@ export async function POST(req: NextRequest) {
             `data: ${JSON.stringify({ type: 'done', contentIds })}\n\n`
           ))
         } catch (err) {
+          console.error('[pipeline] Unexpected error:', err)
           controller.enqueue(encoder.encode(
-            `data: ${JSON.stringify({ type: 'error', message: '콘텐츠 생성 중 오류가 발생했습니다.' })}\n\n`
+            `data: ${JSON.stringify({ type: 'error', message: `콘텐츠 생성 중 오류: ${(err as Error).message}` })}\n\n`
           ))
         } finally {
           controller.close()

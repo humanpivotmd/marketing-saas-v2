@@ -282,7 +282,7 @@ export default function ChannelWritePage() {
             </button>
           </label>
 
-          {!generating && contents.length === 0 && (
+          {!generating && (
             <Button variant="secondary" onClick={startGeneration}>재생성</Button>
           )}
 
