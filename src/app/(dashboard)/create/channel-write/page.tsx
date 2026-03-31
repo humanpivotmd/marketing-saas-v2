@@ -58,7 +58,7 @@ export default function ChannelWritePage() {
   const [imageStyle, setImageStyle] = useState<'photo' | 'illustration'>('photo')
   const [styleDetail, setStyleDetail] = useState('미니멀')
   const [imageSize, setImageSize] = useState('')
-  const [imagePromptResult, setImagePromptResult] = useState<ImagePromptResult | null>(null)
+  const [imageResults, setImageResults] = useState<Record<string, ImagePromptResult>>({})
   const [generatingImage, setGeneratingImage] = useState(false)
 
   // Track which channels have completed image generation
@@ -183,7 +183,6 @@ export default function ChannelWritePage() {
   const openImageSheet = (channel: string) => {
     setSheetChannel(channel)
     setImageSize(IMAGE_SIZE_DEFAULTS[channel] || '1080x1080')
-    setImagePromptResult(null)
     setSheetOpen(true)
   }
 
@@ -207,11 +206,12 @@ export default function ChannelWritePage() {
       const data = await res.json()
       if (!data.success) throw new Error(data.error)
 
-      setImagePromptResult({
+      const result: ImagePromptResult = {
         channel: sheetChannel,
         images: data.data.images || [],
         thumbnail: data.data.thumbnail || undefined,
-      })
+      }
+      setImageResults(prev => ({ ...prev, [sheetChannel]: result }))
       setImageCompleted(prev => ({ ...prev, [sheetChannel]: true }))
     }, { successMessage: '이미지 프롬프트 생성 완료', errorMessage: '생성 실패' })
     setGeneratingImage(false)
@@ -225,7 +225,6 @@ export default function ChannelWritePage() {
       const next = channelTypes[currentIdx + 1]
       setSheetChannel(next)
       setImageSize(IMAGE_SIZE_DEFAULTS[next] || '1080x1080')
-      setImagePromptResult(null)
     } else {
       setSheetOpen(false)
     }
@@ -555,16 +554,20 @@ export default function ChannelWritePage() {
             onClick={handleGenerateImage}
             disabled={generatingImage}
           >
-            {generatingImage ? '이미지 프롬프트 생성 중...' : '이미지 프롬프트 생성'}
+            {generatingImage
+              ? '이미지 프롬프트 생성 중...'
+              : imageResults[sheetChannel]
+                ? '이미지 프롬프트 재생성'
+                : '이미지 프롬프트 생성'}
           </Button>
 
           {/* 결과 */}
-          {imagePromptResult && (
+          {imageResults[sheetChannel] && (
             <div className="space-y-3">
               <h4 className="text-sm font-semibold text-text-primary">
-                생성 결과 ({imagePromptResult.images.length}장)
+                생성 결과 ({imageResults[sheetChannel].images.length}장)
               </h4>
-              {imagePromptResult.images.map((img, i) => (
+              {imageResults[sheetChannel].images.map((img, i) => (
                 <div key={i} className="p-3 rounded-lg bg-surface-secondary space-y-2">
                   {img.placement && <p className="text-xs text-text-tertiary">{img.placement}</p>}
                   <p className="text-sm text-text-secondary">{img.description_ko}</p>
@@ -581,16 +584,16 @@ export default function ChannelWritePage() {
                   </div>
                 </div>
               ))}
-              {imagePromptResult.thumbnail && (
+              {imageResults[sheetChannel].thumbnail && (
                 <div className="p-3 rounded-lg bg-accent-primary/5 border border-accent-primary/20 space-y-2">
                   <p className="text-xs text-accent-primary font-medium">썸네일</p>
-                  <p className="text-sm text-text-secondary">{imagePromptResult.thumbnail.description_ko}</p>
+                  <p className="text-sm text-text-secondary">{imageResults[sheetChannel].thumbnail!.description_ko}</p>
                   <div className="flex items-center gap-2">
                     <code className="flex-1 text-xs text-accent-primary bg-bg-tertiary p-2 rounded overflow-x-auto">
-                      {imagePromptResult.thumbnail.prompt_en}
+                      {imageResults[sheetChannel].thumbnail!.prompt_en}
                     </code>
                     <Button size="sm" variant="ghost" onClick={() => {
-                      navigator.clipboard.writeText(imagePromptResult.thumbnail!.prompt_en)
+                      navigator.clipboard.writeText(imageResults[sheetChannel].thumbnail!.prompt_en)
                       run(async () => {}, { successMessage: '복사됨' })
                     }}>
                       복사
