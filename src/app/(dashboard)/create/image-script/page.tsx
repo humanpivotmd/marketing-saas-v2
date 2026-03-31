@@ -45,7 +45,7 @@ export default function ImageScriptPage() {
 
       const project = projData.data
       const channels = (project.contents || [])
-        .map((c: { type: string }) => c.type)
+        .map((c: { channel: string }) => c.channel)
         .filter((t: string) => t !== 'video_script')
 
       if (channels.length === 0) {
