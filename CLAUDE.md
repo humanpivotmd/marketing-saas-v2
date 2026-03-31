@@ -97,6 +97,25 @@ npm run build   # 프로덕션 빌드 (TypeScript 타입 체크 포함)
 - 타입은 `src/types/index.ts`에서 관리
 - 검증은 `src/lib/validations.ts` Zod 스키마 사용
 
+## 공통 유틸 맵
+
+| 파일 | 용도 | 사용처 |
+|------|------|--------|
+| `src/lib/auth-client.ts` | `getToken()`, `authHeaders()` — 클라이언트 인증 | 프론트 API 호출 시 필수 |
+| `src/lib/api-helpers.ts` | `getOwnedRecord()`, `updateOwnedRecord()`, `deleteOwnedRecord()` — CRUD 헬퍼 | API route에서 소유권 검증+CRUD |
+| `src/lib/pagination.ts` | `parsePagination()`, `paginatedResponse()` — 목록 API 페이지네이션 | keywords, contents, admin/users |
+| `src/hooks/useAsyncAction.ts` | `run()`, `showToast()`, `clearToast()` — 비동기 액션+토스트 | 16개 페이지 |
+| `src/lib/constants.ts` | 상수 단일 출처 — 채널/톤/상태/옵션 등 | 전역 |
+| `src/lib/validations.ts` | Zod 스키마 — 폼 검증 | API route, 프론트 |
+| `src/lib/errors.ts` | `handleApiError()` — API 에러 응답 통일 | 모든 API route |
+| `src/lib/rate-limit.ts` | `generateRateLimit`, `checkRateLimitOrRespond()` | generate/* API |
+| `src/lib/sanitize.ts` | `sanitizeInput()`, `sanitizePromptInput()` — XSS/인젝션 방지 | generate/* API |
+| `src/lib/usage.ts` | `logUsage()` — AI 사용량 기록 | generate/* API |
+| `src/lib/prompts/pipeline.ts` | `buildTitlePrompt()`, `buildDraftPrompt()`, `buildChannelPrompt()` 등 | generate/* API |
+| `src/components/FlowGuard.tsx` | 파이프라인 단계 가드 — `requiredStep` 체크 | create/* 페이지 |
+| `src/components/SetupRequired.tsx` | 마이페이지 설정 필수 가드 | draft-info 페이지 |
+| `src/hooks/useBusinessProfile.ts` | 비즈니스 프로필 Context | draft-info, settings |
+
 ## 나중에 할 것
 - projects/route.ts 페이지네이션을 paginatedResponse로 통일
   → 프론트 projects 페이지에서 응답 형식 변경 필요

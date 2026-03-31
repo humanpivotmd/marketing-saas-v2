@@ -6,7 +6,8 @@
 프로젝트 목록 조회 (페이지네이션, 필터).
 
 - 인증: requireAuth (Bearer 토큰)
-- 쿼리파라미터: `status`, `keyword_id`, `page` (기본 1), `limit` (기본 20)
+- 쿼리파라미터: `status`, `keyword_id`, `include` (contents), `page` (기본 1), `limit` (기본 20)
+- `include=contents`: 각 프로젝트에 연결된 채널별 콘텐츠도 함께 반환
 - 소유권: user_id = 인증 사용자
 - 응답:
 ```json

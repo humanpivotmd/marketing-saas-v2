@@ -1,6 +1,6 @@
 # API 엔드포인트 목록
 
-> 총 68개 API Route Handler
+> 총 69개 API Route Handler
 
 ---
 
@@ -176,7 +176,7 @@
 | 1 | GET | `/api/projects` | USER | 프로젝트 목록 |
 | 2 | POST | `/api/projects` | USER | 프로젝트 생성 |
 | 3 | GET | `/api/projects/[id]` | USER | 프로젝트 상세 (단계 상태) |
-| 4 | PUT | `/api/projects/[id]` | USER | 프로젝트 수정 (단계 진행) |
+| 4 | PATCH | `/api/projects/[id]` | USER | 프로젝트 수정 (단계 진행) |
 | 5 | DELETE | `/api/projects/[id]` | USER | 프로젝트 삭제 |
 
 ---
@@ -237,12 +237,13 @@
 
 ---
 
-## 19. 사용자 프롬프트 API (2개)
+## 19. 사용자 프롬프트 API (3개)
 
 | # | Method | Path | 인증 | 설명 |
 |---|--------|------|------|------|
 | 1 | GET | `/api/user-prompts` | USER | 커스텀 프롬프트 목록 |
 | 2 | POST | `/api/user-prompts` | USER | 커스텀 프롬프트 저장/수정 |
+| 3 | DELETE | `/api/user-prompts` | USER | 커스텀 프롬프트 삭제 (step 파라미터) |
 
 ---
 
