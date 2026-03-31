@@ -25,7 +25,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     // 채널별 콘텐츠도 함께 조회
     const { data: contents } = await supabase
       .from('contents')
-      .select('id, channel, title, body, hashtags, status, confirmed_at, word_count, seo_score, created_at')
+      .select('id, channel, title, body, status, confirmed_at, metadata, created_at')
       .eq('project_id', id)
       .order('created_at', { ascending: true })
 

@@ -7,13 +7,10 @@ import { validateRequest } from '@/lib/validations'
 import { parsePagination, paginatedResponse } from '@/lib/pagination'
 
 const contentCreateSchema = z.object({
-  keyword_id: z.string().uuid().optional(),
   keyword: z.string().max(200).optional(),
   channel: z.enum(['blog', 'threads', 'instagram', 'facebook', 'video_script', 'script']),
   title: z.string().max(500).optional(),
   body: z.string().optional(),
-  hashtags: z.array(z.string()).optional(),
-  seo_score: z.number().min(0).max(100).optional(),
   status: z.enum(['draft', 'generated', 'confirmed', 'edited', 'scheduled', 'published', 'failed']).optional(),
   meta: z.record(z.string(), z.unknown()).optional(),
 })
@@ -25,11 +22,10 @@ export async function GET(req: NextRequest) {
     const supabase = createServerSupabase()
 
     const url = new URL(req.url)
-    const keywordId = url.searchParams.get('keyword_id')
     const channel = url.searchParams.get('channel')
     const status = url.searchParams.get('status')
     const search = url.searchParams.get('search')
-    const ALLOWED_SORTS = ['created_at', 'title', 'seo_score', 'updated_at'] as const
+    const ALLOWED_SORTS = ['created_at', 'title', 'updated_at'] as const
     const sortParam = url.searchParams.get('sort') || 'created_at'
     const sort = ALLOWED_SORTS.includes(sortParam as typeof ALLOWED_SORTS[number]) ? sortParam : 'created_at'
     const order = url.searchParams.get('order') === 'asc' ? 'asc' : 'desc'
@@ -42,7 +38,6 @@ export async function GET(req: NextRequest) {
       .order(sort, { ascending: order === 'asc' })
       .range(offset, offset + limit - 1)
 
-    if (keywordId) query = query.eq('keyword_id', keywordId)
     if (channel) query = query.eq('channel', channel)
     if (status) query = query.eq('status', status)
     if (search) query = query.ilike('title', `%${search}%`)
@@ -68,15 +63,12 @@ export async function POST(req: NextRequest) {
       .from('contents')
       .insert({
         user_id: user.userId,
-        keyword_id: data.keyword_id || null,
         keyword: data.keyword || null,
         channel: data.channel,
         title: data.title || null,
         body: data.body || null,
-        hashtags: data.hashtags || [],
-        seo_score: data.seo_score || null,
         status: data.status || 'draft',
-        meta: data.meta || {},
+        metadata: data.meta || {},
       })
       .select()
       .single()

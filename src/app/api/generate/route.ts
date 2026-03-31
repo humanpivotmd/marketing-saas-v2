@@ -189,18 +189,16 @@ export async function POST(req: NextRequest) {
               .from('contents')
               .insert({
                 user_id: user.userId,
-                keyword_id: data.keywordId || null,
                 keyword: keywordText,
                 channel,
                 title: generatedTitle,
                 body: generatedContent,
-                hashtags: extractHashtags(generatedContent),
                 status: 'generated',
-                meta: {
+                metadata: {
                   tone: settings.tone,
                   length: settings.length,
                   style: settings.style,
-                  brand_voice_id: data.brandVoiceId,
+                  hashtags: extractHashtags(generatedContent),
                 },
               })
               .select('id')

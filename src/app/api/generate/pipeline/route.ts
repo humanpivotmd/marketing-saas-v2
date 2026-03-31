@@ -115,23 +115,29 @@ export async function POST(req: NextRequest) {
 
             // DB 저장
             const contentType = channel === 'video' ? 'video_script' : channel
-            const { data: saved } = await supabase
+            const { data: saved, error: insertError } = await supabase
               .from('contents')
               .insert({
                 user_id: authUser.userId,
                 project_id,
-                keyword_id: project.keyword_id,
                 channel: contentType,
                 title: project.selected_title,
                 body: text,
-                hashtags: hashtags.length > 0 ? hashtags : null,
-                tone: snapshot.writing_tone,
-                word_count: text.length,
+                keyword: project.keyword_text || '',
                 status: 'generated',
-                ai_model: 'claude-sonnet-4-20250514',
+                metadata: {
+                  tone: snapshot.writing_tone,
+                  ai_model: 'claude-sonnet-4-20250514',
+                  word_count: text.length,
+                  hashtags: hashtags.length > 0 ? hashtags : [],
+                },
               })
               .select('id')
               .single()
+
+            if (insertError) {
+              console.error(`[pipeline] DB insert error for ${channel}:`, insertError)
+            }
 
             if (saved) {
               contentIds[channel] = saved.id
