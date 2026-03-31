@@ -70,6 +70,38 @@ DB 변경:
 - 완료마다 보고
 - 병렬 처리 금지
 
+## 절대 규칙 (위반 금지)
+
+### 범위 제한
+- 요청한 파일 외 절대 수정 금지
+- 연관되어 보여도 반드시 먼저 나에게 보고 후 진행
+- "이 파일도 수정하면 좋을 것 같습니다" → 보고 후 내가 승인해야만 진행
+
+### 공통 파일 수정 시 반드시 사전 보고
+아래 파일은 수정 전 반드시 나에게 먼저 보고:
+- src/lib/errors.ts
+- src/lib/auth-client.ts
+- src/lib/api-helpers.ts
+- src/lib/pagination.ts
+- src/lib/constants.ts
+- src/hooks/useAsyncAction.ts
+- src/types/index.ts
+- src/lib/validations.ts
+
+### 작업 완료 후 필수 확인
+모든 작업 완료 후 반드시 실행:
+`git diff --name-only HEAD~1`
+
+→ 변경된 파일 목록 나에게 보고
+→ 요청하지 않은 파일이 있으면 즉시 알려줄 것
+→ 내가 확인 후 되돌릴지 유지할지 결정
+
+### CLAUDE.md 확인 방법
+작업 시작 시 반드시:
+1. CLAUDE.md 파일을 실제로 읽었음을 확인
+2. 읽은 내용 중 이번 작업과 관련된 규칙 나에게 먼저 보고
+3. 확인 없이 작업 시작 금지
+
 ### STEP 4 - 수정 완료 후 (항상)
 - [ ] `npm run build` 성공 확인
 - [ ] Smoke Test 실행
