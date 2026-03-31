@@ -20,7 +20,7 @@ import {
 
 interface ChannelContent {
   id: string
-  type: string
+  channel: string
   title: string | null
   body: string
   hashtags: string[] | null
@@ -80,7 +80,7 @@ export default function ChannelWritePage() {
       const existingContents = data.data.contents || []
       if (existingContents.length > 0) {
         setContents(existingContents)
-        if (!activeChannel) setActiveChannel(existingContents[0].type)
+        if (!activeChannel) setActiveChannel(existingContents[0].channel)
       } else {
         startGeneration()
       }
@@ -219,7 +219,7 @@ export default function ChannelWritePage() {
 
   // Move to next channel in the BottomSheet
   const handleNextChannel = () => {
-    const channelTypes = contents.filter(c => c.type !== 'video_script').map(c => c.type)
+    const channelTypes = contents.filter(c => c.channel !== 'video_script').map(c => c.channel)
     const currentIdx = channelTypes.indexOf(sheetChannel)
     if (currentIdx < channelTypes.length - 1) {
       const next = channelTypes[currentIdx + 1]
@@ -234,7 +234,7 @@ export default function ChannelWritePage() {
   // All channels confirmed + image done
   const allChannelsDone = contents.length > 0
     && contents.every(c => c.confirmed_at)
-    && contents.filter(c => c.type !== 'video_script').every(c => imageCompleted[c.type])
+    && contents.filter(c => c.channel !== 'video_script').every(c => imageCompleted[c.channel])
 
   const handleGoToVideo = async () => {
     await run(async () => {
@@ -253,7 +253,7 @@ export default function ChannelWritePage() {
     }, { successMessage: '영상 단계로 이동', errorMessage: '이동 실패' })
   }
 
-  const activeContent = contents.find(c => c.type === activeChannel)
+  const activeContent = contents.find(c => c.channel === activeChannel)
   const sizeOptions = IMAGE_SIZE_OPTIONS[sheetChannel] || IMAGE_SIZE_OPTIONS.blog
 
   return (
@@ -313,16 +313,16 @@ export default function ChannelWritePage() {
           <div className="flex border-b border-[rgba(240,246,252,0.1)] gap-1 overflow-x-auto scrollbar-hide">
             {contents.map(c => (
               <button
-                key={c.type}
-                onClick={() => setActiveChannel(c.type)}
+                key={c.channel}
+                onClick={() => setActiveChannel(c.channel)}
                 className={`relative px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors min-h-[44px] ${
-                  activeChannel === c.type ? 'text-text-primary' : 'text-text-tertiary hover:text-text-secondary'
+                  activeChannel === c.channel ? 'text-text-primary' : 'text-text-tertiary hover:text-text-secondary'
                 }`}
               >
-                {CHANNEL_LABEL_MAP[c.type] || c.type}
-                {c.confirmed_at && imageCompleted[c.type] && <span className="ml-1 text-green-400">✓</span>}
-                {c.confirmed_at && !imageCompleted[c.type] && <span className="ml-1 text-yellow-400">●</span>}
-                {activeChannel === c.type && (
+                {CHANNEL_LABEL_MAP[c.channel] || c.channel}
+                {c.confirmed_at && imageCompleted[c.channel] && <span className="ml-1 text-green-400">✓</span>}
+                {c.confirmed_at && !imageCompleted[c.channel] && <span className="ml-1 text-yellow-400">●</span>}
+                {activeChannel === c.channel && (
                   <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent-primary rounded-full" />
                 )}
               </button>
@@ -335,7 +335,7 @@ export default function ChannelWritePage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-semibold text-text-primary">
-                    {CHANNEL_LABEL_MAP[activeContent.type]} 콘텐츠
+                    {CHANNEL_LABEL_MAP[activeContent.channel]} 콘텐츠
                   </h3>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-text-tertiary">{activeContent.word_count}자</span>
@@ -393,7 +393,7 @@ export default function ChannelWritePage() {
                 <div className="flex items-center justify-between border-t border-border-primary pt-4">
                   <span className="text-xs text-text-tertiary">
                     {activeContent.confirmed_at
-                      ? imageCompleted[activeContent.type]
+                      ? imageCompleted[activeContent.channel]
                         ? '✓ 글 확정 + 이미지 완료'
                         : '✓ 글 확정됨'
                       : '아직 컨펌 전'}
@@ -407,19 +407,19 @@ export default function ChannelWritePage() {
                         이 채널 컨펌
                       </Button>
                     )}
-                    {activeContent.confirmed_at && !imageCompleted[activeContent.type] && (
+                    {activeContent.confirmed_at && !imageCompleted[activeContent.channel] && (
                       <Button
                         size="sm"
-                        onClick={() => openImageSheet(activeContent.type)}
+                        onClick={() => openImageSheet(activeContent.channel)}
                       >
                         확정하고 이미지 만들기
                       </Button>
                     )}
-                    {activeContent.confirmed_at && imageCompleted[activeContent.type] && (
+                    {activeContent.confirmed_at && imageCompleted[activeContent.channel] && (
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => openImageSheet(activeContent.type)}
+                        onClick={() => openImageSheet(activeContent.channel)}
                       >
                         이미지 다시 만들기
                       </Button>
@@ -602,7 +602,7 @@ export default function ChannelWritePage() {
               {/* 다음 채널 버튼 */}
               <Button className="w-full" variant="secondary" onClick={handleNextChannel}>
                 {(() => {
-                  const channelTypes = contents.filter(c => c.type !== 'video_script').map(c => c.type)
+                  const channelTypes = contents.filter(c => c.channel !== 'video_script').map(c => c.channel)
                   const idx = channelTypes.indexOf(sheetChannel)
                   if (idx < channelTypes.length - 1) {
                     return `다음 → ${CHANNEL_LABEL_MAP[channelTypes[idx + 1]] || channelTypes[idx + 1]}`

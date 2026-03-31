@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
 
     let query = supabase
       .from('contents')
-      .select('id, type, title, status, scheduled_date, confirmed_at, word_count, project_id')
+      .select('id, channel, title, status, scheduled_date, confirmed_at, word_count, project_id')
       .eq('user_id', user.userId)
       .not('scheduled_date', 'is', null)
       .order('scheduled_date', { ascending: true })

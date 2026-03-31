@@ -14,7 +14,7 @@ import { getToken, authHeaders } from '@/lib/auth-client'
 
 interface ProjectContent {
   id: string
-  type: string
+  channel: string
   title: string | null
   status: string
   confirmed_at: string | null
@@ -43,7 +43,7 @@ const CHANNEL_LIST = ['blog', 'instagram', 'threads'] as const
 
 function getChannelStatus(contents: ProjectContent[]) {
   return CHANNEL_LIST.map((ch) => {
-    const content = contents.find((c) => c.type === ch)
+    const content = contents.find((c) => c.channel === ch)
     const hasText = !!content
     return { channel: ch, hasText, content }
   })
@@ -302,8 +302,8 @@ export default function ContentsPage() {
                       <a key={c.id} href={`/contents/${c.id}`}>
                         <div className="flex items-center justify-between p-3 rounded-lg bg-surface-secondary hover:bg-[rgba(240,246,252,0.06)] transition-colors cursor-pointer">
                           <div className="flex items-center gap-2 min-w-0">
-                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium shrink-0 ${CHANNEL_COLOR_MAP[c.type] || ''}`}>
-                              {CHANNEL_LABEL_MAP[c.type] || c.type}
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium shrink-0 ${CHANNEL_COLOR_MAP[c.channel] || ''}`}>
+                              {CHANNEL_LABEL_MAP[c.channel] || c.channel}
                             </span>
                             <span className="text-sm text-text-primary truncate">{c.title || '제목 없음'}</span>
                           </div>

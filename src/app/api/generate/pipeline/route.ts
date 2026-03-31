@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
                 user_id: authUser.userId,
                 project_id,
                 keyword_id: project.keyword_id,
-                type: contentType,
+                channel: contentType,
                 title: project.selected_title,
                 body: text,
                 hashtags: hashtags.length > 0 ? hashtags : null,

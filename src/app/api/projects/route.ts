@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
       const projectIds = data.map((p: { id: string }) => p.id)
       const { data: contents } = await supabase
         .from('contents')
-        .select('id, type, title, status, confirmed_at, seo_score, created_at, project_id, scheduled_date')
+        .select('id, channel, title, status, confirmed_at, seo_score, created_at, project_id, scheduled_date')
         .in('project_id', projectIds)
         .order('created_at', { ascending: true })
 

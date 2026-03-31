@@ -19,7 +19,7 @@ function getDotColor(contents: CalendarContent[]): string {
 
 interface CalendarContent {
   id: string
-  type: string
+  channel: string
   title: string | null
   status: string
   scheduled_date: string
@@ -262,8 +262,8 @@ export default function CalendarPage() {
                       {group.contents.map(c => (
                         <div key={c.id} className="flex items-center justify-between">
                           <div className="flex items-center gap-2 min-w-0">
-                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium shrink-0 ${CHANNEL_COLOR_MAP[c.type] || ''}`}>
-                              {CHANNEL_LABEL_MAP[c.type] || c.type}
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium shrink-0 ${CHANNEL_COLOR_MAP[c.channel] || ''}`}>
+                              {CHANNEL_LABEL_MAP[c.channel] || c.channel}
                             </span>
                             <span className="text-xs text-text-secondary truncate">{c.title || '제목 없음'}</span>
                           </div>

@@ -119,7 +119,7 @@ export interface Content {
   brand_voice_id: string | null
   keyword_id: string | null
   project_id: string | null
-  type: ContentType
+  channel: ContentType
   title: string | null
   body: string
   hashtags: string[] | null
