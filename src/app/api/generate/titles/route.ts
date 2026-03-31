@@ -51,7 +51,14 @@ export async function POST(req: NextRequest) {
     })
 
     if (!claudeRes.ok) {
-      return Response.json({ success: false, error: `AI 서비스 오류가 발생했습니다. 잠시 후 다시 시도해주세요.` }, { status: 502 })
+      const errorBody = await claudeRes.text()
+      console.error('[titles] Claude API error:', {
+        status: claudeRes.status,
+        statusText: claudeRes.statusText,
+        body: errorBody,
+        apiKeyPrefix: apiKey.slice(0, 10) + '...',
+      })
+      return Response.json({ success: false, error: `AI 서비스 오류 (${claudeRes.status}): ${errorBody}` }, { status: 502 })
     }
 
     const result = await claudeRes.json()
@@ -71,6 +78,7 @@ export async function POST(req: NextRequest) {
 
     return Response.json({ success: true, data: { titles, tokens } })
   } catch (err) {
+    console.error('[titles] Unexpected error:', err)
     return handleApiError(err)
   }
 }
