@@ -1,7 +1,9 @@
 # DB 스키마
 
 > Supabase (PostgreSQL) -- 총 21개 테이블
-> 마이그레이션: `supabase/migrations/001_init.sql`, `002_seed.sql`, `003_v3_pipeline.sql`
+> 마이그레이션: `supabase/migrations/001_init.sql`, `002_seed.sql`, `003_v3_pipeline.sql`, `004_add_core_message.sql`, `005_add_missing_columns.sql`
+>
+> **주의**: 프로덕션 DB 스키마는 마이그레이션 SQL과 다를 수 있음. 프로덕션 DB를 정본(Single Source of Truth)으로 취급할 것.
 
 ---
 
@@ -36,7 +38,7 @@
 │ keyword_id (FK) ──> keywords                      │
 │ project_id (FK) ──> projects                      │
 │ parent_id (FK) ──> contents (self, 버전 관리)      │
-│ type: blog|threads|instagram|facebook|video_script|script │
+│ channel: blog|threads|instagram|facebook|video_script|script │
 │ status: draft|generated|confirmed|edited|scheduled|published|failed │
 └───────────────┬───────────┬───────────────────────┘
                 │           │
@@ -200,33 +202,31 @@
 
 ### 5. contents (콘텐츠)
 
+> **프로덕션 DB 기준** (마이그레이션 SQL과 다름. 2026-03-31 확인)
+
 | 컬럼 | 타입 | 제약 | 설명 |
 |------|------|------|------|
 | `id` | UUID PK | | |
 | `user_id` | UUID | FK -> users CASCADE, NOT NULL | |
-| `brand_voice_id` | UUID | FK -> brand_voices SET NULL | |
-| `keyword_id` | UUID | FK -> keywords SET NULL | |
 | `project_id` | UUID | FK -> projects SET NULL | |
-| `type` | VARCHAR(20) | CHECK: blog, threads, instagram, facebook, video_script, script | |
+| `channel` | VARCHAR(30) | | blog, threads, instagram, facebook, video_script, script |
 | `title` | VARCHAR(500) | | |
-| `body` | TEXT | NOT NULL | |
-| `hashtags` | TEXT[] | | |
-| `meta_description` | VARCHAR(300) | | |
-| `tone` | VARCHAR(50) | | |
-| `word_count` | INTEGER | | |
-| `status` | VARCHAR(20) | CHECK: draft, generated, confirmed, edited, scheduled, published, failed | DEFAULT 'draft' |
+| `body` | TEXT | | |
+| `keyword` | VARCHAR(200) | | 키워드 텍스트 |
+| `metadata` | JSONB | DEFAULT '{}' | tone, ai_model, word_count, hashtags 등 |
+| `meta` | JSONB | DEFAULT '{}' | 발행 메타데이터 |
 | `version` | INTEGER | DEFAULT 1 | |
-| `parent_id` | UUID | FK -> contents(self) SET NULL | 버전 관리 |
-| `ai_model` | VARCHAR(50) | | |
-| `ai_prompt_used` | TEXT | | |
-| `seo_score` | INTEGER | | |
-| `prompt_version_id` | UUID | | |
-| `outline` | JSONB | | |
+| `status` | VARCHAR(20) | DEFAULT 'draft' | draft, generated, confirmed, edited, scheduled, published, failed |
+| `tokens_used` | INTEGER | DEFAULT 0 | |
 | `confirmed_at` | TIMESTAMPTZ | | |
 | `revision_note` | TEXT | | |
-| `scheduled_date` | VARCHAR | | 예정일 |
+| `scheduled_date` | DATE | | 발행 예정일 |
+| `published_at` | TIMESTAMPTZ | | 실제 발행 시각 |
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
 | `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | |
+
+**프로덕션 DB에 없는 컬럼** (마이그레이션 SQL에만 존재, 코드에서 사용 금지):
+`brand_voice_id`, `keyword_id`, `type`, `hashtags`, `meta_description`, `tone`, `word_count`, `parent_id`, `ai_model`, `ai_prompt_used`, `seo_score`, `prompt_version_id`, `outline`
 
 ---
 
@@ -443,6 +443,7 @@ action_type 허용값: `content_create`, `keyword_analyze`, `image_generate`, `p
 | `content_ids` | JSONB | DEFAULT '{}' | 채널별 콘텐츠 ID 매핑 |
 | `settings_snapshot` | JSONB | | 생성 시점 설정 스냅샷 |
 | `status` | VARCHAR(20) | CHECK: in_progress, completed, archived | DEFAULT 'in_progress' |
+| `core_message` | TEXT | | 핵심 전달 내용 (STEP3) |
 | `confirmed_at` | TIMESTAMPTZ | | |
 | `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
 | `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | |
@@ -523,7 +524,7 @@ UNIQUE: (user_id, step) -- 유저당 단계별 1개
 | keywords | idx_keywords_user_group | user_id, group_name |
 | keywords | idx_keywords_grade | grade |
 | contents | idx_contents_user_status | user_id, status |
-| contents | idx_contents_type | type |
+| contents | idx_contents_channel | channel |
 | contents | idx_contents_user_created | user_id, created_at DESC |
 | contents | idx_contents_keyword | keyword_id |
 | contents | idx_contents_project | project_id |
