@@ -8,7 +8,6 @@ const STEPS = [
   { label: '초안 정보', path: '/create/draft-info' },
   { label: '초안 작성', path: '/create/generating' },
   { label: '채널별 글 + 이미지', path: '/create/channel-write' },
-  { label: '영상', path: '/create/video-script' },
 ]
 
 export default function CreateLayout({ children }: { children: ReactNode }) {

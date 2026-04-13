@@ -236,7 +236,7 @@ export default function ContentsPage() {
                           <span>글{cs.hasText ? '✅' : '❌'}</span>
                           <span>·</span>
                           <span>이미지{cs.hasImage ? '✅' : '❌'}</span>
-                          {!cs.hasText && cs.content === undefined && (
+                          {!cs.hasText && (
                             <a
                               href={`/create/channel-write?project_id=${proj.id}`}
                               className="text-accent-primary hover:underline ml-1"
@@ -261,7 +261,7 @@ export default function ContentsPage() {
                           >
                             [보기]
                           </a>
-                        ) : (
+                        ) : contents.length > 0 && contents.every(c => c.confirmed_at) ? (
                           <a
                             href={`/create/video-script?project_id=${proj.id}`}
                             className="text-accent-primary hover:underline ml-1"
@@ -269,7 +269,7 @@ export default function ContentsPage() {
                           >
                             [만들기]
                           </a>
-                        )}
+                        ) : null}
                       </div>
                     </div>
 
