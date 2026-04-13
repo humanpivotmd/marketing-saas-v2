@@ -34,12 +34,13 @@ interface ProjectItem {
   scheduled_date?: string | null
   contents?: ProjectContent[]
   image_channels?: string[]
+  has_video?: boolean
   keywords?: { keyword: string; grade: string }
 }
 
 type SortKey = 'updated_at' | 'keyword_text'
 
-const CHANNEL_LIST = ['blog', 'instagram', 'threads', 'facebook', 'video_script'] as const
+const CHANNEL_LIST = ['blog', 'instagram', 'threads', 'facebook'] as const
 
 function getChannelStatus(contents: ProjectContent[], imageChannels: string[] = []) {
   return CHANNEL_LIST.map((ch) => {
@@ -233,12 +234,8 @@ export default function ContentsPage() {
                             {CHANNEL_LABEL_MAP[cs.channel] || cs.channel}
                           </span>
                           <span>글{cs.hasText ? '✅' : '❌'}</span>
-                          {cs.channel !== 'video_script' && (
-                            <>
-                              <span>·</span>
-                              <span>이미지{cs.hasImage ? '✅' : '❌'}</span>
-                            </>
-                          )}
+                          <span>·</span>
+                          <span>이미지{cs.hasImage ? '✅' : '❌'}</span>
                           {!cs.hasText && cs.content === undefined && (
                             <a
                               href={`/create/channel-write?project_id=${proj.id}`}
@@ -250,6 +247,22 @@ export default function ContentsPage() {
                           )}
                         </div>
                       ))}
+                      {/* 영상 스크립트 별도 표시 */}
+                      <div className="flex items-center gap-1 text-xs">
+                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${CHANNEL_COLOR_MAP['video_script'] || ''}`}>
+                          {CHANNEL_LABEL_MAP['video_script'] || '영상'}
+                        </span>
+                        <span>영상{proj.has_video ? '✅' : '❌'}</span>
+                        {!proj.has_video && (
+                          <a
+                            href={`/create/video-script?project_id=${proj.id}`}
+                            className="text-accent-primary hover:underline ml-1"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            [만들기]
+                          </a>
+                        )}
+                      </div>
                     </div>
 
                     {/* 발행 메모 */}

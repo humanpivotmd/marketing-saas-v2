@@ -47,6 +47,13 @@ export async function GET(req: NextRequest) {
         .in('project_id', projectIds)
         .eq('user_id', authUser.userId)
 
+      // 영상 스크립트 존재 여부 조회
+      const { data: videoScripts } = await supabase
+        .from('video_scripts')
+        .select('project_id')
+        .in('project_id', projectIds)
+        .eq('user_id', authUser.userId)
+
       const contentsByProject: Record<string, typeof contents> = {}
       for (const c of contents || []) {
         const pid = c.project_id as string
@@ -61,10 +68,13 @@ export async function GET(req: NextRequest) {
         if (!imageByProject[pid].includes(s.channel)) imageByProject[pid].push(s.channel)
       }
 
+      const videoProjectIds = new Set((videoScripts || []).map((v: { project_id: string }) => v.project_id))
+
       const enriched = data.map((p: { id: string }) => ({
         ...p,
         contents: contentsByProject[p.id] || [],
         image_channels: imageByProject[p.id] || [],
+        has_video: videoProjectIds.has(p.id),
       }))
       return Response.json({ success: true, data: enriched, total: count })
     }
