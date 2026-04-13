@@ -4,12 +4,11 @@ import { type ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
 
 const STEPS = [
-  { num: 2, label: '키워드', path: '/keywords' },
-  { num: 3, label: '초안 정보', path: '/create/draft-info' },
-  { num: 4, label: '초안 작성', path: '/create/generating' },
-  { num: 5, label: '채널별 글', path: '/create/channel-write' },
-  { num: 6, label: '이미지', path: '/create/image-script' },
-  { num: 7, label: '영상', path: '/create/video-script' },
+  { label: '키워드', path: '/keywords' },
+  { label: '초안 정보', path: '/create/draft-info' },
+  { label: '초안 작성', path: '/create/generating' },
+  { label: '채널별 글 + 이미지', path: '/create/channel-write' },
+  { label: '영상', path: '/create/video-script' },
 ]
 
 export default function CreateLayout({ children }: { children: ReactNode }) {
@@ -24,7 +23,7 @@ export default function CreateLayout({ children }: { children: ReactNode }) {
           const isCompleted = i < currentIdx
           const isCurrent = i === currentIdx
           return (
-            <div key={step.num} className="flex items-center">
+            <div key={step.label} className="flex items-center">
               <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border transition-colors ${
                 isCurrent
                   ? 'bg-accent-primary/10 text-accent-primary border-accent-primary'
@@ -39,7 +38,7 @@ export default function CreateLayout({ children }: { children: ReactNode }) {
                       ? 'bg-green-500/20 text-green-400'
                       : 'bg-border-primary text-text-tertiary'
                 }`}>
-                  {isCompleted ? '✓' : step.num}
+                  {isCompleted ? '✓' : i + 1}
                 </span>
                 {step.label}
               </div>
