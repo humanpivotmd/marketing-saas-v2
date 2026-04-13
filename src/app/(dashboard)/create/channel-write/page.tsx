@@ -64,6 +64,9 @@ export default function ChannelWritePage() {
   // Track which channels have completed image generation
   const [imageCompleted, setImageCompleted] = useState<Record<string, boolean>>({})
 
+  // BottomSheet view-only mode (프롬프트 보기)
+  const [sheetViewOnly, setSheetViewOnly] = useState(false)
+
   // 발행 메모 날짜
   const [scheduledDate, setScheduledDate] = useState('')
 
@@ -179,10 +182,18 @@ export default function ChannelWritePage() {
     setRevising(false)
   }
 
-  // Open BottomSheet for a specific channel
+  // Open BottomSheet for a specific channel (생성 모드)
   const openImageSheet = (channel: string) => {
     setSheetChannel(channel)
     setImageSize(IMAGE_SIZE_DEFAULTS[channel] || '1080x1080')
+    setSheetViewOnly(false)
+    setSheetOpen(true)
+  }
+
+  // Open BottomSheet in view-only mode (프롬프트 보기)
+  const openImageView = (channel: string) => {
+    setSheetChannel(channel)
+    setSheetViewOnly(true)
     setSheetOpen(true)
   }
 
@@ -423,6 +434,15 @@ export default function ChannelWritePage() {
                         이미지 다시 만들기
                       </Button>
                     )}
+                    {activeContent.confirmed_at && imageCompleted[activeContent.channel] && (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => openImageView(activeContent.channel)}
+                      >
+                        제작 이미지 프롬프트 보기
+                      </Button>
+                    )}
                   </div>
                 </div>
 
@@ -454,9 +474,12 @@ export default function ChannelWritePage() {
       <BottomSheet
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
-        title={`${CHANNEL_LABEL_MAP[sheetChannel] || sheetChannel} 이미지 프롬프트`}
+        title={sheetViewOnly
+          ? `${CHANNEL_LABEL_MAP[sheetChannel] || sheetChannel} 이미지 프롬프트 보기`
+          : `${CHANNEL_LABEL_MAP[sheetChannel] || sheetChannel} 이미지 프롬프트`}
       >
         <div className="space-y-5">
+          {!sheetViewOnly && (<>
           {/* AI 도구 */}
           <div>
             <h4 className="text-sm font-semibold text-text-primary mb-2">AI 도구</h4>
@@ -560,6 +583,7 @@ export default function ChannelWritePage() {
                 ? '이미지 프롬프트 재생성'
                 : '이미지 프롬프트 생성'}
           </Button>
+          </>)}
 
           {/* 결과 */}
           {imageResults[sheetChannel] && (
