@@ -99,7 +99,11 @@ export default function VideoScriptPage() {
         body: JSON.stringify({
           status: 'completed',
           current_step: 7,
-          step_status: { s7: 'completed' },
+          step_status: {
+            s1: 'completed', s2: 'completed', s3: 'completed',
+            s4: 'completed', s5: 'completed', s6: 'completed',
+            s7: 'completed',
+          },
         }),
       })
       setTimeout(() => router.push('/contents'), 1000)

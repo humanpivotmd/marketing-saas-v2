@@ -12,6 +12,7 @@ import { getToken, authHeaders } from '@/lib/auth-client'
 
 interface ContentDetail {
   id: string
+  project_id: string | null
   keyword_id: string | null
   keyword: string | null
   channel: string
@@ -41,6 +42,8 @@ export default function ContentDetailPage() {
   const [editBody, setEditBody] = useState('')
   const [editTitle, setEditTitle] = useState('')
   const [saving, setSaving] = useState(false)
+  const [imagePrompts, setImagePrompts] = useState<{ seq: number; description_ko: string; prompt_en: string; placement?: string }[]>([])
+  const [imageThumbnail, setImageThumbnail] = useState<{ description_ko: string; prompt_en: string } | null>(null)
   const { loading, toast, clearToast, run } = useAsyncAction(true)
 
   const token = getToken() || null
@@ -56,6 +59,26 @@ export default function ContentDetailPage() {
         setContent(d.data)
         setEditBody(d.data.body || '')
         setEditTitle(d.data.title || '')
+
+        // 이미지 프롬프트 조회
+        if (d.data.project_id) {
+          const imgRes = await fetch(`/api/projects/${d.data.project_id}`, { headers: authHeaders() })
+          const imgData = await imgRes.json()
+          if (imgData.success) {
+            const scripts = imgData.data.image_scripts || []
+            const matched = scripts.find((s: { channel: string }) => s.channel === d.data.channel)
+            if (matched) {
+              setImagePrompts(Array.isArray(matched.prompts) ? matched.prompts : [])
+              if (matched.thumbnail_prompt) {
+                try {
+                  setImageThumbnail(typeof matched.thumbnail_prompt === 'string'
+                    ? JSON.parse(matched.thumbnail_prompt)
+                    : matched.thumbnail_prompt)
+                } catch { /* ignore */ }
+              }
+            }
+          }
+        }
       }
     }, { errorMessage: '콘텐츠를 불러올 수 없습니다.' })
   }, [token, id, run])
@@ -264,6 +287,49 @@ export default function ContentDetailPage() {
                       {tag}
                     </span>
                   ))}
+                </div>
+              </Card>
+            )}
+
+            {/* 이미지 프롬프트 */}
+            {imagePrompts.length > 0 && (
+              <Card>
+                <h3 className="text-sm font-medium text-text-secondary mb-3">이미지 프롬프트 ({imagePrompts.length}장)</h3>
+                <div className="space-y-2">
+                  {imagePrompts.map((img, i) => (
+                    <div key={i} className="p-2 rounded-lg bg-surface-secondary space-y-1">
+                      {img.placement && <p className="text-[10px] text-text-tertiary">{img.placement}</p>}
+                      <p className="text-xs text-text-secondary">{img.description_ko}</p>
+                      <div className="flex items-center gap-1">
+                        <code className="flex-1 text-[10px] text-accent-primary bg-bg-tertiary p-1.5 rounded overflow-x-auto block">
+                          {img.prompt_en}
+                        </code>
+                        <button
+                          onClick={() => navigator.clipboard.writeText(img.prompt_en)}
+                          className="text-[10px] text-text-tertiary hover:text-text-secondary shrink-0 px-1"
+                        >
+                          복사
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {imageThumbnail && (
+                    <div className="p-2 rounded-lg bg-accent-primary/5 border border-accent-primary/20 space-y-1">
+                      <p className="text-[10px] text-accent-primary font-medium">썸네일</p>
+                      <p className="text-xs text-text-secondary">{imageThumbnail.description_ko}</p>
+                      <div className="flex items-center gap-1">
+                        <code className="flex-1 text-[10px] text-accent-primary bg-bg-tertiary p-1.5 rounded overflow-x-auto block">
+                          {imageThumbnail.prompt_en}
+                        </code>
+                        <button
+                          onClick={() => navigator.clipboard.writeText(imageThumbnail.prompt_en)}
+                          className="text-[10px] text-text-tertiary hover:text-text-secondary shrink-0 px-1"
+                        >
+                          복사
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </Card>
             )}
