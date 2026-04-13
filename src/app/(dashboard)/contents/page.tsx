@@ -253,7 +253,15 @@ export default function ContentsPage() {
                           {CHANNEL_LABEL_MAP['video_script'] || '영상'}
                         </span>
                         <span>영상{proj.has_video ? '✅' : '❌'}</span>
-                        {!proj.has_video && (
+                        {proj.has_video ? (
+                          <a
+                            href={`/create/video-script?project_id=${proj.id}`}
+                            className="text-accent-primary hover:underline ml-1"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            [보기]
+                          </a>
+                        ) : (
                           <a
                             href={`/create/video-script?project_id=${proj.id}`}
                             className="text-accent-primary hover:underline ml-1"
