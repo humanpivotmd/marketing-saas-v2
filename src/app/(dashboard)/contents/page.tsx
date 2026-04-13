@@ -233,8 +233,12 @@ export default function ContentsPage() {
                             {CHANNEL_LABEL_MAP[cs.channel] || cs.channel}
                           </span>
                           <span>글{cs.hasText ? '✅' : '❌'}</span>
-                          <span>·</span>
-                          <span>이미지{cs.hasImage ? '✅' : '❌'}</span>
+                          {cs.channel !== 'video_script' && (
+                            <>
+                              <span>·</span>
+                              <span>이미지{cs.hasImage ? '✅' : '❌'}</span>
+                            </>
+                          )}
                           {!cs.hasText && cs.content === undefined && (
                             <a
                               href={`/create/channel-write?project_id=${proj.id}`}
