@@ -83,6 +83,8 @@ export default function ContentDetailPage() {
     }, { errorMessage: '콘텐츠를 불러올 수 없습니다.' })
   }, [token, id, run])
 
+  const [savedAndNeedRegenImage, setSavedAndNeedRegenImage] = useState(false)
+
   const handleSave = async () => {
     if (!token || !content) return
     setSaving(true)
@@ -96,6 +98,7 @@ export default function ContentDetailPage() {
       if (json.success) {
         setContent(json.data)
         setEditing(false)
+        if (imagePrompts.length > 0) setSavedAndNeedRegenImage(true)
       }
     }, {
       successMessage: '저장되었습니다.',
@@ -294,7 +297,17 @@ export default function ContentDetailPage() {
             {/* 이미지 프롬프트 */}
             {imagePrompts.length > 0 && (
               <Card>
-                <h3 className="text-sm font-medium text-text-secondary mb-3">이미지 프롬프트 ({imagePrompts.length}장)</h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-medium text-text-secondary">이미지 프롬프트 ({imagePrompts.length}장)</h3>
+                  {savedAndNeedRegenImage && content.project_id && (
+                    <a
+                      href={`/create/channel-write?project_id=${content.project_id}`}
+                      className="text-xs text-accent-primary hover:underline"
+                    >
+                      ⚠️ 글이 수정됨 → 재생성
+                    </a>
+                  )}
+                </div>
                 <div className="space-y-2">
                   {imagePrompts.map((img, i) => (
                     <div key={i} className="p-2 rounded-lg bg-surface-secondary space-y-1">

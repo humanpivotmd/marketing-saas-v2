@@ -349,6 +349,20 @@ export default function ContentsPage() {
                         </div>
                       </a>
                     ))}
+                    {/* 영상 스크립트 행 */}
+                    {proj.has_video && (
+                      <a href={`/create/video-script?project_id=${proj.id}`}>
+                        <div className="flex items-center justify-between p-3 rounded-lg bg-surface-secondary hover:bg-[rgba(240,246,252,0.06)] transition-colors cursor-pointer">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium shrink-0 ${CHANNEL_COLOR_MAP['video_script'] || ''}`}>
+                              {CHANNEL_LABEL_MAP['video_script'] || '영상'}
+                            </span>
+                            <span className="text-sm text-text-primary">영상 스크립트</span>
+                          </div>
+                          <Badge variant="success" size="sm">생성됨</Badge>
+                        </div>
+                      </a>
+                    )}
                   </div>
                 )}
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
@@ -56,6 +56,33 @@ export default function VideoScriptPage() {
   const [imgGenerating, setImgGenerating] = useState(false)
   const [imgResult, setImgResult] = useState<{ images: { seq: number; description_ko: string; prompt_en: string; placement?: string }[]; thumbnail?: { description_ko: string; prompt_en: string } } | null>(null)
   const { loading: generating, toast, clearToast, run } = useAsyncAction()
+
+  // 페이지 진입 시 기존 영상 스크립트 복원
+  useEffect(() => {
+    if (!projectId) return
+    fetch(`/api/projects/${projectId}`, { headers: authHeaders() })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && data.data.video_script) {
+          const vs = data.data.video_script
+          if (vs.format) setFormat(vs.format)
+          if (vs.target_channel) setTargetChannel(vs.target_channel)
+          if (vs.scene_count) setSceneCount(vs.scene_count)
+          if (vs.scene_duration) setSceneDuration(vs.scene_duration)
+          if (vs.storyboard && vs.storyboard.length > 0) {
+            setResult({
+              title: vs.title || '영상 스크립트',
+              total_duration: (vs.scene_count || 4) * (vs.scene_duration || 5),
+              scenes: vs.storyboard,
+              hook: vs.hook || undefined,
+              bgm_suggestion: vs.bgm_suggestion || undefined,
+            })
+            if (vs.full_script) setVideoScript(vs.full_script)
+          }
+        }
+      })
+      .catch(() => {})
+  }, [projectId])
 
   const handleGenerate = async () => {
     await run(async () => {

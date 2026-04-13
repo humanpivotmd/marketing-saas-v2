@@ -29,20 +29,38 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       .eq('project_id', id)
       .order('created_at', { ascending: true })
 
-    // 이미지 스크립트(프롬프트)도 함께 조회
+    // 이미지 스크립트도 함께 조회
     const { data: imageScripts } = await supabase
       .from('image_scripts')
       .select('channel, prompts, thumbnail_prompt')
       .eq('project_id', id)
       .eq('user_id', authUser.userId)
 
-    return Response.json({ success: true, data: { ...data, contents: contents || [], image_scripts: imageScripts || [] } })
+    // 영상 스크립트도 함께 조회 (최신 1개)
+    const { data: videoScript } = await supabase
+      .from('video_scripts')
+      .select('id, title, storyboard, full_script, format, target_channel, scene_count, scene_duration')
+      .eq('project_id', id)
+      .eq('user_id', authUser.userId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    return Response.json({
+      success: true,
+      data: {
+        ...data,
+        contents: contents || [],
+        image_scripts: imageScripts || [],
+        video_script: videoScript || null,
+      },
+    })
   } catch (err) {
     return handleApiError(err)
   }
 }
 
-// PATCH: 프로젝트 업데이트 (단계 진행, 데이터 저장)
+// PATCH: 프로젝트 업데이트
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const authUser = await requireAuth(req)
@@ -51,8 +69,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const body = await req.json()
 
     const updateData: Record<string, unknown> = {}
-
-    // 허용 필드만 업데이트
     const allowed = [
       'current_step', 'step_status', 'topic_type', 'selected_title',
       'title_candidates', 'custom_prompt', 'prompt_mode', 'draft_content',
