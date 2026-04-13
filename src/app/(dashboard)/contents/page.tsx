@@ -33,19 +33,20 @@ interface ProjectItem {
   updated_at: string
   scheduled_date?: string | null
   contents?: ProjectContent[]
-  // image_scripts / video_scripts 존재 여부
+  image_channels?: string[]
   keywords?: { keyword: string; grade: string }
 }
 
 type SortKey = 'updated_at' | 'keyword_text'
 
-const CHANNEL_LIST = ['blog', 'instagram', 'threads'] as const
+const CHANNEL_LIST = ['blog', 'instagram', 'threads', 'facebook', 'video_script'] as const
 
-function getChannelStatus(contents: ProjectContent[]) {
+function getChannelStatus(contents: ProjectContent[], imageChannels: string[] = []) {
   return CHANNEL_LIST.map((ch) => {
     const content = contents.find((c) => c.channel === ch)
     const hasText = !!content
-    return { channel: ch, hasText, content }
+    const hasImage = imageChannels.includes(ch)
+    return { channel: ch, hasText, hasImage, content }
   })
 }
 
@@ -202,7 +203,7 @@ export default function ContentsPage() {
           {filtered.map((proj) => {
             const isExpanded = expandedId === proj.id
             const contents = proj.contents || []
-            const channelStatuses = getChannelStatus(contents)
+            const channelStatuses = getChannelStatus(contents, proj.image_channels || [])
             const scheduledDate = getScheduledDate(contents)
             const keywordName = proj.keywords?.keyword || proj.keyword_text || '키워드 없음'
 
@@ -232,6 +233,8 @@ export default function ContentsPage() {
                             {CHANNEL_LABEL_MAP[cs.channel] || cs.channel}
                           </span>
                           <span>글{cs.hasText ? '✅' : '❌'}</span>
+                          <span>·</span>
+                          <span>이미지{cs.hasImage ? '✅' : '❌'}</span>
                           {!cs.hasText && cs.content === undefined && (
                             <a
                               href={`/create/channel-write?project_id=${proj.id}`}

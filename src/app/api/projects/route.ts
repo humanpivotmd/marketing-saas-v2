@@ -40,6 +40,13 @@ export async function GET(req: NextRequest) {
         .in('project_id', projectIds)
         .order('created_at', { ascending: true })
 
+      // 이미지 스크립트 존재 여부 조회
+      const { data: imageScripts } = await supabase
+        .from('image_scripts')
+        .select('channel, project_id')
+        .in('project_id', projectIds)
+        .eq('user_id', authUser.userId)
+
       const contentsByProject: Record<string, typeof contents> = {}
       for (const c of contents || []) {
         const pid = c.project_id as string
@@ -47,9 +54,17 @@ export async function GET(req: NextRequest) {
         contentsByProject[pid].push(c)
       }
 
+      const imageByProject: Record<string, string[]> = {}
+      for (const s of imageScripts || []) {
+        const pid = s.project_id as string
+        if (!imageByProject[pid]) imageByProject[pid] = []
+        if (!imageByProject[pid].includes(s.channel)) imageByProject[pid].push(s.channel)
+      }
+
       const enriched = data.map((p: { id: string }) => ({
         ...p,
         contents: contentsByProject[p.id] || [],
+        image_channels: imageByProject[p.id] || [],
       }))
       return Response.json({ success: true, data: enriched, total: count })
     }
