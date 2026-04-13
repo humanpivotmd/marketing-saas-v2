@@ -66,36 +66,68 @@ export async function POST(req: NextRequest) {
         const contentIds: Record<string, string> = {}
 
         try {
+          // 이미 생성된 채널 확인 (부분 실패 재시도 대비)
+          const { data: existingContents } = await supabase
+            .from('contents')
+            .select('channel, id')
+            .eq('project_id', project_id)
+            .eq('user_id', authUser.userId)
+          const existingChannels = new Set(existingContents?.map((c: { channel: string }) => c.channel) || [])
+          for (const c of existingContents || []) {
+            contentIds[(c as { channel: string; id: string }).channel] = (c as { channel: string; id: string }).id
+          }
+
           for (const channel of orderedChannels) {
+            // 이미 생성된 채널 건너뜀
+            if (existingChannels.has(channel)) {
+              controller.enqueue(encoder.encode(
+                `data: ${JSON.stringify({ type: 'channel_done', channel, skipped: true })}\n\n`
+              ))
+              continue
+            }
             controller.enqueue(encoder.encode(
               `data: ${JSON.stringify({ type: 'progress', channel, message: `${channel} 생성 중...` })}\n\n`
             ))
 
             const prompt = buildChannelPrompt(ctx, channel)
 
-            const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': apiKey!,
-                'anthropic-version': '2023-06-01',
-              },
-              body: JSON.stringify({
+            const claudeBody = JSON.stringify({
                 model: 'claude-sonnet-4-20250514',
                 max_tokens: channel === 'blog' ? 4096 : 2048,
                 messages: [{ role: 'user', content: prompt }],
-              }),
-            })
+              })
 
-            if (!claudeRes.ok) {
-              const errorBody = await claudeRes.text()
+            let claudeRes: Response | null = null
+            for (let attempt = 1; attempt <= 3; attempt++) {
+              claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'x-api-key': apiKey!,
+                  'anthropic-version': '2023-06-01',
+                },
+                body: claudeBody,
+              })
+              if (claudeRes.ok) break
+              if (claudeRes.status === 529 && attempt < 3) {
+                controller.enqueue(encoder.encode(
+                  `data: ${JSON.stringify({ type: 'progress', channel, message: `${channel} 재시도 중... (${attempt}/3)` })}\n\n`
+                ))
+                await new Promise(r => setTimeout(r, 2000 * attempt))
+              } else {
+                break
+              }
+            }
+
+            if (!claudeRes || !claudeRes.ok) {
+              const errorBody = claudeRes ? await claudeRes.text() : 'no response'
               console.error(`[pipeline] Claude API error for ${channel}:`, {
-                status: claudeRes.status,
+                status: claudeRes?.status,
                 body: errorBody,
                 apiKeyPrefix: apiKey!.slice(0, 10) + '...',
               })
               controller.enqueue(encoder.encode(
-                `data: ${JSON.stringify({ type: 'error', channel, message: `${channel} 생성 실패 (${claudeRes.status}): ${errorBody.slice(0, 200)}` })}\n\n`
+                `data: ${JSON.stringify({ type: 'error', channel, message: `${channel} 생성 실패 (${claudeRes?.status ?? 'unknown'}): ${errorBody.slice(0, 200)}` })}\n\n`
               ))
               continue
             }

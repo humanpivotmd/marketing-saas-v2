@@ -236,7 +236,7 @@ export default function ContentsPage() {
                           <span>글{cs.hasText ? '✅' : '❌'}</span>
                           <span>·</span>
                           <span>이미지{cs.hasImage ? '✅' : '❌'}</span>
-                          {!cs.hasText && (
+                          {!cs.hasText && proj.current_step >= 5 && (
                             <a
                               href={`/create/channel-write?project_id=${proj.id}`}
                               className="text-accent-primary hover:underline ml-1"
