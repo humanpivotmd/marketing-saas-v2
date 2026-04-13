@@ -165,7 +165,12 @@ export default function VideoScriptPage() {
   return (
     <FlowGuard projectId={projectId} requiredStep={7}>
     <div className="space-y-6">
-      <h1 className="text-xl font-bold text-text-primary">영상 스크립트</h1>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <a href="/contents" className="text-sm text-text-tertiary hover:text-text-secondary">← 콘텐츠 목록</a>
+          <h1 className="text-xl font-bold text-text-primary">영상 스크립트</h1>
+        </div>
+      </div>
 
       <Card>
         <div className="space-y-4">
