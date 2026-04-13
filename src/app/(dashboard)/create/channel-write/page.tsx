@@ -168,7 +168,7 @@ export default function ChannelWritePage() {
 
   const handleConfirmChannel = async (contentId: string) => {
     await run(async () => {
-      await fetch(`/api/contents/${contentId}`, {
+      const res = await fetch(`/api/contents/${contentId}`, {
         method: 'PUT',
         headers: authHeaders(),
         body: JSON.stringify({
@@ -176,6 +176,10 @@ export default function ChannelWritePage() {
           confirmed_at: new Date().toISOString(),
         }),
       })
+      const result = await res.json()
+      if (!res.ok || !result.success) {
+        throw new Error(result.error || `컨펌 실패 (HTTP ${res.status})`)
+      }
       await loadProject()
     }, { successMessage: '컨펌 완료', errorMessage: '컨펌 실패' })
   }
