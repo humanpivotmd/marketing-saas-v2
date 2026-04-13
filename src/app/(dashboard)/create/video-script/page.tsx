@@ -71,8 +71,8 @@ export default function VideoScriptPage() {
           if (vs.scene_duration) setSceneDuration(vs.scene_duration)
           if (vs.storyboard && vs.storyboard.length > 0) {
             setResult({
-              title: vs.title || '영상 스크립트',
-              total_duration: (vs.scene_count || 4) * (vs.scene_duration || 5),
+              title: '영상 스크립트',
+              total_duration: vs.total_duration || (vs.scene_count || 4) * (vs.scene_duration || 5),
               scenes: vs.storyboard,
               hook: vs.hook || undefined,
               bgm_suggestion: vs.bgm_suggestion || undefined,

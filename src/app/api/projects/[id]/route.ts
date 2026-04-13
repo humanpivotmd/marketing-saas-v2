@@ -39,7 +39,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     // 영상 스크립트도 함께 조회 (최신 1개)
     const { data: videoScript } = await supabase
       .from('video_scripts')
-      .select('id, title, storyboard, full_script, format, target_channel, scene_count, scene_duration')
+      .select('id, storyboard, full_script, format, target_channel, scene_count, scene_duration, total_duration')
       .eq('project_id', id)
       .eq('user_id', authUser.userId)
       .order('created_at', { ascending: false })
