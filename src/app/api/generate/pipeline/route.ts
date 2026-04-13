@@ -97,8 +97,9 @@ export async function POST(req: NextRequest) {
                 messages: [{ role: 'user', content: prompt }],
               })
 
+            const RETRY_DELAYS = [1000, 3000, 5000, 8000, 12000]
             let claudeRes: Response | null = null
-            for (let attempt = 1; attempt <= 3; attempt++) {
+            for (let attempt = 1; attempt <= 5; attempt++) {
               claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
                 method: 'POST',
                 headers: {
@@ -109,11 +110,12 @@ export async function POST(req: NextRequest) {
                 body: claudeBody,
               })
               if (claudeRes.ok) break
-              if (claudeRes.status === 529 && attempt < 3) {
+              const retryable = [500, 502, 503, 529].includes(claudeRes.status)
+              if (retryable && attempt < 5) {
                 controller.enqueue(encoder.encode(
-                  `data: ${JSON.stringify({ type: 'progress', channel, message: `${channel} 재시도 중... (${attempt}/3)` })}\n\n`
+                  `data: ${JSON.stringify({ type: 'progress', channel, message: `${channel} 재시도 중... (${attempt}/5)` })}\n\n`
                 ))
-                await new Promise(r => setTimeout(r, 2000 * attempt))
+                await new Promise(r => setTimeout(r, RETRY_DELAYS[attempt - 1]))
               } else {
                 break
               }

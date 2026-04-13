@@ -37,7 +37,7 @@ export default function FlowGuard({ projectId, requiredStep, children }: FlowGua
           requiredStep <= 1 ||
           project.step_status?.[prevStepKey] === 'completed'
 
-        if (project.current_step < requiredStep - 1 || !prevStepDone) {
+        if (!prevStepDone) {
           setStatus('step_not_ready')
         } else {
           setStatus('ok')
