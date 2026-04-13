@@ -29,6 +29,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<UserData | null>(null)
   const [usage, setUsage] = useState<UsageData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [recentProjects, setRecentProjects] = useState<{ id: string; keyword_text: string; updated_at: string; contents?: { channel: string; confirmed_at: string | null }[] }[]>([])
   const { isSetup } = useBusinessProfile()
   const needsSetup = !isSetup
 
@@ -54,6 +55,11 @@ export default function DashboardPage() {
       })
       .catch(() => {})
       .finally(() => setLoading(false))
+
+    fetch('/api/projects?limit=5&include=contents', { headers: authHeaders() })
+      .then(r => r.json())
+      .then(data => { if (data.success) setRecentProjects(data.data || []) })
+      .catch(() => {})
   }, [])
 
   const usageCards = useMemo(() => usage
@@ -173,7 +179,7 @@ export default function DashboardPage() {
                   </div>
                 ))}
               </div>
-            ) : (
+            ) : recentProjects.length === 0 ? (
               <EmptyState
                 icon={
                   <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
@@ -189,6 +195,28 @@ export default function DashboardPage() {
                   </a>
                 }
               />
+            ) : (
+              <div className="px-4 pb-3 space-y-2">
+                {recentProjects.map(proj => {
+                  const confirmedCount = (proj.contents || []).filter(c => c.confirmed_at).length
+                  const totalCount = (proj.contents || []).length
+                  return (
+                    <a key={proj.id} href={`/contents`}>
+                      <div className="flex items-center justify-between p-3 rounded-lg hover:bg-surface-secondary transition-colors cursor-pointer">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-text-primary truncate">{proj.keyword_text || '키워드 없음'}</p>
+                          <p className="text-xs text-text-tertiary mt-0.5">
+                            {new Date(proj.updated_at).toLocaleDateString('ko-KR')} · 확정 {confirmedCount}/{totalCount}
+                          </p>
+                        </div>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="text-text-tertiary shrink-0 ml-2">
+                          <path d="M6 4l4 4-4 4" />
+                        </svg>
+                      </div>
+                    </a>
+                  )
+                })}
+              </div>
             )}
           </Card>
         </div>
