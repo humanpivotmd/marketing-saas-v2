@@ -81,6 +81,29 @@ export default function ChannelWritePage() {
     if (data.success) {
       setProjectData(data.data)
       const existingContents = data.data.contents || []
+
+      // DB에서 이미 생성된 이미지 프롬프트 복원
+      const imageScripts = data.data.image_scripts || []
+      if (imageScripts.length > 0) {
+        const completedMap: Record<string, boolean> = {}
+        const resultsMap: Record<string, ImagePromptResult> = {}
+        for (const s of imageScripts) {
+          completedMap[s.channel] = true
+          let thumbnail = undefined
+          if (s.thumbnail_prompt) {
+            try { thumbnail = typeof s.thumbnail_prompt === 'string' ? JSON.parse(s.thumbnail_prompt) : s.thumbnail_prompt }
+            catch { /* ignore */ }
+          }
+          resultsMap[s.channel] = {
+            channel: s.channel,
+            images: Array.isArray(s.prompts) ? s.prompts : [],
+            thumbnail,
+          }
+        }
+        setImageCompleted(completedMap)
+        setImageResults(resultsMap)
+      }
+
       if (existingContents.length > 0) {
         setContents(existingContents)
         if (!activeChannel) setActiveChannel(existingContents[0].channel)

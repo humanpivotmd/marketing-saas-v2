@@ -29,7 +29,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       .eq('project_id', id)
       .order('created_at', { ascending: true })
 
-    return Response.json({ success: true, data: { ...data, contents: contents || [] } })
+    // 이미지 스크립트(프롬프트)도 함께 조회
+    const { data: imageScripts } = await supabase
+      .from('image_scripts')
+      .select('channel, prompts, thumbnail_prompt')
+      .eq('project_id', id)
+      .eq('user_id', authUser.userId)
+
+    return Response.json({ success: true, data: { ...data, contents: contents || [], image_scripts: imageScripts || [] } })
   } catch (err) {
     return handleApiError(err)
   }
