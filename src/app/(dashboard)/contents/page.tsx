@@ -36,6 +36,10 @@ interface ProjectItem {
   image_channels?: string[]
   has_video?: boolean
   keywords?: { keyword: string; grade: string }
+  settings_snapshot?: {
+    selected_channels?: string[]
+    [key: string]: any
+  }
 }
 
 type SortKey = 'updated_at' | 'keyword_text'
@@ -120,6 +124,8 @@ export default function ContentsPage() {
   const filtered = useMemo(() =>
     projects
       .filter((p) => {
+        // contents가 없는 프로젝트 제외
+        if (!p.contents || p.contents.length === 0) return false
         if (!search) return true
         const kw = (p.keywords?.keyword || p.keyword_text || '').toLowerCase()
         return kw.includes(search.toLowerCase())
@@ -228,48 +234,58 @@ export default function ContentsPage() {
 
                     {/* 채널별 상태 */}
                     <div className="flex flex-wrap gap-2 mt-2">
-                      {channelStatuses.map((cs) => (
-                        <div key={cs.channel} className="flex items-center gap-1 text-xs">
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${CHANNEL_COLOR_MAP[cs.channel] || ''}`}>
-                            {CHANNEL_LABEL_MAP[cs.channel] || cs.channel}
-                          </span>
-                          <span>글{cs.hasText ? '✅' : '❌'}</span>
-                          <span>·</span>
-                          <span>이미지{cs.hasImage ? '✅' : '❌'}</span>
-                          {!cs.hasText && proj.current_step >= 5 && (
-                            <a
-                              href={`/create/channel-write?project_id=${proj.id}`}
-                              className="text-accent-primary hover:underline ml-1"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              [만들기]
-                            </a>
-                          )}
-                        </div>
-                      ))}
+                      {channelStatuses.map((cs) => {
+                        const selectedChannels = proj.settings_snapshot?.selected_channels || []
+                        const isSelected = selectedChannels.includes(cs.channel)
+                        const isDisabled = !isSelected || (!cs.hasText && proj.current_step < 5)
+                        const linkHref = cs.hasText
+                          ? `/contents/${cs.content?.id}`
+                          : (proj.current_step >= 5 ? `/create/channel-write?project_id=${proj.id}` : null)
+
+                        return (
+                          <div key={cs.channel} className="flex items-center gap-1 text-xs">
+                            {linkHref ? (
+                              <a
+                                href={linkHref}
+                                className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors ${
+                                  isDisabled
+                                    ? 'bg-gray-500 text-gray-300 cursor-not-allowed'
+                                    : `${CHANNEL_COLOR_MAP[cs.channel] || ''} hover:opacity-80`
+                                }`}
+                                onClick={(e) => {
+                                  if (isDisabled) e.preventDefault()
+                                  else e.stopPropagation()
+                                }}
+                              >
+                                {CHANNEL_LABEL_MAP[cs.channel] || cs.channel}
+                              </a>
+                            ) : (
+                              <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-500 text-gray-300 cursor-not-allowed`}>
+                                {CHANNEL_LABEL_MAP[cs.channel] || cs.channel}
+                              </span>
+                            )}
+                            <span>글{cs.hasText ? '✅' : '❌'}</span>
+                            <span>·</span>
+                            <span>이미지{cs.hasImage ? '✅' : '❌'}</span>
+                          </div>
+                        )
+                      })}
                       {/* 영상 스크립트 별도 표시 */}
                       <div className="flex items-center gap-1 text-xs">
-                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${CHANNEL_COLOR_MAP['video_script'] || ''}`}>
-                          {CHANNEL_LABEL_MAP['video_script'] || '영상'}
-                        </span>
+                        {proj.has_video || (contents.length > 0 && contents.every(c => c.confirmed_at)) ? (
+                          <a
+                            href={`/create/video-script?project_id=${proj.id}`}
+                            className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors ${CHANNEL_COLOR_MAP['video_script'] || ''} hover:opacity-80`}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {CHANNEL_LABEL_MAP['video_script'] || '영상'}
+                          </a>
+                        ) : (
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-500 text-gray-300 cursor-not-allowed`}>
+                            {CHANNEL_LABEL_MAP['video_script'] || '영상'}
+                          </span>
+                        )}
                         <span>영상{proj.has_video ? '✅' : '❌'}</span>
-                        {proj.has_video ? (
-                          <a
-                            href={`/create/video-script?project_id=${proj.id}`}
-                            className="text-accent-primary hover:underline ml-1"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            [보기]
-                          </a>
-                        ) : contents.length > 0 && contents.every(c => c.confirmed_at) ? (
-                          <a
-                            href={`/create/video-script?project_id=${proj.id}`}
-                            className="text-accent-primary hover:underline ml-1"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            [만들기]
-                          </a>
-                        ) : null}
                       </div>
                     </div>
 
