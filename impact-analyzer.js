@@ -2,9 +2,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
-const axios = require('axios');
-require('dotenv').config({ path: path.join(__dirname, '.env.local') });
 
 /**
  * 자동 영향 분석 도구
@@ -171,9 +168,6 @@ class ImpactAnalyzer {
     const risk = this.assessRisk(results);
 
     this.printReport(results, risk);
-
-    // Slack 공유 (환경 변수가 설정된 경우)
-    await this.shareToSlack(targetFile, results, risk);
 
     return { results, risk };
   }
@@ -345,69 +339,6 @@ class ImpactAnalyzer {
     risk.risks.forEach(risk => console.log(`  - ${risk}`));
 
     console.log('\n' + '='.repeat(50));
-  }
-
-  /**
-   * Slack으로 영향 분석 리포트 공유
-   */
-  async shareToSlack(targetFile, results, risk) {
-    const webhookUrl = process.env.SLACK_WEBHOOK_URL;
-    if (!webhookUrl || webhookUrl.trim() === '') {
-      console.log('ℹ️ Slack 웹훅 URL이 설정되지 않아 공유를 건너뜁니다.');
-      return;
-    }
-
-    const report = {
-      text: `🚀 영향 분석 완료: \`${targetFile}\``,
-      blocks: [
-        {
-          type: 'header',
-          text: {
-            type: 'plain_text',
-            text: `🔍 영향 분석 리포트: ${targetFile}`
-          }
-        },
-        {
-          type: 'section',
-          fields: [
-            {
-              type: 'mrkdwn',
-              text: `*파일 의존성*\nImports: ${results.file.imports.length}개\nUsages: ${results.file.usages.length}개`
-            },
-            {
-              type: 'mrkdwn',
-              text: `*UI 영향*\nComponents: ${results.ui.components.length}개\nRoutes: ${results.ui.routes.length}개`
-            },
-            {
-              type: 'mrkdwn',
-              text: `*프로세스 영향*\nWorkflows: ${results.process.workflows.length}개\nAPI Calls: ${results.process.apiCalls.length}개`
-            },
-            {
-              type: 'mrkdwn',
-              text: `*리스크 레벨*\n${risk.level} (점수: ${risk.score})`
-            }
-          ]
-        }
-      ]
-    };
-
-    // 리스크 세부사항 추가
-    if (risk.risks.length > 0) {
-      report.blocks.push({
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: `*⚠️ 주요 리스크:*\n${risk.risks.map(r => `• ${r}`).join('\n')}`
-        }
-      });
-    }
-
-    try {
-      await axios.post(webhookUrl, report);
-      console.log('✅ Slack으로 리포트 공유 완료');
-    } catch (error) {
-      console.error('❌ Slack 공유 실패:', error.message);
-    }
   }
 }
 
