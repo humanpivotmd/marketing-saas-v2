@@ -1,5 +1,8 @@
 # CLAUDE.md — 작업 지침
 
+## ⚠️ 모든 작업 시작 전 필수 규칙
+**CLAUDE.md 읽기 + impact-analyzer.js 실행**
+
 ---
 
 ## 🗺️ 수정 전 필독 문서 (매번 확인)
