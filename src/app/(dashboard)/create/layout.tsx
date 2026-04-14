@@ -15,41 +15,45 @@ export default function CreateLayout({ children }: { children: ReactNode }) {
 
   const currentIdx = STEPS.findIndex(s => pathname.startsWith(s.path))
 
+  const showSteps = currentIdx !== -1
+
   return (
     <div className="p-4 lg:p-8 max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide pb-2">
-        {STEPS.map((step, i) => {
-          const isCompleted = i < currentIdx
-          const isCurrent = i === currentIdx
-          return (
-            <div key={step.label} className="flex items-center">
-              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border transition-colors ${
-                isCurrent
-                  ? 'bg-accent-primary/10 text-accent-primary border-accent-primary'
-                  : isCompleted
-                    ? 'bg-green-500/10 text-green-400 border-green-500/30'
-                    : 'bg-surface-secondary text-text-tertiary border-border-primary'
-              }`}>
-                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+      {showSteps && (
+        <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide pb-2">
+          {STEPS.map((step, i) => {
+            const isCompleted = i < currentIdx
+            const isCurrent = i === currentIdx
+            return (
+              <div key={step.label} className="flex items-center">
+                <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border transition-colors ${
                   isCurrent
-                    ? 'bg-accent-primary text-white'
+                    ? 'bg-accent-primary/10 text-accent-primary border-accent-primary'
                     : isCompleted
-                      ? 'bg-green-500/20 text-green-400'
-                      : 'bg-border-primary text-text-tertiary'
+                      ? 'bg-green-500/10 text-green-400 border-green-500/30'
+                      : 'bg-surface-secondary text-text-tertiary border-border-primary'
                 }`}>
-                  {isCompleted ? '✓' : i + 1}
-                </span>
-                {step.label}
+                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                    isCurrent
+                      ? 'bg-accent-primary text-white'
+                      : isCompleted
+                        ? 'bg-green-500/20 text-green-400'
+                        : 'bg-border-primary text-text-tertiary'
+                  }`}>
+                    {isCompleted ? '✓' : i + 1}
+                  </span>
+                  {step.label}
+                </div>
+                {i < STEPS.length - 1 && (
+                  <div className={`w-4 h-px mx-0.5 shrink-0 ${
+                    isCompleted ? 'bg-green-500/30' : 'bg-border-primary'
+                  }`} />
+                )}
               </div>
-              {i < STEPS.length - 1 && (
-                <div className={`w-4 h-px mx-0.5 shrink-0 ${
-                  isCompleted ? 'bg-green-500/30' : 'bg-border-primary'
-                }`} />
-              )}
-            </div>
-          )
-        })}
-      </div>
+            )
+          })}
+        </div>
+      )}
 
       {children}
     </div>
