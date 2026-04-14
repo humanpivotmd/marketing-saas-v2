@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 const axios = require('axios');
+require('dotenv').config({ path: path.join(__dirname, '.env.local') });
 
 /**
  * 자동 영향 분석 도구
@@ -200,12 +201,37 @@ class ImpactAnalyzer {
 
   findUsages(file) {
     const fileName = path.basename(file, path.extname(file));
-    try {
-      const output = execSync(`grep -r "${fileName}" ${this.srcDir} --include="*.ts" --include="*.tsx" -l`, { encoding: 'utf8' });
-      return output.trim().split('\n').filter(f => f && f !== path.join(this.srcDir, file));
-    } catch {
-      return [];
-    }
+    const usages = [];
+    
+    // 재귀적으로 src 디렉토리 탐색
+    const searchDirectory = (dir) => {
+      try {
+        const items = fs.readdirSync(dir);
+        
+        for (const item of items) {
+          const fullPath = path.join(dir, item);
+          const stat = fs.statSync(fullPath);
+          
+          if (stat.isDirectory() && !item.startsWith('.') && item !== 'node_modules') {
+            searchDirectory(fullPath);
+          } else if (stat.isFile() && ['.ts', '.tsx', '.js', '.jsx'].includes(path.extname(fullPath))) {
+            try {
+              const content = fs.readFileSync(fullPath, 'utf8');
+              if (content.includes(fileName) && fullPath !== path.join(this.srcDir, file)) {
+                usages.push(path.relative(this.projectRoot, fullPath));
+              }
+            } catch (error) {
+              // 파일 읽기 실패 시 무시
+            }
+          }
+        }
+      } catch (error) {
+        // 디렉토리 접근 실패 시 무시
+      }
+    };
+    
+    searchDirectory(this.srcDir);
+    return usages;
   }
 
   findUIComponents(file) {
@@ -326,8 +352,8 @@ class ImpactAnalyzer {
    */
   async shareToSlack(targetFile, results, risk) {
     const webhookUrl = process.env.SLACK_WEBHOOK_URL;
-    if (!webhookUrl) {
-      console.log('ℹ️ Slack 웹훅 URL이 설정되지 않아 공유를 건너뜁니다. (SLACK_WEBHOOK_URL 환경 변수 설정)');
+    if (!webhookUrl || webhookUrl.trim() === '') {
+      console.log('ℹ️ Slack 웹훅 URL이 설정되지 않아 공유를 건너뜁니다.');
       return;
     }
 
