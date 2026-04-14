@@ -9,7 +9,7 @@ import Skeleton from '@/components/ui/Skeleton'
 import EmptyState from '@/components/ui/EmptyState'
 import Toast from '@/components/ui/Toast'
 import { useAsyncAction } from '@/hooks/useAsyncAction'
-import { CHANNEL_LABEL_MAP, CHANNEL_COLOR_MAP } from '@/lib/constants'
+import { CHANNEL_LABEL_MAP, CHANNEL_COLOR_MAP, CONTENT_CHANNELS } from '@/lib/constants'
 import { getToken, authHeaders } from '@/lib/auth-client'
 
 interface ProjectContent {
@@ -70,7 +70,24 @@ export default function ContentsPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [editingMemo, setEditingMemo] = useState<string | null>(null)
   const [memoDate, setMemoDate] = useState('')
+  const [selectedChannels, setSelectedChannels] = useState<string[]>([])
+  const [filterHydrated, setFilterHydrated] = useState(false)
   const { loading, toast, clearToast, run } = useAsyncAction(true)
+
+  useEffect(() => {
+    try {
+      const s = sessionStorage.getItem('contents_channel_filter')
+      if (s) setSelectedChannels(JSON.parse(s))
+    } catch { /* ignore */ }
+    setFilterHydrated(true)
+  }, [])
+
+  useEffect(() => {
+    if (!filterHydrated) return
+    try {
+      sessionStorage.setItem('contents_channel_filter', JSON.stringify(selectedChannels))
+    } catch { /* ignore */ }
+  }, [selectedChannels, filterHydrated])
 
   const fetchProjects = async () => {
     // 캐시된 데이터 즉시 표시
@@ -126,15 +143,24 @@ export default function ContentsPage() {
       .filter((p) => {
         // contents가 없는 프로젝트 제외
         if (!p.contents || p.contents.length === 0) return false
-        if (!search) return true
-        const kw = (p.keywords?.keyword || p.keyword_text || '').toLowerCase()
-        return kw.includes(search.toLowerCase())
+        if (search) {
+          const kw = (p.keywords?.keyword || p.keyword_text || '').toLowerCase()
+          if (!kw.includes(search.toLowerCase())) return false
+        }
+        if (selectedChannels.length > 0) {
+          const hasMatch = selectedChannels.some((ch) => {
+            if (ch === 'video_script') return !!p.has_video
+            return p.contents!.some((c) => c.channel === ch)
+          })
+          if (!hasMatch) return false
+        }
+        return true
       })
       .sort((a, b) => {
         if (sort === 'keyword_text') return (a.keyword_text || '').localeCompare(b.keyword_text || '')
         return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
       }),
-    [projects, search, sort]
+    [projects, search, sort, selectedChannels]
   )
 
   return (
@@ -174,6 +200,44 @@ export default function ContentsPage() {
           <option value="updated_at">최신순</option>
           <option value="keyword_text">키워드순</option>
         </select>
+      </div>
+
+      {/* 채널 필터 칩 */}
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          aria-pressed={selectedChannels.length === 0}
+          onClick={() => setSelectedChannels([])}
+          className={`min-h-[44px] px-3 rounded-lg text-sm font-medium border transition-colors ${
+            selectedChannels.length === 0
+              ? 'bg-accent-primary text-white border-accent-primary'
+              : 'bg-bg-tertiary text-text-secondary border-[rgba(240,246,252,0.1)] hover:text-text-primary'
+          }`}
+        >
+          전체
+        </button>
+        {CONTENT_CHANNELS.map((ch) => {
+          const active = selectedChannels.includes(ch.id)
+          return (
+            <button
+              key={ch.id}
+              type="button"
+              aria-pressed={active}
+              onClick={() =>
+                setSelectedChannels((prev) =>
+                  prev.includes(ch.id) ? prev.filter((v) => v !== ch.id) : [...prev, ch.id]
+                )
+              }
+              className={`min-h-[44px] px-3 rounded-lg text-sm font-medium border transition-colors ${
+                active
+                  ? 'bg-accent-primary text-white border-accent-primary'
+                  : 'bg-bg-tertiary text-text-secondary border-[rgba(240,246,252,0.1)] hover:text-text-primary'
+              }`}
+            >
+              {ch.label}
+            </button>
+          )
+        })}
       </div>
 
       {/* 프로젝트(키워드) 카드 리스트 */}
@@ -235,8 +299,8 @@ export default function ContentsPage() {
                     {/* 채널별 상태 */}
                     <div className="flex flex-wrap gap-2 mt-2">
                       {channelStatuses.map((cs) => {
-                        const selectedChannels = proj.settings_snapshot?.selected_channels || []
-                        const isSelected = selectedChannels.includes(cs.channel)
+                        const projChannels = proj.settings_snapshot?.selected_channels || []
+                        const isSelected = projChannels.includes(cs.channel)
                         const isDisabled = !isSelected || (!cs.hasText && proj.current_step < 5)
                         const linkHref = cs.hasText
                           ? `/contents/${cs.content?.id}`
