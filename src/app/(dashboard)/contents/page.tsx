@@ -272,19 +272,13 @@ export default function ContentsPage() {
                       })}
                       {/* 영상 스크립트 별도 표시 */}
                       <div className="flex items-center gap-1 text-xs">
-                        {proj.has_video || (contents.length > 0 && contents.every(c => c.confirmed_at)) ? (
-                          <a
-                            href={`/create/video-script?project_id=${proj.id}`}
-                            className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors ${CHANNEL_COLOR_MAP['video_script'] || ''} hover:opacity-80`}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {CHANNEL_LABEL_MAP['video_script'] || '영상'}
-                          </a>
-                        ) : (
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-500 text-gray-300 cursor-not-allowed`}>
-                            {CHANNEL_LABEL_MAP['video_script'] || '영상'}
-                          </span>
-                        )}
+                        <a
+                          href={`/create/video-script?project_id=${proj.id}`}
+                          className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors ${CHANNEL_COLOR_MAP['video_script'] || ''} hover:opacity-80`}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {CHANNEL_LABEL_MAP['video_script'] || '영상'}
+                        </a>
                         <span>영상{proj.has_video ? '✅' : '❌'}</span>
                       </div>
                     </div>
