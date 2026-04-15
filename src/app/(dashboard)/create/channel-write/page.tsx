@@ -105,8 +105,23 @@ export default function ChannelWritePage() {
       }
 
       if (existingContents.length > 0) {
-        setContents(existingContents)
-        if (!activeChannel) setActiveChannel(existingContents[0].channel)
+        // 채널별로 dedupe — DB에 같은 채널 row가 여러 개 있어도 가장 최근 1개만 사용
+        // (created_at 기준 최신순 정렬 후 채널별 첫 번째만 keep)
+        const sorted = [...existingContents].sort((a, b) => {
+          const ta = new Date(a.created_at || 0).getTime()
+          const tb = new Date(b.created_at || 0).getTime()
+          return tb - ta
+        })
+        const seen = new Set<string>()
+        const deduped: ChannelContent[] = []
+        for (const c of sorted) {
+          if (!seen.has(c.channel)) {
+            seen.add(c.channel)
+            deduped.push(c)
+          }
+        }
+        setContents(deduped)
+        if (!activeChannel) setActiveChannel(deduped[0].channel)
       } else {
         startGeneration()
       }
