@@ -66,7 +66,19 @@ export async function POST(req: NextRequest) {
         const contentIds: Record<string, string> = {}
 
         try {
-          // 이미 생성된 채널 확인 (부분 실패 재시도 대비)
+          // 중복 row cleanup: 컨펌 안 된 contents row를 모두 삭제.
+          // 컨펌된 것 (status='confirmed' 또는 confirmed_at IS NOT NULL)은 절대 보호.
+          // 과거 race condition 등으로 같은 채널 중복 row가 생긴 것을 영구 정리.
+          // pipeline은 idempotent해야 하므로 미컨펌 row는 항상 새로 만드는 게 안전.
+          await supabase
+            .from('contents')
+            .delete()
+            .eq('project_id', project_id)
+            .eq('user_id', authUser.userId)
+            .is('confirmed_at', null)
+            .neq('status', 'confirmed')
+
+          // 컨펌된 row만 남은 상태에서 채널 확인 (부분 컨펌 보존)
           const { data: existingContents } = await supabase
             .from('contents')
             .select('channel, id')
