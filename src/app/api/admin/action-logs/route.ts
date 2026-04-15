@@ -3,7 +3,7 @@ import { requireAuth, requireAdmin } from '@/lib/auth'
 import { handleApiError } from '@/lib/errors'
 import { createServerSupabase } from '@/lib/supabase/server'
 
-// GET: admin_logs 행동 로그 (관리자 액션 추적)
+// GET: 관리자 행동 감사 로그 (action_logs 전용 테이블 조회)
 export async function GET(req: NextRequest) {
   try {
     const authUser = await requireAuth(req)
@@ -13,17 +13,22 @@ export async function GET(req: NextRequest) {
     const url = new URL(req.url)
     const page = parseInt(url.searchParams.get('page') || '1')
     const limit = parseInt(url.searchParams.get('limit') || '50')
+    const actionFilter = url.searchParams.get('action') || ''
 
     const from = (page - 1) * limit
     const to = from + limit - 1
 
-    // admin_logs may not exist yet, fallback to usage_logs filtered by admin actions
-    const { data, count, error } = await supabase
-      .from('usage_logs')
+    let query = supabase
+      .from('action_logs')
       .select('*', { count: 'exact' })
-      .like('action_type', '%grant%')
       .order('created_at', { ascending: false })
       .range(from, to)
+
+    if (actionFilter) {
+      query = query.eq('action', actionFilter)
+    }
+
+    const { data, count, error } = await query
 
     if (error) throw error
 

@@ -79,15 +79,16 @@ export async function POST(
 
     if (updErr) throw updErr
 
-    // action_logs 테이블이 아직 없어 usage_logs에 기록 (action-logs route와 동일 패턴)
+    // 감사 로그 기록 (action_logs 전용 테이블 — 006 migration)
     try {
-      await supabase.from('usage_logs').insert({
-        user_id: id,
-        action_type: 'admin_password_reset',
-        metadata: { admin_id: authUser.id, target_email: target.email },
+      await supabase.from('action_logs').insert({
+        admin_id: authUser.id,
+        target_user_id: id,
+        action: 'password_reset',
+        metadata: { target_email: target.email },
       })
     } catch {
-      // 로그 실패는 비치명적
+      // 로그 실패는 비치명적 — 비밀번호 변경 자체는 이미 성공
     }
 
     return Response.json({
