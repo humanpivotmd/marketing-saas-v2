@@ -511,6 +511,103 @@ if (guard.shouldSkip) {
 
 ---
 
+### 패턴 8: 새 콘텐츠 생성 진입점 (만들기 버튼) 추가
+**트리거**: "콘텐츠 만들기 버튼 추가" / 어디서든 `/contents/new` 또는 `/create/...`로 가는 새 버튼·링크
+
+> **과거 실패 사례**: 버튼만 추가하고 신규 콘텐츠가 목록에 안 보이거나 채널 상태 ✅❌가 안 떠서 같은 작업을 여러 번 반복함.
+
+| 같이 확인할 곳 | 왜 |
+|---|---|
+| `projects` 테이블 row 생성 로직 | `settings_snapshot`, `current_step`, `step_status`, `keyword_id` 채워야 함 |
+| `src/app/(dashboard)/contents/page.tsx` | 새 row가 목록에 표시되는지 |
+| `channelStatuses` / `channel_statuses` 계산 로직 | 채널별 ✅❌ 표시 |
+| `has_video` / `has_image` 필드 | 영상/이미지 칸 표시 |
+| `src/app/(dashboard)/contents/[id]/page.tsx` | 클릭 시 상세 페이지 도달 |
+| `src/components/FlowGuard.tsx` `requiredStep` prop | 진입 시점에 맞는 step 가드 |
+| `useBusinessProfile` 훅 | 비즈니스 프로필 없으면 `SetupRequired` 노출 |
+| 권한·로그인 체크 | `requireAuth` |
+
+---
+
+### 패턴 9: 파이프라인 단계 추가/제거/순서 변경
+**트리거**: "STEP N 빼라" / "STEP 추가해줘" / 파이프라인 순서 바꾸기
+
+> **과거 실패 사례**: 영상 페이지의 STEP 표시만 텍스트로 지웠는데 `step_status`/`current_step`이 그대로 남아 데이터가 어긋났고, FlowGuard 통과 못 해서 진입 자체가 막혔음. 같은 요청을 여러 번 다시 함.
+
+| 같이 확인할 곳 | 왜 |
+|---|---|
+| `supabase/migrations/003_v3_pipeline.sql` `step_status` 기본값 | DB 스키마 정합성 (또는 후속 migration) |
+| `current_step` CHECK constraint (`BETWEEN 1 AND 7`) | 범위 변경 필요할 수 있음 |
+| `src/lib/pipeline-guard.ts` `StepKey` type (`'s5' \| 's6' \| 's7'`) | TypeScript 타입 |
+| `src/components/FlowGuard.tsx` `requiredStep` prop 사용처 전부 | 라우팅 가드 |
+| `src/app/(dashboard)/create/draft-info/page.tsx` | 진행률 표시 + 다음 버튼 |
+| `src/app/(dashboard)/create/channel-write/page.tsx` | 동일 |
+| `src/app/(dashboard)/create/image-script/page.tsx` | 동일 |
+| `src/app/(dashboard)/create/video-script/page.tsx` | 동일 |
+| `src/app/(dashboard)/create/generating/page.tsx` | 동일 |
+| `src/app/(dashboard)/contents/page.tsx` 채널 상태 계산 | `current_step >= 5` 같은 의존 로직 |
+| `src/app/api/generate/draft/route.ts` | step 매핑 |
+| `src/app/api/generate/pipeline/route.ts` | s5 매핑 |
+| `src/app/api/generate/image-script/route.ts` | s6 매핑 |
+| `src/app/api/generate/video-script/route.ts` | s7 매핑 |
+| `STEP_LABELS` 상수 (있다면) | UI 라벨 |
+| 진행률 % 계산 (`current_step / 7 * 100` 같은 것) | 분모 변경 |
+
+**⚠️ 추가 권고**: 단순 UI에서 STEP 텍스트를 빼는 것과 **실제 데이터 흐름에서 STEP을 빼는 것**은 다른 작업입니다. designer는 사용자에게 둘 중 어느 것인지 명확히 물어야 합니다.
+
+---
+
+### 패턴 10: 새 폼 (form) 추가
+**트리거**: 사용자 입력을 받는 새 `<form>` 또는 입력 필드 묶음
+
+| 같이 확인할 곳 | 왜 |
+|---|---|
+| `src/lib/validations.ts` | Zod 스키마 추가 |
+| `src/hooks/useAsyncAction.ts` 사용 | 로딩/에러/토스트 통합 처리 |
+| `src/lib/sanitize.ts` `sanitizeInput()` | 사용자 입력 살균 (XSS/주입 방지) |
+| `src/lib/auth-client.ts` `authHeaders()` | API 호출 시 인증 |
+| 성공 토스트 / 실패 토스트 | UX 일관성 |
+| 제출 버튼 disabled 상태 | 중복 제출 방지 |
+| 모바일 터치 영역 44px 이상 | 접근성 |
+| 필수값 표시 (`aria-required`) | 접근성 |
+| 에러 메시지 위치 (`aria-describedby`) | 접근성 |
+
+---
+
+### 패턴 11: 새 dashboard 페이지 추가
+**트리거**: `src/app/(dashboard)/<이름>/page.tsx` 신규
+
+| 같이 확인할 곳 | 왜 |
+|---|---|
+| `src/app/(dashboard)/layout.tsx` 사이드바 메뉴 | 네비게이션에 노출 |
+| `src/components/FlowGuard.tsx` (파이프라인 페이지면) | step 가드 적용 |
+| 200줄 제한 (Code Conventions) | 신규 파일은 200줄 이하 |
+| `src/app/(dashboard)/<이름>/loading.tsx` | 로딩 UI (필요시) |
+| `src/app/(dashboard)/<이름>/error.tsx` | 에러 바운더리 (필요시) |
+| 빈 상태(empty state) UI | 데이터 없을 때 표시 |
+| 모바일 레이아웃 | 좁은 화면 대응 |
+| `metadata` export | SEO + 탭 제목 |
+| 로그인 가드 | `requireAuth` 또는 미들웨어 |
+
+---
+
+### 패턴 12: `projects.settings_snapshot` JSONB 구조 변경
+**트리거**: `settings_snapshot`에 새 필드 추가 / 기존 필드 이름 변경 / 제거
+
+> **🔴 위험**: 이 컬럼은 기존 프로젝트와의 호환성이 깨질 수 있음. CLAUDE.md 위험 파일 목록에 있음.
+
+| 같이 확인할 곳 | 왜 |
+|---|---|
+| `src/types/index.ts` (🔴) | TypeScript 타입 정의 |
+| `src/app/(dashboard)/create/draft-info/page.tsx` | snapshot 생성 시점 |
+| `src/app/(dashboard)/contents/page.tsx` | snapshot 읽기 (`proj.settings_snapshot?.selected_channels` 등) |
+| `src/app/api/generate/pipeline/route.ts` | snapshot 사용 |
+| 기존 row 마이그레이션 | NULL 또는 기존 값 처리 |
+| 폴백 코드 (`?.field || default`) | 옛 row 호환 |
+| `.md/설계문서/DB스키마.md` | 문서 업데이트 |
+
+---
+
 ### 📝 새 패턴 추가 방법
 
 본인이 작업하다가 "아 이거 다음에도 있을 패턴인데" 싶으면 위 표 형식대로 추가:
