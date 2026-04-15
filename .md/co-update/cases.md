@@ -31,7 +31,7 @@
 - **추가됐어야 할 패턴**: 9 (파이프라인 단계) cross-match
 - **해결 커밋**: `390fa6f` (layout.tsx STEPS에 영상 스크립트 추가) + `0f88526` (패턴 8 보강)
 - **재발 방지**: 패턴 8에 layout.tsx 항목 추가 + "패턴 9 cross-match" 명시
-- **카테고리**: `진입점추가`, `파이프라인단계`, `진행바`
+- **카테고리**: `entry-point`, `pipeline-step`, `ui-flow`
 
 ---
 
@@ -43,7 +43,7 @@
 - **추가됐어야 할 패턴**: 새 패턴 후보 — "단계 진입 게이트"
 - **해결 커밋**: `6c33bbd` (always-active 버튼 + 인라인 상태) + `6b08ef2` (제품팀 4 에이전트 추가)
 - **재발 방지**: 제품팀 6 에이전트가 다음 비슷한 결정 시 자동 토론
-- **카테고리**: `진입게이트`, `사용자시나리오`, `풀세트가정`
+- **카테고리**: `pipeline-step`, `entry-point`
 
 ---
 
@@ -55,7 +55,7 @@
 - **추가됐어야 할 패턴**: "옛 진입점 → 새 진입점 마이그레이션 시 옛 기능 전부 옮겼는지"
 - **해결 커밋**: `2efa3cf` (draft-info에 채널 선택 추가 + contents/new 삭제)
 - **재발 방지**: 패턴 8 트리거에 "진입점에 새 옵션 추가" 명시
-- **카테고리**: `진입점이전`, `데드코드`, `기능손실`
+- **카테고리**: `entry-point`, `dead-code`, `legacy-debt`
 
 ---
 
@@ -67,7 +67,7 @@
 - **추가됐어야 할 패턴**: 새 패턴 후보 — "리스트 렌더링 + 데이터 dedup"
 - **해결 커밋**: `7334f05` (frontend dedup hot fix) + `eb25092` (pipeline cleanup)
 - **재발 방지**: pipeline route 시작 시 미컨펌 row DELETE
-- **카테고리**: `데이터정합성`, `중복row`, `React키`
+- **카테고리**: `data-integrity`
 
 ---
 
@@ -79,7 +79,7 @@
 - **추가됐어야 할 패턴**: 새 패턴 후보 — "설계 문서 vs 코드 정합성 정기 점검"
 - **해결 커밋**: 미해결 (별도 작업 필요)
 - **재발 방지**: 패턴 9의 image-script/page.tsx 항목에 "현재 빈 redirect" 주석 (TODO)
-- **카테고리**: `설계갭`, `legacy`, `미해결`
+- **카테고리**: `legacy-debt`
 
 ---
 
@@ -89,13 +89,15 @@
 ## 📊 카테고리별 빈도 (자동 집계)
 
 ```
-진입점추가               : 1건
-진입게이트               : 1건
-진입점이전               : 1건
-데이터정합성              : 1건
-설계갭                 : 1건
-테스트                 : 1건
+entry-point          : 3건
+pipeline-step        : 2건
+legacy-debt          : 2건
+ui-flow              : 1건
+dead-code            : 1건
+data-integrity       : 1건
 ```
+
+> **임계값 도달**: `entry-point` 3건 — `pattern-extractor.mjs` 실행 권장.
 
 3건 이상 누적된 카테고리는 패턴 추가/보강 후보. `pattern-extractor.mjs`가 자동 추출.
 
@@ -109,7 +111,7 @@ node "F:/marketing -app/agent-dev-kit/scripts/case-logger.mjs" \
   "draft-info에 영상 옵션 추가했지만 layout.tsx STEPS 빠짐" \
   --pattern=8 \
   --commit=390fa6f \
-  --category=진입점추가
+  --category=entry-point
 ```
 → 이 파일에 자동 append.
 
@@ -119,7 +121,7 @@ node "F:/marketing -app/agent-dev-kit/scripts/case-logger.mjs" \
 ### 임계값 알림
 같은 카테고리에 3건 누적되면 `pattern-extractor.mjs`가 다음에 호출될 때 경고:
 ```
-⚠️ '진입게이트' 카테고리에 3건 누적됨. 패턴 추가 검토 권장:
+⚠️ 'entry-point' 카테고리에 3건 누적됨. 패턴 추가 검토 권장:
    - Case #002, #N, #M의 공통점: ...
    - 제안 트리거: ...
    - 제안 항목: ...
