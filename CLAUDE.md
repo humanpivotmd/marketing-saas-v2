@@ -512,9 +512,9 @@ if (guard.shouldSkip) {
 ---
 
 ### 패턴 8: 새 콘텐츠 생성 진입점 (만들기 버튼) 추가
-**트리거**: "콘텐츠 만들기 버튼 추가" / 어디서든 `/contents/new` 또는 `/create/...`로 가는 새 버튼·링크
+**트리거**: "콘텐츠 만들기 버튼 추가" / 어디서든 `/contents/new` 또는 `/create/...`로 가는 새 버튼·링크 / 진입점에 새 옵션(채널/단계 등) 추가
 
-> **과거 실패 사례**: 버튼만 추가하고 신규 콘텐츠가 목록에 안 보이거나 채널 상태 ✅❌가 안 떠서 같은 작업을 여러 번 반복함.
+> **과거 실패 사례**: (1) 버튼만 추가하고 신규 콘텐츠가 목록에 안 보이거나 채널 상태 ✅❌가 안 떠서 같은 작업을 여러 번 반복함. (2) draft-info에 영상 채널 선택 옵션 추가했는데 진행 바(layout.tsx)에는 영상 step이 없어서 사용자가 또 발견함.
 
 | 같이 확인할 곳 | 왜 |
 |---|---|
@@ -526,6 +526,8 @@ if (guard.shouldSkip) {
 | `src/components/FlowGuard.tsx` `requiredStep` prop | 진입 시점에 맞는 step 가드 |
 | `useBusinessProfile` 훅 | 비즈니스 프로필 없으면 `SetupRequired` 노출 |
 | 권한·로그인 체크 | `requireAuth` |
+| **`src/app/(dashboard)/create/layout.tsx` `STEPS` 배열** | **진행 바에 새 step 노출 (영상 등 추가 단계 포함)** |
+| **새 채널·옵션이 별도 단계를 트리거하면 패턴 9도 같이 매칭** | **단계 변경 영향까지 cross-check** |
 
 ---
 
