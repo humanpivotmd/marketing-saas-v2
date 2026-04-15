@@ -5,26 +5,10 @@ import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
 import Input from '@/components/ui/Input'
-import Modal from '@/components/ui/Modal'
 import Toast from '@/components/ui/Toast'
 import { useAsyncAction } from '@/hooks/useAsyncAction'
-
-interface User {
-  id: string
-  email: string
-  name: string
-  role: string
-  status: string
-  plan_id: string | null
-  onboarding_done: boolean
-  last_login_at: string | null
-  created_at: string
-}
-
-interface UserDetail extends User {
-  plan: { name: string; display_name: string } | null
-  usage: { content: number; keyword: number }
-}
+import { authHeaders } from '@/lib/auth-client'
+import UserDetailModal, { type User, type UserDetail } from './components/UserDetailModal'
 
 interface Pagination {
   page: number
@@ -32,8 +16,6 @@ interface Pagination {
   total: number
   totalPages: number
 }
-
-import { authHeaders } from '@/lib/auth-client'
 
 const STATUS_LABELS: Record<string, string> = {
   active: '활성',
@@ -55,7 +37,22 @@ export default function AdminUsersPage() {
   const [statusFilter, setStatusFilter] = useState('')
   const [selectedUser, setSelectedUser] = useState<UserDetail | null>(null)
   const [showDetail, setShowDetail] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState<string | undefined>()
+  const [currentUserRole, setCurrentUserRole] = useState<string | undefined>()
   const { loading, toast, clearToast, run } = useAsyncAction(true)
+
+  // 현재 로그인한 관리자 정보 (super_admin 권한 판별용)
+  useEffect(() => {
+    fetch('/api/auth/me', { headers: authHeaders() })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.success && data.user) {
+          setCurrentUserId(data.user.id)
+          setCurrentUserRole(data.user.role)
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   const fetchUsers = useCallback((page = 1) => {
     const params = new URLSearchParams({ page: String(page), limit: '20' })
@@ -218,117 +215,13 @@ export default function AdminUsersPage() {
           open={showDetail}
           onClose={() => { setShowDetail(false); setSelectedUser(null) }}
           user={selectedUser}
+          currentUserId={currentUserId}
+          currentUserRole={currentUserRole}
           onRefresh={() => fetchUsers(pagination.page)}
         />
       )}
 
       {toast && <Toast message={toast.message} variant={toast.variant} visible onClose={clearToast} />}
     </div>
-  )
-}
-
-function UserDetailModal({ open, onClose, user, onRefresh }: {
-  open: boolean
-  onClose: () => void
-  user: UserDetail
-  onRefresh: () => void
-}) {
-  const [role, setRole] = useState(user.role)
-  const [status, setStatus] = useState(user.status)
-  const [saving, setSaving] = useState(false)
-  const [grantType, setGrantType] = useState('content_create')
-  const [grantAmount, setGrantAmount] = useState('1')
-  const { toast: modalToast, clearToast: clearModalToast, run: modalRun } = useAsyncAction()
-
-  const handleSave = async () => {
-    setSaving(true)
-    await modalRun(async () => {
-      const res = await fetch(`/api/admin/users/${user.id}`, {
-        method: 'PUT',
-        headers: authHeaders(),
-        body: JSON.stringify({ role, status }),
-      })
-      const data = await res.json()
-      if (!data.success) throw new Error(data.error || '오류가 발생했습니다.')
-      onRefresh()
-      onClose()
-    }, { successMessage: '변경되었습니다.' })
-    setSaving(false)
-  }
-
-  const handleGrant = async () => {
-    await modalRun(async () => {
-      const res = await fetch(`/api/admin/users/${user.id}/usage-grant`, {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify({ action_type: grantType, amount: parseInt(grantAmount) }),
-      })
-      const data = await res.json()
-      if (!data.success) throw new Error(data.error || '오류가 발생했습니다.')
-    }, { successMessage: '사용량이 부여되었습니다.' })
-  }
-
-  return (
-    <Modal open={open} onClose={onClose} title="회원 상세" size="lg">
-      {modalToast && <Toast message={modalToast.message} variant={modalToast.variant} visible onClose={clearModalToast} />}
-      <div className="space-y-5">
-        {/* Info */}
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <div><span className="text-text-tertiary">이름:</span> <span className="text-text-primary ml-1">{user.name}</span></div>
-          <div><span className="text-text-tertiary">이메일:</span> <span className="text-text-primary ml-1">{user.email}</span></div>
-          <div><span className="text-text-tertiary">플랜:</span> <span className="text-text-primary ml-1">{user.plan?.display_name || 'Free'}</span></div>
-          <div><span className="text-text-tertiary">가입일:</span> <span className="text-text-primary ml-1">{new Date(user.created_at).toLocaleDateString('ko-KR')}</span></div>
-        </div>
-
-        {/* Usage */}
-        <div className="bg-bg-tertiary/50 rounded-lg p-3">
-          <p className="text-xs text-text-tertiary mb-2">이번 달 사용량</p>
-          <div className="grid grid-cols-2 gap-2 text-sm">
-            <div className="text-text-secondary">콘텐츠: <span className="text-text-primary font-medium">{user.usage.content}건</span></div>
-            <div className="text-text-secondary">키워드: <span className="text-text-primary font-medium">{user.usage.keyword}건</span></div>
-          </div>
-        </div>
-
-        {/* Role/Status Change */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-sm font-medium text-text-primary block mb-1.5">역할</label>
-            <select value={role} onChange={(e) => setRole(e.target.value)} className="w-full h-11 px-3 bg-bg-tertiary text-text-primary border border-[rgba(240,246,252,0.1)] rounded-lg text-sm">
-              <option value="user">사용자</option>
-              <option value="admin">관리자</option>
-              <option value="super_admin">최고관리자</option>
-            </select>
-            <p className="text-xs text-text-tertiary mt-1">관리자: 대시보드 조회 가능, 최고관리자: 회원 삭제 등 전체 권한</p>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-text-primary block mb-1.5">상태</label>
-            <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full h-11 px-3 bg-bg-tertiary text-text-primary border border-[rgba(240,246,252,0.1)] rounded-lg text-sm">
-              <option value="active">활성</option>
-              <option value="pending">대기 (이메일 인증 전)</option>
-              <option value="suspended">정지 (로그인 차단)</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Usage Grant */}
-        <div className="border-t border-[rgba(240,246,252,0.1)] pt-4">
-          <p className="text-sm font-medium text-text-primary mb-3">사용량 수동 지급</p>
-          <div className="flex gap-2 items-end">
-            <select value={grantType} onChange={(e) => setGrantType(e.target.value)} className="h-11 px-3 bg-bg-tertiary text-text-primary border border-[rgba(240,246,252,0.1)] rounded-lg text-sm">
-              <option value="content_create">콘텐츠</option>
-              <option value="keyword_analyze">키워드</option>
-              <option value="image_generate">이미지</option>
-            </select>
-            <Input value={grantAmount} onChange={(e) => setGrantAmount(e.target.value)} type="number" placeholder="수량" />
-            <Button variant="secondary" size="md" onClick={handleGrant}>지급</Button>
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-3 pt-2">
-          <Button variant="secondary" onClick={onClose}>닫기</Button>
-          <Button onClick={handleSave} loading={saving}>저장</Button>
-        </div>
-      </div>
-    </Modal>
   )
 }
