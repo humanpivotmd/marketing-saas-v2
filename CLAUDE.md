@@ -396,6 +396,138 @@ if (guard.shouldSkip) {
 
 ---
 
+## 🔄 Co-update Map (전방 영향 검증 — forward propagation)
+
+> **목적**: 새 기능을 추가할 때 "이것도 같이 해야 하지 않나?" 를 자동 체크.
+> **누가 사용**: `@designer` 에이전트가 설계 보고서 작성 시 자동 참조.
+> **유지보수**: 사용자(도메인 전문가)가 새 패턴 발견할 때마다 추가.
+
+### 사용 방법
+1. 사용자가 새 기능 요청 → `@designer` 호출
+2. designer가 이 표에서 매칭되는 패턴 검색
+3. 매칭된 행의 "같이 확인" 항목 전부를 spec 보고서에 포함
+4. 각 항목에 **필요/불필요/사용자 결정** 답변 요구
+5. 사용자 승인 후에만 다음 단계 진행
+
+---
+
+### 패턴 1: 새 admin 액션 추가
+**트리거**: `src/app/api/admin/users/[id]/<액션이름>/route.ts` 신규
+
+| 같이 확인할 곳 | 왜 |
+|---|---|
+| `supabase/migrations/006_add_action_logs.sql` (또는 후속 migration) | `action` CHECK constraint에 새 액션 이름 추가 필요 |
+| `src/app/api/admin/users/[id]/<액션>/route.ts` 내부 | `action_logs` 테이블에 로그 기록 추가 |
+| `src/app/(admin)/admin/users/components/UserDetailModal.tsx` | UI 액션 버튼 추가 |
+| `src/app/(admin)/admin/action-logs/page.tsx` (있다면) | 액션 라벨/필터 옵션 추가 |
+| `src/lib/notifications.ts` 또는 이메일 발송 | 사용자 알림 필요 여부 |
+
+---
+
+### 패턴 2: 새 사용자 role 추가
+**트리거**: `users.role` CHECK constraint 변경 또는 새 role 값 사용
+
+| 같이 확인할 곳 | 왜 |
+|---|---|
+| `supabase/migrations/` 새 migration | `users_role_check` constraint 업데이트 |
+| `src/lib/auth.ts` `requireAdmin` / `requireSuperAdmin` | 새 role의 권한 정의 |
+| `src/lib/constants.ts` `ROLE_LABELS` (또는 같은 역할의 상수) | UI 표시 라벨 |
+| `src/app/(admin)/admin/users/components/UserDetailModal.tsx` | role 변경 dropdown 옵션 |
+| `src/app/(admin)/admin/users/page.tsx` | 필터 dropdown 옵션 |
+| RLS 정책 (있다면) | 새 role의 접근 권한 |
+
+---
+
+### 패턴 3: 새 generate API 추가
+**트리거**: `src/app/api/generate/<이름>/route.ts` 신규
+
+| 같이 확인할 곳 | 왜 |
+|---|---|
+| `src/lib/claude-parser.ts` | 응답 검증용 새 Zod 스키마 추가 |
+| `src/lib/pipeline-guard.ts` (해당되면) | `StepKey` type에 새 키 추가 + step_status 핸들링 |
+| `supabase/migrations/003_v3_pipeline.sql` 의 `step_status` 기본값 | 새 step 키 기본값 (혹은 후속 migration) |
+| `src/app/(dashboard)/create/<단계>/page.tsx` | 프론트엔드에서 새 API 호출 |
+| `usage_logs` `action_type` (`src/lib/usage.ts`) | 사용량 추적 항목 추가 |
+| `src/lib/rate-limit.ts` | rate limit 적용 |
+| `src/lib/sanitize.ts` 호출 | user 입력 살균 |
+| `src/lib/prompts/pipeline.ts` (🔴) | 새 system prompt 추가 |
+| `CLAUDE.md` `Claude 출력 검증 규칙` 섹션의 표 | 적용 위치 표 업데이트 |
+
+---
+
+### 패턴 4: 새 콘텐츠 채널 추가
+**트리거**: `src/lib/constants.ts` `CHANNEL_OPTIONS` / `CONTENT_CREATE_CHANNELS` 변경
+
+| 같이 확인할 곳 | 왜 |
+|---|---|
+| `CHANNEL_LABEL_MAP` (constants) | 한글 라벨 |
+| `CHANNEL_COLOR_MAP` (constants) | UI 뱃지 색상 |
+| `CHANNEL_DOT_MAP` (constants, 있다면) | 작은 인디케이터 |
+| `contents` 테이블 `channel` 컬럼 CHECK constraint | DB 검증 |
+| `src/lib/prompts/pipeline.ts` (🔴) | 채널별 프롬프트 |
+| `src/app/(dashboard)/create/channel-write/page.tsx` | UI 채널 선택 |
+| `src/app/(dashboard)/contents/new/page.tsx` | 콘텐츠 생성 폼 |
+
+---
+
+### 패턴 5: 새 사용자 상태 추가
+**트리거**: `users.status` 새 값 (`active`/`pending`/`suspended` 외)
+
+| 같이 확인할 곳 | 왜 |
+|---|---|
+| `supabase/migrations/` | `users_status_check` constraint |
+| `src/lib/constants.ts` `STATUS_LABELS` | UI 라벨 |
+| `src/lib/auth.ts` 로그인 차단 로직 | suspended 패턴 따라 처리 |
+| `src/app/(admin)/admin/users/page.tsx` | 필터 옵션 |
+| `src/app/(admin)/admin/users/components/UserDetailModal.tsx` | 상태 변경 dropdown |
+| `src/middleware.ts` (있다면) | 라우팅 가드 |
+
+---
+
+### 패턴 6: 새 DB 테이블 추가
+**트리거**: `supabase/migrations/` 신규 `CREATE TABLE`
+
+| 같이 확인할 곳 | 왜 |
+|---|---|
+| `src/types/index.ts` (🔴) | TypeScript 타입 추가 |
+| RLS 정책 | 적절한 USING 절 |
+| `src/lib/api-helpers.ts` | CRUD 헬퍼 적용 가능 여부 |
+| 인덱스 | 자주 조회되는 컬럼 |
+| `.md/설계문서/DB스키마.md` | 문서 업데이트 |
+
+---
+
+### 패턴 7: 새 환경 변수 추가
+**트리거**: 코드에서 `process.env.NEW_VAR` 사용
+
+| 같이 확인할 곳 | 왜 |
+|---|---|
+| `.env.local` | 로컬 개발용 값 |
+| `.env.example` (있다면) | 다른 개발자용 placeholder |
+| `API_KEYS_BACKUP.md` (`F:/marketing -app/`) | 백업 |
+| Railway dashboard | 프로덕션 배포 |
+| `next.config.ts` `env` 노출 (필요시) | 클라이언트 사이드 접근 |
+| `NEXT_PUBLIC_` 접두사 (클라이언트 변수면) | 클라이언트 번들에 포함 |
+
+---
+
+### 📝 새 패턴 추가 방법
+
+본인이 작업하다가 "아 이거 다음에도 있을 패턴인데" 싶으면 위 표 형식대로 추가:
+
+```markdown
+### 패턴 N: <패턴 이름>
+**트리거**: <어떤 변경이 트리거인지>
+
+| 같이 확인할 곳 | 왜 |
+|---|---|
+| ... | ... |
+```
+
+도메인 지식은 본인이 가장 정확합니다. AI는 패턴을 모방하지만 **새 패턴을 발견하는 건 본인의 경험**입니다.
+
+---
+
 ## Code Conventions (ADK plugin 강제)
 
 아래 규칙은 `adk-pipeline` 플러그인의 `@implementer` + `hooks/post-tool-use.sh`가
