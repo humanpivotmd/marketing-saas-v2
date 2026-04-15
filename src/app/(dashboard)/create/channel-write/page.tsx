@@ -283,10 +283,17 @@ export default function ChannelWritePage() {
     }
   }
 
-  // All channels confirmed + image done
-  const allChannelsDone = contents.length > 0
-    && contents.every(c => c.confirmed_at)
-    && contents.filter(c => c.channel !== 'video_script').every(c => imageCompleted[c.channel])
+  // 채널 진행 상태 (UI 표시 + 영상 진입 자유도)
+  // 정책 (제품팀 회의 결과 2026-04-15):
+  //   - "영상 만들기" 버튼은 항상 활성
+  //   - 글 0개여도, 부분 컨펌이어도, 이미지 0개여도 영상으로 이동 가능
+  //   - 사용자가 결정 (modal/confirm 없음)
+  //   - 인라인 상태 표시로 사용자 정보 제공
+  const totalChannels = contents.filter(c => c.channel !== 'video_script').length
+  const confirmedCount = contents.filter(c => c.confirmed_at && c.channel !== 'video_script').length
+  const imageDoneCount = contents
+    .filter(c => c.channel !== 'video_script')
+    .filter(c => imageCompleted[c.channel]).length
 
   const handleGoToVideo = async () => {
     await run(async () => {
@@ -338,9 +345,18 @@ export default function ChannelWritePage() {
             <Button variant="secondary" onClick={startGeneration}>재생성</Button>
           )}
 
-          {allChannelsDone && (
-            <Button onClick={handleGoToVideo}>영상 만들기</Button>
-          )}
+          {/* 영상 만들기 — 항상 활성. 인라인 상태로 사용자에게 정보 제공. */}
+          <div className="flex items-center gap-3">
+            <Button onClick={handleGoToVideo}>영상 만들기 →</Button>
+            {totalChannels > 0 && (
+              <span className="text-xs text-text-tertiary">
+                글 {confirmedCount}/{totalChannels} 컨펌 · 이미지 {imageDoneCount}/{totalChannels} 생성
+                {confirmedCount < totalChannels && (
+                  <span className="ml-1">(미완료 항목은 나중에 돌아와 가능)</span>
+                )}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
