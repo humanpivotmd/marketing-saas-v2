@@ -46,10 +46,23 @@ export default function BusinessProfileTab({ onToast }: { onToast: (t: { message
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
 
-  // Context에서 프로필 반영
+  // Context에서 프로필 반영 (API nullable 필드 방어: null → 기본값 정규화)
   useEffect(() => {
     if (bizProfile) {
-      setProfile(p => ({ ...p, ...bizProfile }))
+      setProfile(p => ({
+        ...p,
+        ...bizProfile,
+        industry_id: bizProfile.industry_id ?? '',
+        blog_category: bizProfile.blog_category ?? '',
+        company_name: bizProfile.company_name ?? '',
+        service_name: bizProfile.service_name ?? '',
+        target_audience: bizProfile.target_audience ?? '',
+        writing_tone: bizProfile.writing_tone ?? 'auto',
+        target_gender: bizProfile.target_gender ?? 'all',
+        business_type: bizProfile.business_type ?? 'B2C',
+        selected_channels: bizProfile.selected_channels ?? [],
+        fixed_keywords: bizProfile.fixed_keywords ?? [],
+      }))
       setLoading(false)
     }
   }, [bizProfile])
