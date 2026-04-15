@@ -106,7 +106,23 @@ export async function POST(req: NextRequest) {
       if (ind) industryName = ind.name
     }
 
-    const snapshot = { ...(user || {}), industry: industryName }
+    // body.selected_channels가 있으면 마이페이지 기본값을 override
+    // (프로젝트 단위 채널 선택 — draft-info에서 사용자가 직접 고른 값 우선)
+    // 빈 배열 방어: 둘 다 비어있으면 ['blog']로 폴백
+    let effectiveChannels: string[] = []
+    if (Array.isArray(body.selected_channels) && body.selected_channels.length > 0) {
+      effectiveChannels = body.selected_channels
+    } else if (Array.isArray(user?.selected_channels) && user!.selected_channels.length > 0) {
+      effectiveChannels = user!.selected_channels
+    } else {
+      effectiveChannels = ['blog']
+    }
+
+    const snapshot = {
+      ...(user || {}),
+      selected_channels: effectiveChannels,
+      industry: industryName,
+    }
 
     const { data, error } = await supabase
       .from('projects')

@@ -7,7 +7,7 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Toast from '@/components/ui/Toast'
 import SetupRequired from '@/components/SetupRequired'
-import { TOPIC_TYPES, TONE_OPTIONS, PROMPT_MODES, BUSINESS_TYPES } from '@/lib/constants'
+import { TOPIC_TYPES, TONE_OPTIONS, PROMPT_MODES, BUSINESS_TYPES, CHANNEL_OPTIONS } from '@/lib/constants'
 import { authHeaders } from '@/lib/auth-client'
 import { useAsyncAction } from '@/hooks/useAsyncAction'
 import { useBusinessProfile } from '@/hooks/useBusinessProfile'
@@ -27,6 +27,7 @@ export default function DraftInfoPage() {
   const [customPrompt, setCustomPrompt] = useState('')
   const [coreMessage, setCoreMessage] = useState('')
   const [promptMode, setPromptMode] = useState('combine')
+  const [selectedChannels, setSelectedChannels] = useState<string[]>([])
   const [titles, setTitles] = useState<string[]>([])
   const [selectedTitle, setSelectedTitle] = useState('')
   const [customTitle, setCustomTitle] = useState('')
@@ -34,15 +35,28 @@ export default function DraftInfoPage() {
   const [creating, setCreating] = useState(false)
   const { toast, clearToast, run } = useAsyncAction()
 
-  // Context에서 비즈니스 프로필 반영
+  // Context에서 비즈니스 프로필 반영 (마이페이지 기본값을 prefill)
   useEffect(() => {
     if (bizProfile) {
       setBusinessType((bizProfile.business_type as 'B2B' | 'B2C') || 'B2C')
       setCompanyName(bizProfile.company_name || '')
       setServiceName(bizProfile.service_name || '')
       setTone(bizProfile.writing_tone || 'auto')
+      // 마이페이지 채널 설정을 기본값으로 prefill (없으면 ['blog'])
+      const profChannels = (bizProfile.selected_channels ?? []) as string[]
+      setSelectedChannels(profChannels.length > 0 ? profChannels : ['blog'])
     }
   }, [bizProfile])
+
+  const toggleChannel = (id: string) => {
+    setSelectedChannels((prev) => {
+      if (prev.includes(id)) {
+        // 최소 1개 강제: 마지막 1개는 deselect 못 함
+        return prev.length > 1 ? prev.filter((c) => c !== id) : prev
+      }
+      return [...prev, id]
+    })
+  }
 
   const handleGenerateTitles = async () => {
     setGenerating(true)
@@ -75,7 +89,7 @@ export default function DraftInfoPage() {
     if (!finalTitle) return
     setCreating(true)
     await run(async () => {
-      // 프로젝트 생성
+      // 프로젝트 생성 (선택한 채널 포함)
       const projRes = await fetch('/api/projects', {
         method: 'POST',
         headers: authHeaders(),
@@ -83,6 +97,7 @@ export default function DraftInfoPage() {
           keyword_id: keywordId || undefined,
           keyword_text: keywordText,
           business_type: businessType,
+          selected_channels: selectedChannels,
         }),
       })
       const projData = await projRes.json()
@@ -161,6 +176,38 @@ export default function DraftInfoPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Input label="회사명" value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="회사명" />
           <Input label="서비스/제품명" value={serviceName} onChange={e => setServiceName(e.target.value)} placeholder="서비스 또는 제품명" />
+        </div>
+      </Card>
+
+      {/* 콘텐츠 채널 선택 */}
+      <Card>
+        <div className="space-y-3">
+          <div>
+            <h3 className="text-sm font-semibold text-text-primary">콘텐츠 채널 선택</h3>
+            <p className="text-xs text-text-tertiary mt-0.5">이 프로젝트에서 생성할 채널을 고르세요. 마이페이지 기본값이 미리 선택됩니다.</p>
+          </div>
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+            {CHANNEL_OPTIONS.map((ch) => {
+              const isSelected = selectedChannels.includes(ch.id)
+              return (
+                <button
+                  key={ch.id}
+                  onClick={() => toggleChannel(ch.id)}
+                  className={`min-h-[44px] py-2.5 px-3 rounded-lg text-sm border transition-all ${
+                    isSelected
+                      ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
+                      : 'border-border-primary bg-surface-secondary text-text-tertiary hover:border-border-secondary'
+                  }`}
+                  type="button"
+                  aria-pressed={isSelected}
+                >
+                  <div className="text-base">{ch.icon}</div>
+                  <div className="text-xs font-medium mt-1">{ch.label}</div>
+                </button>
+              )
+            })}
+          </div>
+          <p className="text-xs text-text-tertiary">선택된 채널: <strong className="text-text-secondary">{selectedChannels.length}개</strong> {selectedChannels.length === 1 && '(최소 1개 필요)'}</p>
         </div>
       </Card>
 
