@@ -1,7 +1,33 @@
 # CLAUDE.md — 작업 지침
 
 ## ⚠️ 모든 작업 시작 전 필수 규칙
-**CLAUDE.md 읽기 + impact-analyzer.js 실행**
+
+```
+1. CLAUDE.md 전체 읽기 (특히 🔴 위험 파일 + Co-update Map)
+2. impact-analyzer.mjs 실행 (수정 대상 파일 모두)
+3. Co-update Map 패턴 매칭 — 매칭되면 모든 항목 보고서에 포함
+   (한 작업이 여러 패턴 매칭 가능 — 패턴 8 + 패턴 9 동시 매칭 등)
+4. 사용자 승인 없이 코드 수정 절대 금지
+```
+
+## 🖼️ 화면 변경 작업 시 필수 규칙 (UI/UX)
+
+브라우저 화면에 영향을 주는 모든 작업(페이지·컴포넌트·레이아웃·진행 바 등)은:
+
+```
+1. 작업 전: playwright로 현재 화면 캡처 (before 스크린샷)
+2. 코드 수정
+3. tsc + build 통과
+4. dev 서버 hot reload 후
+5. playwright로 다시 캡처 (after 스크린샷)
+6. before/after 비교 → 의도된 변화 확인
+7. 의도와 다르면 즉시 보고
+```
+
+**"build 통과 = 완료"가 아니라 "before/after 스크린샷 비교 = 완료"가 진짜 게이트.**
+
+playwright 사용 가능: `mcp__playwright__browser_navigate`, `browser_take_screenshot`, `browser_snapshot`.
+화면 보지 않고 작업 끝났다고 선언 금지.
 
 ---
 
