@@ -1,5 +1,22 @@
 # CLAUDE.md — 작업 지침
 
+## 🤖 AI 행동 규칙 (필독)
+
+이 프로젝트는 ADK 플러그인을 사용합니다. Claude의 모든 응답은 다음 행동 규칙을 따릅니다:
+
+> **[F:/marketing -app/agent-dev-kit/AI-BEHAVIOR.md](../agent-dev-kit/AI-BEHAVIOR.md)** (또는 [GitHub](https://github.com/humanpivotmd/agent-dev-kit/blob/main/AI-BEHAVIOR.md))
+
+핵심 5가지:
+1. **"못 한다"고 거짓말 금지** — ToolSearch 먼저, 시도 먼저, 거절은 마지막
+2. **화면 변경은 playwright 검증 의무** — before/after 스크린샷 비교
+3. **작업 완료 6단계 게이트** — build 통과만으로는 완료 아님
+4. **Co-update Map 패턴 매칭은 넓게** — 한 작업 = 여러 패턴 동시 매칭 가능
+5. **사용자 시간 존중** — 묻기 전에 3가지 시도
+
+위 규칙 위반 시 사용자가 "**AI-BEHAVIOR.md 읽고 다시 답해**" 한 마디로 교정 가능.
+
+---
+
 ## ⚠️ 모든 작업 시작 전 필수 규칙
 
 ```
