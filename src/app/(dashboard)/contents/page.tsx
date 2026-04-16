@@ -3,14 +3,14 @@
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import Card from '@/components/ui/Card'
-import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Skeleton from '@/components/ui/Skeleton'
 import EmptyState from '@/components/ui/EmptyState'
 import Toast from '@/components/ui/Toast'
 import { useAsyncAction } from '@/hooks/useAsyncAction'
-import { CHANNEL_LABEL_MAP, CHANNEL_COLOR_MAP, CONTENT_CHANNELS } from '@/lib/constants'
+import ProjectCard from './components/ProjectCard'
+import { CONTENT_CHANNELS } from '@/lib/constants'
 import { getToken, authHeaders } from '@/lib/auth-client'
 
 interface ProjectContent {
@@ -46,24 +46,7 @@ interface ProjectItem {
 
 type SortKey = 'updated_at' | 'keyword_text'
 
-const CHANNEL_LIST = ['blog', 'instagram', 'threads', 'facebook'] as const
 
-function getChannelStatus(contents: ProjectContent[], imageChannels: string[] = []) {
-  return CHANNEL_LIST.map((ch) => {
-    const content = contents.find((c) => c.channel === ch)
-    const hasText = !!content
-    const hasImage = imageChannels.includes(ch)
-    return { channel: ch, hasText, hasImage, content }
-  })
-}
-
-function getScheduledDate(contents: ProjectContent[]): string | null {
-  for (const c of contents) {
-    const sc = (c as unknown as { scheduled_date?: string }).scheduled_date
-    if (sc) return sc
-  }
-  return null
-}
 
 export default function ContentsPage() {
   const [projects, setProjects] = useState<ProjectItem[]>([])
@@ -316,199 +299,25 @@ export default function ContentsPage() {
         />
       ) : (
         <div className="space-y-3">
-          {filtered.map((proj) => {
-            const isExpanded = expandedId === proj.id
-            const contents = proj.contents || []
-            const channelStatuses = getChannelStatus(contents, proj.image_channels || [])
-            const scheduledDate = getScheduledDate(contents)
-            const keywordName = proj.keywords?.keyword || proj.keyword_text || '키워드 없음'
-            const projSelectedChannels = proj.settings_snapshot?.selected_channels || []
-            const hasBlog = proj.contents?.some((c) => c.channel === 'blog')
-            const isPendingDelete =
-              projSelectedChannels.includes('blog') &&
-              !hasBlog &&
-              new Date(proj.updated_at).getTime() < (Date.now() - 7 * 24 * 60 * 60 * 1000)
-
-            return (
-              <Card key={proj.id} className="overflow-hidden">
-                {/* 카드 헤더 */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-sm font-semibold text-text-primary">{keywordName}</h3>
-                      <Badge variant={proj.business_type === 'B2B' ? 'accent' : 'success'}>
-                        {proj.business_type}
-                      </Badge>
-                      {proj.status === 'completed' && (
-                        <Badge variant="success">완료</Badge>
-                      )}
-                      {isPendingDelete && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-accent-warning/10 text-accent-warning font-medium">
-                          D-7 삭제 예정
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-text-tertiary mt-1">
-                      {new Date(proj.created_at).toLocaleDateString('ko-KR')} 생성
-                    </p>
-
-                    {/* 채널별 상태 */}
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {channelStatuses.map((cs) => {
-                        const projChannels = proj.settings_snapshot?.selected_channels || []
-                        const isSelected = projChannels.includes(cs.channel)
-                        const isDisabled = !isSelected || (!cs.hasText && proj.current_step < 5)
-                        const linkHref = cs.hasText
-                          ? `/contents/${cs.content?.id}`
-                          : (proj.current_step >= 5 ? `/create/channel-write?project_id=${proj.id}` : null)
-
-                        return (
-                          <div key={cs.channel} className="flex items-center gap-1 text-xs">
-                            {linkHref ? (
-                              <Link
-                                href={linkHref}
-                                className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors ${
-                                  isDisabled
-                                    ? 'bg-gray-500 text-gray-300 cursor-not-allowed'
-                                    : `${CHANNEL_COLOR_MAP[cs.channel] || ''} hover:opacity-80`
-                                }`}
-                                onClick={(e) => {
-                                  if (isDisabled) e.preventDefault()
-                                  else e.stopPropagation()
-                                }}
-                              >
-                                {CHANNEL_LABEL_MAP[cs.channel] || cs.channel}
-                              </Link>
-                            ) : (
-                              <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-500 text-gray-300 cursor-not-allowed`}>
-                                {CHANNEL_LABEL_MAP[cs.channel] || cs.channel}
-                              </span>
-                            )}
-                            <span>글{cs.hasText ? '✅' : '❌'}</span>
-                            <span>·</span>
-                            <span>이미지{cs.hasImage ? '✅' : '❌'}</span>
-                          </div>
-                        )
-                      })}
-                      {/* 영상 스크립트 별도 표시 */}
-                      <div className="flex items-center gap-1 text-xs">
-                        <Link
-                          href={`/create/video-script?project_id=${proj.id}`}
-                          className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors ${CHANNEL_COLOR_MAP['video_script'] || ''} hover:opacity-80`}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {CHANNEL_LABEL_MAP['video_script'] || '영상'}
-                        </Link>
-                        <span>영상{proj.has_video ? '✅' : '❌'}</span>
-                      </div>
-                    </div>
-
-                    {/* 발행 메모 */}
-                    <div className="flex items-center gap-2 mt-2">
-                      {editingMemo === proj.id ? (
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="date"
-                            value={memoDate}
-                            onChange={(e) => setMemoDate(e.target.value)}
-                            className="py-1 px-2 rounded bg-surface-secondary border border-border-primary text-text-primary text-xs"
-                          />
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            onClick={() => handleSaveMemo(contents.map((c) => c.id))}
-                          >
-                            저장
-                          </Button>
-                          <button
-                            onClick={() => setEditingMemo(null)}
-                            className="text-xs text-text-tertiary hover:text-text-secondary"
-                          >
-                            취소
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            setEditingMemo(proj.id)
-                            setMemoDate(scheduledDate || '')
-                          }}
-                          className="text-xs text-text-tertiary hover:text-accent-primary transition-colors flex items-center gap-1"
-                        >
-                          <span>📅</span>
-                          {scheduledDate
-                            ? <span>발행 메모: {scheduledDate}</span>
-                            : <span>발행 메모 추가</span>
-                          }
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => setExpandedId(isExpanded ? null : proj.id)}
-                    className="text-xs text-accent-primary hover:underline min-h-[44px] flex items-center shrink-0"
-                  >
-                    {isExpanded ? '접기' : '전체 보기'}
-                  </button>
-                </div>
-
-                {/* 펼침 상세 */}
-                {isExpanded && contents.length > 0 && (
-                  <div className="mt-4 pt-4 border-t border-[rgba(240,246,252,0.08)] space-y-2">
-                    {contents.map((c) => (
-                      <Link key={c.id} href={`/contents/${c.id}`}>
-                        <div className="flex items-center justify-between p-3 rounded-lg bg-surface-secondary hover:bg-[rgba(240,246,252,0.06)] transition-colors cursor-pointer">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium shrink-0 ${CHANNEL_COLOR_MAP[c.channel] || ''}`}>
-                              {CHANNEL_LABEL_MAP[c.channel] || c.channel}
-                            </span>
-                            <span className="text-sm text-text-primary truncate">{c.title || '제목 없음'}</span>
-                          </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            {c.seo_score != null && (
-                              <span className="text-xs font-semibold text-accent-primary">SEO {c.seo_score}</span>
-                            )}
-                            <Badge
-                              variant={c.confirmed_at ? 'success' : c.status === 'generated' ? 'default' : 'warning'}
-                              size="sm"
-                            >
-                              {c.confirmed_at ? '확정' : c.status === 'generated' ? '생성됨' : c.status}
-                            </Badge>
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
-                    {/* 영상 스크립트 행 */}
-                    {proj.has_video && (
-                      <Link href={`/create/video-script?project_id=${proj.id}`}>
-                        <div className="flex items-center justify-between p-3 rounded-lg bg-surface-secondary hover:bg-[rgba(240,246,252,0.06)] transition-colors cursor-pointer">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium shrink-0 ${CHANNEL_COLOR_MAP['video_script'] || ''}`}>
-                              {CHANNEL_LABEL_MAP['video_script'] || '영상'}
-                            </span>
-                            <span className="text-sm text-text-primary">영상 스크립트</span>
-                          </div>
-                          <Badge variant="success" size="sm">생성됨</Badge>
-                        </div>
-                      </Link>
-                    )}
-                  </div>
-                )}
-
-                {isExpanded && contents.length === 0 && (
-                  <div className="mt-4 pt-4 border-t border-[rgba(240,246,252,0.08)]">
-                    <p className="text-xs text-text-tertiary text-center py-2">아직 생성된 콘텐츠가 없습니다.</p>
-                    <div className="flex justify-center mt-2">
-                      <Link href={`/create/channel-write?project_id=${proj.id}`}>
-                        <Button size="sm">콘텐츠 생성하기</Button>
-                      </Link>
-                    </div>
-                  </div>
-                )}
-              </Card>
-            )
-          })}
+          {filtered.map((proj) => (
+              <ProjectCard
+                key={proj.id}
+                proj={proj}
+                isExpanded={expandedId === proj.id}
+                onToggleExpand={() => setExpandedId(expandedId === proj.id ? null : proj.id)}
+                editingMemo={editingMemo === proj.id}
+                memoDate={memoDate}
+                onEditMemo={() => {
+                  setEditingMemo(proj.id)
+                  const contents = proj.contents || []
+                  const sc = contents.find((ct) => (ct as unknown as { scheduled_date?: string }).scheduled_date)
+                  setMemoDate(((sc as unknown as { scheduled_date?: string })?.scheduled_date) || '')
+                }}
+                onMemoDateChange={setMemoDate}
+                onSaveMemo={(contentIds) => handleSaveMemo(contentIds)}
+                onCancelMemo={() => setEditingMemo(null)}
+              />
+          ))}
         </div>
       )}
 
