@@ -204,8 +204,8 @@ export async function POST(req: NextRequest) {
           }
 
           // 전체 완료 시 step_status 업데이트
-          // blog가 선택됐으나 저장에 실패한 경우 s5를 completed로 올리지 않음
-          const blogOk = !selectedChannels.includes('blog') || !!contentIds['blog']
+          // 선택한 채널 중 하나라도 콘텐츠가 생성됐으면 s5를 completed로 올림
+          const anyOk = Object.keys(contentIds).length > 0
           await supabase
             .from('projects')
             .update({
@@ -213,7 +213,7 @@ export async function POST(req: NextRequest) {
               current_step: 5,
               step_status: {
                 ...project.step_status,
-                s5: blogOk ? 'completed' : (project.step_status?.s5 || 'pending'),
+                s5: anyOk ? 'completed' : (project.step_status?.s5 || 'pending'),
               },
             })
             .eq('id', project_id)
