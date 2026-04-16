@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
@@ -165,9 +166,9 @@ export default function VideoScriptPage() {
   return (
     <FlowGuard projectId={projectId} requiredStep={7}>
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <a href="/contents" className="text-sm text-text-tertiary hover:text-text-secondary">← 콘텐츠 목록</a>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <Link href="/contents" className="text-sm text-text-tertiary hover:text-text-secondary mb-2 inline-block">← 콘텐츠 목록</Link>
           <h1 className="text-xl font-bold text-text-primary">영상 스크립트</h1>
         </div>
       </div>

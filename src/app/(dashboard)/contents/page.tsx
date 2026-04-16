@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import Link from 'next/link'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
@@ -171,73 +172,89 @@ export default function ContentsPage() {
           <h1 className="text-2xl font-bold text-text-primary">콘텐츠</h1>
           <p className="text-sm text-text-secondary mt-1">키워드별로 생성된 콘텐츠를 관리하세요</p>
         </div>
-        <a href="/keywords">
+        <Link href="/keywords">
           <Button>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M8 3v10M3 8h10" />
             </svg>
             키워드에서 시작하기
           </Button>
-        </a>
+        </Link>
       </div>
 
-      {/* Search + Sort */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <form onSubmit={handleSearch} className="flex-1 flex gap-2">
+      {/* Search */}
+      <form onSubmit={handleSearch}>
+        <div className="flex gap-2">
           <div className="flex-1">
             <Input
               placeholder="키워드 검색..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              aria-label="키워드 검색"
             />
           </div>
-        </form>
+          <button
+            type="submit"
+            aria-label="검색"
+            className="h-11 px-4 bg-bg-tertiary text-text-secondary border border-[rgba(240,246,252,0.1)] rounded-lg text-sm hover:text-text-primary transition-colors flex items-center gap-1.5 shrink-0"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="7" cy="7" r="5" />
+              <path d="M14 14l-3-3" />
+            </svg>
+            <span>검색</span>
+          </button>
+        </div>
+      </form>
+
+      {/* 채널 필터 칩 */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div role="group" aria-label="채널 필터" className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-text-tertiary self-center shrink-0">채널</span>
+          <button
+            type="button"
+            aria-pressed={selectedChannels.length === 0}
+            onClick={() => setSelectedChannels([])}
+            className={`min-h-[44px] px-3 rounded-lg text-sm font-medium border transition-colors ${
+              selectedChannels.length === 0
+                ? 'bg-accent-primary text-white border-accent-primary'
+                : 'bg-bg-tertiary text-text-secondary border-[rgba(240,246,252,0.1)] hover:text-text-primary'
+            }`}
+          >
+            전체
+          </button>
+          {CONTENT_CHANNELS.map((ch) => {
+            const active = selectedChannels.includes(ch.id)
+            return (
+              <button
+                key={ch.id}
+                type="button"
+                aria-pressed={active}
+                onClick={() =>
+                  setSelectedChannels((prev) =>
+                    prev.includes(ch.id) ? prev.filter((v) => v !== ch.id) : [...prev, ch.id]
+                  )
+                }
+                className={`min-h-[44px] px-3 rounded-lg text-sm font-medium border transition-colors ${
+                  active
+                    ? 'bg-accent-primary text-white border-accent-primary'
+                    : 'bg-bg-tertiary text-text-secondary border-[rgba(240,246,252,0.1)] hover:text-text-primary'
+                }`}
+              >
+                {ch.label}
+              </button>
+            )
+          })}
+        </div>
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value as SortKey)}
-          className="h-11 px-3 bg-bg-tertiary text-text-primary border border-[rgba(240,246,252,0.1)] rounded-lg text-sm"
+          aria-label="정렬 기준"
+          className="h-11 px-3 bg-bg-tertiary text-text-primary border border-[rgba(240,246,252,0.1)] rounded-lg text-sm shrink-0"
         >
           <option value="updated_at">최신순</option>
           <option value="keyword_text">키워드순</option>
         </select>
-      </div>
-
-      {/* 채널 필터 칩 */}
-      <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          aria-pressed={selectedChannels.length === 0}
-          onClick={() => setSelectedChannels([])}
-          className={`min-h-[44px] px-3 rounded-lg text-sm font-medium border transition-colors ${
-            selectedChannels.length === 0
-              ? 'bg-accent-primary text-white border-accent-primary'
-              : 'bg-bg-tertiary text-text-secondary border-[rgba(240,246,252,0.1)] hover:text-text-primary'
-          }`}
-        >
-          전체
-        </button>
-        {CONTENT_CHANNELS.map((ch) => {
-          const active = selectedChannels.includes(ch.id)
-          return (
-            <button
-              key={ch.id}
-              type="button"
-              aria-pressed={active}
-              onClick={() =>
-                setSelectedChannels((prev) =>
-                  prev.includes(ch.id) ? prev.filter((v) => v !== ch.id) : [...prev, ch.id]
-                )
-              }
-              className={`min-h-[44px] px-3 rounded-lg text-sm font-medium border transition-colors ${
-                active
-                  ? 'bg-accent-primary text-white border-accent-primary'
-                  : 'bg-bg-tertiary text-text-secondary border-[rgba(240,246,252,0.1)] hover:text-text-primary'
-              }`}
-            >
-              {ch.label}
-            </button>
-          )
-        })}
       </div>
 
       {/* 프로젝트(키워드) 카드 리스트 */}
@@ -267,7 +284,7 @@ export default function ContentsPage() {
         <EmptyState
           title="콘텐츠가 없습니다"
           description="키워드에서 콘텐츠 생성을 시작해보세요"
-          action={<a href="/keywords"><Button>키워드에서 시작하기</Button></a>}
+          action={<Link href="/keywords"><Button>키워드에서 시작하기</Button></Link>}
         />
       ) : (
         <div className="space-y-3">
@@ -309,7 +326,7 @@ export default function ContentsPage() {
                         return (
                           <div key={cs.channel} className="flex items-center gap-1 text-xs">
                             {linkHref ? (
-                              <a
+                              <Link
                                 href={linkHref}
                                 className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors ${
                                   isDisabled
@@ -322,7 +339,7 @@ export default function ContentsPage() {
                                 }}
                               >
                                 {CHANNEL_LABEL_MAP[cs.channel] || cs.channel}
-                              </a>
+                              </Link>
                             ) : (
                               <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-500 text-gray-300 cursor-not-allowed`}>
                                 {CHANNEL_LABEL_MAP[cs.channel] || cs.channel}
@@ -336,13 +353,13 @@ export default function ContentsPage() {
                       })}
                       {/* 영상 스크립트 별도 표시 */}
                       <div className="flex items-center gap-1 text-xs">
-                        <a
+                        <Link
                           href={`/create/video-script?project_id=${proj.id}`}
                           className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors ${CHANNEL_COLOR_MAP['video_script'] || ''} hover:opacity-80`}
                           onClick={(e) => e.stopPropagation()}
                         >
                           {CHANNEL_LABEL_MAP['video_script'] || '영상'}
-                        </a>
+                        </Link>
                         <span>영상{proj.has_video ? '✅' : '❌'}</span>
                       </div>
                     </div>
@@ -401,7 +418,7 @@ export default function ContentsPage() {
                 {isExpanded && contents.length > 0 && (
                   <div className="mt-4 pt-4 border-t border-[rgba(240,246,252,0.08)] space-y-2">
                     {contents.map((c) => (
-                      <a key={c.id} href={`/contents/${c.id}`}>
+                      <Link key={c.id} href={`/contents/${c.id}`}>
                         <div className="flex items-center justify-between p-3 rounded-lg bg-surface-secondary hover:bg-[rgba(240,246,252,0.06)] transition-colors cursor-pointer">
                           <div className="flex items-center gap-2 min-w-0">
                             <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium shrink-0 ${CHANNEL_COLOR_MAP[c.channel] || ''}`}>
@@ -421,11 +438,11 @@ export default function ContentsPage() {
                             </Badge>
                           </div>
                         </div>
-                      </a>
+                      </Link>
                     ))}
                     {/* 영상 스크립트 행 */}
                     {proj.has_video && (
-                      <a href={`/create/video-script?project_id=${proj.id}`}>
+                      <Link href={`/create/video-script?project_id=${proj.id}`}>
                         <div className="flex items-center justify-between p-3 rounded-lg bg-surface-secondary hover:bg-[rgba(240,246,252,0.06)] transition-colors cursor-pointer">
                           <div className="flex items-center gap-2 min-w-0">
                             <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium shrink-0 ${CHANNEL_COLOR_MAP['video_script'] || ''}`}>
@@ -435,7 +452,7 @@ export default function ContentsPage() {
                           </div>
                           <Badge variant="success" size="sm">생성됨</Badge>
                         </div>
-                      </a>
+                      </Link>
                     )}
                   </div>
                 )}
@@ -444,9 +461,9 @@ export default function ContentsPage() {
                   <div className="mt-4 pt-4 border-t border-[rgba(240,246,252,0.08)]">
                     <p className="text-xs text-text-tertiary text-center py-2">아직 생성된 콘텐츠가 없습니다.</p>
                     <div className="flex justify-center mt-2">
-                      <a href={`/create/channel-write?project_id=${proj.id}`}>
+                      <Link href={`/create/channel-write?project_id=${proj.id}`}>
                         <Button size="sm">콘텐츠 생성하기</Button>
-                      </a>
+                      </Link>
                     </div>
                   </div>
                 )}

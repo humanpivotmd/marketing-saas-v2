@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
@@ -163,9 +164,9 @@ export default function ContentDetailPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <a href="/contents" className="text-sm text-text-tertiary hover:text-text-secondary mb-2 inline-block">
+            <Link href="/contents" className="text-sm text-text-tertiary hover:text-text-secondary mb-2 inline-block">
               ← 콘텐츠 목록
-            </a>
+            </Link>
             <div className="flex items-center gap-2 mb-1">
               <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${CHANNEL_COLOR_MAP[content.channel] || ''}`}>
                 {CHANNEL_LABEL_MAP[content.channel] || content.channel}
@@ -300,12 +301,12 @@ export default function ContentDetailPage() {
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-medium text-text-secondary">이미지 프롬프트 ({imagePrompts.length}장)</h3>
                   {savedAndNeedRegenImage && content.project_id && (
-                    <a
+                    <Link
                       href={`/create/channel-write?project_id=${content.project_id}`}
                       className="text-xs text-accent-primary hover:underline"
                     >
                       ⚠️ 글이 수정됨 → 재생성
-                    </a>
+                    </Link>
                   )}
                 </div>
                 <div className="space-y-2">
@@ -387,9 +388,9 @@ export default function ContentDetailPage() {
                       Threads 발행
                     </Button>
                   )}
-                  <a href="/calendar" className="block">
+                  <Link href="/calendar" className="block">
                     <Button fullWidth variant="ghost" size="sm">예약 발행</Button>
-                  </a>
+                  </Link>
                 </div>
               </Card>
             )}
