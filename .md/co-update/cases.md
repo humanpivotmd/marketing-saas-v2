@@ -83,15 +83,25 @@
 
 ---
 
----
+## Case 006 — 2026-04-17 — pipeline s5 blogOk가 multi-channel 잠금 + video-script s6 인위적 gate
+- **트리거**: soft delete 작업 중 pipeline s5 조건을 blogOk로 변경 (commit 9fca563)
+- **누락**: 1) blogOk가 [blog+facebook] 선택 시 blog 실패하면 s5 영구 잠김. 2) video-script가 image_scripts를 안 읽는데 requiredStep=7(s6 gate)로 막혀 있었음
+- **발견 경로**: 사용자가 "영상이 제작 안 됨" 직접 발견 → 팀 5명 분석
+- **매칭된 패턴**: 9 (파이프라인 단계)
+- **추가됐어야 할 패턴**: "step_status 전이 조건 변경" (blogOk→anyOk 같은 조건 로직)
+- **해결 커밋**: `b9dcea8` (blogOk→anyOk + requiredStep 7→6)
+- **재발 방지**: 총괄 PM이 파이프라인 전체 흐름 일관성 검토 후 단일 추천안 제시
+- **카테고리**: `pipeline-step`, `gate-logic`
 
+---
 
 ## 📊 카테고리별 빈도 (자동 집계)
 
 ```
 entry-point          : 3건
-pipeline-step        : 2건
+pipeline-step        : 3건
 legacy-debt          : 2건
+gate-logic           : 1건
 ui-flow              : 1건
 dead-code            : 1건
 data-integrity       : 1건

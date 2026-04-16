@@ -43,6 +43,10 @@ export async function PUT(req: NextRequest) {
       }
     }
 
+    // UUID/nullable 필드: 빈 문자열 → null (PostgreSQL UUID 타입 호환)
+    if (updateData.industry_id === '') updateData.industry_id = null
+    if (updateData.blog_category === '') updateData.blog_category = null
+
     // 유효성 검사
     if (updateData.business_type && !BUSINESS_TYPES.some(bt => bt.value === updateData.business_type)) {
       return Response.json({ success: false, error: 'business_type은 B2B 또는 B2C여야 합니다.' }, { status: 400 })

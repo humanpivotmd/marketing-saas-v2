@@ -4,6 +4,7 @@
 > ADK `user-prompt-submit.sh` hook이 매 프롬프트마다 핵심 규칙을 자동 주입합니다.
 
 ---
+"모든 작업 시작 전: CLAUDE.md 읽기 + impact-analyzer.js 실행" 
 
 ## 🤖 AI 행동 규칙
 

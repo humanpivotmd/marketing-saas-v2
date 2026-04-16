@@ -166,14 +166,14 @@ export default function ContentsPage() {
   )
 
   const pendingDeletionCount = useMemo(() => {
-    const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
     return projects.filter((p) => {
       const selectedChannels = p.settings_snapshot?.selected_channels || []
       if (!selectedChannels.includes('blog')) return false
       const hasBlog = p.contents?.some((c) => c.channel === 'blog')
       if (hasBlog) return false
       const updatedAt = new Date(p.updated_at).getTime()
-      return updatedAt < thirtyDaysAgo
+      return updatedAt < sevenDaysAgo
     }).length
   }, [projects])
 
@@ -327,7 +327,7 @@ export default function ContentsPage() {
             const isPendingDelete =
               projSelectedChannels.includes('blog') &&
               !hasBlog &&
-              new Date(proj.updated_at).getTime() < (Date.now() - 30 * 24 * 60 * 60 * 1000)
+              new Date(proj.updated_at).getTime() < (Date.now() - 7 * 24 * 60 * 60 * 1000)
 
             return (
               <Card key={proj.id} className="overflow-hidden">
