@@ -99,6 +99,12 @@ const FEATURES = [
   { key: 'has_priority_support', label: '전담 지원', unit: '' },
 ] as const
 
+const CheckIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-accent-success shrink-0" aria-hidden="true">
+    <path d="M4 8l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+
 export default function PricingPage() {
   const [isYearly, setIsYearly] = useState(false)
   const [currentPlan, setCurrentPlan] = useState('free')
@@ -247,33 +253,25 @@ export default function PricingPage() {
                 {/* Features */}
                 <ul className="space-y-3 mb-8 flex-1">
                   <li className="flex items-center gap-2 text-sm">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-accent-success shrink-0" aria-hidden="true">
-                      <path d="M4 8l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+                    <CheckIcon />
                     <span className="text-text-secondary">
                       콘텐츠 생성 {formatLimit(plan.content_limit)}/월
                     </span>
                   </li>
                   <li className="flex items-center gap-2 text-sm">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-accent-success shrink-0" aria-hidden="true">
-                      <path d="M4 8l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+                    <CheckIcon />
                     <span className="text-text-secondary">
                       키워드 분석 {formatLimit(plan.keyword_limit)}/월
                     </span>
                   </li>
                   <li className="flex items-center gap-2 text-sm">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-accent-success shrink-0" aria-hidden="true">
-                      <path d="M4 8l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+                    <CheckIcon />
                     <span className="text-text-secondary">
                       AI 이미지 {formatLimit(plan.image_limit)}/월
                     </span>
                   </li>
                   <li className="flex items-center gap-2 text-sm">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-accent-success shrink-0" aria-hidden="true">
-                      <path d="M4 8l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+                    <CheckIcon />
                     <span className="text-text-secondary">
                       SNS 채널 {plan.channel_limit < 0 ? '무제한' : `${plan.channel_limit}개`}
                     </span>

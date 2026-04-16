@@ -6,17 +6,11 @@ import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
 import Toast from '@/components/ui/Toast'
-import BottomSheet from '@/components/ui/BottomSheet'
 import FlowGuard from '@/components/FlowGuard'
 import { useAsyncAction } from '@/hooks/useAsyncAction'
 import { authHeaders } from '@/lib/auth-client'
-import {
-  CHANNEL_LABEL_MAP,
-  AI_TOOL_OPTIONS,
-  IMAGE_STYLE_DETAIL_OPTIONS,
-  IMAGE_SIZE_OPTIONS,
-  IMAGE_SIZE_DEFAULTS,
-} from '@/lib/constants'
+import ImagePromptSheet from '../components/ImagePromptSheet'
+import { CHANNEL_LABEL_MAP } from '@/lib/constants'
 
 interface ChannelContent {
   id: string
@@ -29,7 +23,7 @@ interface ChannelContent {
   word_count: number | null
 }
 
-interface ImagePromptResult {
+type ImagePromptResult = {
   channel: string
   images: { seq: number; description_ko: string; prompt_en: string; placement?: string }[]
   thumbnail?: { description_ko: string; prompt_en: string }
@@ -54,12 +48,7 @@ export default function ChannelWritePage() {
   // BottomSheet state
   const [sheetOpen, setSheetOpen] = useState(false)
   const [sheetChannel, setSheetChannel] = useState('')
-  const [aiTool, setAiTool] = useState<string>('Midjourney')
-  const [imageStyle, setImageStyle] = useState<'photo' | 'illustration'>('photo')
-  const [styleDetail, setStyleDetail] = useState('미니멀')
-  const [imageSize, setImageSize] = useState('')
   const [imageResults, setImageResults] = useState<Record<string, ImagePromptResult>>({})
-  const [generatingImage, setGeneratingImage] = useState(false)
 
   // Track which channels have completed image generation
   const [imageCompleted, setImageCompleted] = useState<Record<string, boolean>>({})
@@ -87,7 +76,7 @@ export default function ChannelWritePage() {
       const imageScripts = data.data.image_scripts || []
       if (imageScripts.length > 0) {
         const completedMap: Record<string, boolean> = {}
-        const resultsMap: Record<string, ImagePromptResult> = {}
+        const resultsMap: typeof imageResults = {}
         for (const s of imageScripts) {
           completedMap[s.channel] = true
           let thumbnail = undefined
@@ -232,7 +221,6 @@ export default function ChannelWritePage() {
   // Open BottomSheet for a specific channel (생성 모드)
   const openImageSheet = (channel: string) => {
     setSheetChannel(channel)
-    setImageSize(IMAGE_SIZE_DEFAULTS[channel] || '1080x1080')
     setSheetViewOnly(false)
     setSheetOpen(true)
   }
@@ -244,49 +232,7 @@ export default function ChannelWritePage() {
     setSheetOpen(true)
   }
 
-  // Generate image prompt via API
-  const handleGenerateImage = async () => {
-    setGeneratingImage(true)
-    await run(async () => {
-      const res = await fetch('/api/generate/image-script', {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify({
-          project_id: projectId,
-          channel: sheetChannel,
-          ai_tool: aiTool,
-          image_size: imageSize,
-          image_style: imageStyle,
-          style_detail: styleDetail,
-          use_my_prompt: useMyPrompt,
-        }),
-      })
-      const data = await res.json()
-      if (!data.success) throw new Error(data.error)
 
-      const result: ImagePromptResult = {
-        channel: sheetChannel,
-        images: data.data.images || [],
-        thumbnail: data.data.thumbnail || undefined,
-      }
-      setImageResults(prev => ({ ...prev, [sheetChannel]: result }))
-      setImageCompleted(prev => ({ ...prev, [sheetChannel]: true }))
-    }, { successMessage: '이미지 프롬프트 생성 완료', errorMessage: '생성 실패' })
-    setGeneratingImage(false)
-  }
-
-  // Move to next channel in the BottomSheet
-  const handleNextChannel = () => {
-    const channelTypes = contents.filter(c => c.channel !== 'video_script').map(c => c.channel)
-    const currentIdx = channelTypes.indexOf(sheetChannel)
-    if (currentIdx < channelTypes.length - 1) {
-      const next = channelTypes[currentIdx + 1]
-      setSheetChannel(next)
-      setImageSize(IMAGE_SIZE_DEFAULTS[next] || '1080x1080')
-    } else {
-      setSheetOpen(false)
-    }
-  }
 
   // 채널 진행 상태 (UI 표시 + 영상 진입 자유도)
   // 정책 (제품팀 회의 결과 2026-04-15):
@@ -318,7 +264,6 @@ export default function ChannelWritePage() {
   }
 
   const activeContent = contents.find(c => c.channel === activeChannel)
-  const sizeOptions = IMAGE_SIZE_OPTIONS[sheetChannel] || IMAGE_SIZE_OPTIONS.blog
 
   return (
     <FlowGuard projectId={projectId} requiredStep={5}>
@@ -533,177 +478,19 @@ export default function ChannelWritePage() {
         </>
       )}
 
-      {/* 이미지 프롬프트 BottomSheet */}
-      <BottomSheet
+      <ImagePromptSheet
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
-        title={sheetViewOnly
-          ? `${CHANNEL_LABEL_MAP[sheetChannel] || sheetChannel} 이미지 프롬프트 보기`
-          : `${CHANNEL_LABEL_MAP[sheetChannel] || sheetChannel} 이미지 프롬프트`}
-      >
-        <div className="space-y-5">
-          {!sheetViewOnly && (<>
-          {/* AI 도구 */}
-          <div>
-            <h4 className="text-sm font-semibold text-text-primary mb-2">AI 도구</h4>
-            <div className="flex flex-wrap gap-2">
-              {AI_TOOL_OPTIONS.map(tool => (
-                <button
-                  key={tool}
-                  onClick={() => setAiTool(tool)}
-                  className={`px-3 py-2 rounded-lg text-sm border transition-all min-h-[44px] ${
-                    aiTool === tool
-                      ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
-                      : 'border-border-primary text-text-tertiary'
-                  }`}
-                >
-                  {tool}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* 사이즈 */}
-          <div>
-            <h4 className="text-sm font-semibold text-text-primary mb-2">사이즈</h4>
-            <div className="flex flex-wrap gap-2">
-              {sizeOptions.map(opt => (
-                <button
-                  key={opt.value}
-                  onClick={() => setImageSize(opt.value)}
-                  className={`px-3 py-2 rounded-lg text-sm border transition-all min-h-[44px] ${
-                    imageSize === opt.value
-                      ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
-                      : 'border-border-primary text-text-tertiary'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* 이미지 유형 + 스타일 */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <h4 className="text-sm font-semibold text-text-primary mb-2">이미지 유형</h4>
-              <div className="flex gap-2">
-                {([{ v: 'photo' as const, l: '실사' }, { v: 'illustration' as const, l: '일러스트' }]).map(o => (
-                  <button
-                    key={o.v}
-                    onClick={() => setImageStyle(o.v)}
-                    className={`flex-1 py-2 rounded-lg text-sm border transition-all min-h-[44px] ${
-                      imageStyle === o.v
-                        ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
-                        : 'border-border-primary text-text-tertiary'
-                    }`}
-                  >
-                    {o.l}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <h4 className="text-sm font-semibold text-text-primary mb-2">스타일</h4>
-              <select
-                value={styleDetail}
-                onChange={e => setStyleDetail(e.target.value)}
-                className="w-full py-2 px-3 rounded-lg bg-surface-secondary border border-border-primary text-text-primary text-sm min-h-[44px]"
-              >
-                {IMAGE_STYLE_DETAIL_OPTIONS.map(s => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* 마이프롬프트 토글 (시트 내부) */}
-          <label className="flex items-center justify-between cursor-pointer select-none py-1">
-            <span className="text-sm text-text-secondary">마이프롬프트 적용</span>
-            <button
-              role="switch"
-              aria-checked={useMyPrompt}
-              onClick={() => setUseMyPrompt(v => !v)}
-              className={`relative w-10 h-6 rounded-full transition-colors min-w-[44px] min-h-[44px] flex items-center ${
-                useMyPrompt ? 'bg-accent-primary' : 'bg-surface-secondary border border-border-primary'
-              }`}
-            >
-              <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
-                useMyPrompt ? 'translate-x-5' : 'translate-x-1'
-              }`} />
-            </button>
-          </label>
-
-          {/* 생성 버튼 */}
-          <Button
-            className="w-full"
-            onClick={handleGenerateImage}
-            disabled={generatingImage}
-          >
-            {generatingImage
-              ? '이미지 프롬프트 생성 중...'
-              : imageResults[sheetChannel]
-                ? '이미지 프롬프트 재생성'
-                : '이미지 프롬프트 생성'}
-          </Button>
-          </>)}
-
-          {/* 결과 */}
-          {imageResults[sheetChannel] && (
-            <div className="space-y-3">
-              <h4 className="text-sm font-semibold text-text-primary">
-                생성 결과 ({imageResults[sheetChannel].images.length}장)
-              </h4>
-              {imageResults[sheetChannel].images.map((img, i) => (
-                <div key={i} className="p-3 rounded-lg bg-surface-secondary space-y-2">
-                  {img.placement && <p className="text-xs text-text-tertiary">{img.placement}</p>}
-                  <p className="text-sm text-text-secondary">{img.description_ko}</p>
-                  <div className="flex items-center gap-2">
-                    <code className="flex-1 text-xs text-accent-primary bg-bg-tertiary p-2 rounded overflow-x-auto">
-                      {img.prompt_en}
-                    </code>
-                    <Button size="sm" variant="ghost" onClick={() => {
-                      navigator.clipboard.writeText(img.prompt_en)
-                      showToast('복사됨', 'success')
-                    }}>
-                      복사
-                    </Button>
-                  </div>
-                </div>
-              ))}
-              {imageResults[sheetChannel].thumbnail && (
-                <div className="p-3 rounded-lg bg-accent-primary/5 border border-accent-primary/20 space-y-2">
-                  <p className="text-xs text-accent-primary font-medium">썸네일</p>
-                  <p className="text-sm text-text-secondary">{imageResults[sheetChannel].thumbnail!.description_ko}</p>
-                  <div className="flex items-center gap-2">
-                    <code className="flex-1 text-xs text-accent-primary bg-bg-tertiary p-2 rounded overflow-x-auto">
-                      {imageResults[sheetChannel].thumbnail!.prompt_en}
-                    </code>
-                    <Button size="sm" variant="ghost" onClick={() => {
-                      navigator.clipboard.writeText(imageResults[sheetChannel].thumbnail!.prompt_en)
-                      showToast('복사됨', 'success')
-                    }}>
-                      복사
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* 다음 채널 버튼 */}
-              <Button className="w-full" variant="secondary" onClick={handleNextChannel}>
-                {(() => {
-                  const channelTypes = contents.filter(c => c.channel !== 'video_script').map(c => c.channel)
-                  const idx = channelTypes.indexOf(sheetChannel)
-                  if (idx < channelTypes.length - 1) {
-                    return `다음 → ${CHANNEL_LABEL_MAP[channelTypes[idx + 1]] || channelTypes[idx + 1]}`
-                  }
-                  return '완료'
-                })()}
-              </Button>
-            </div>
-          )}
-        </div>
-      </BottomSheet>
+        projectId={projectId}
+        channel={sheetChannel}
+        viewOnly={sheetViewOnly}
+        existingResult={imageResults[sheetChannel] || null}
+        useMyPrompt={useMyPrompt}
+        onGenerated={(result) => {
+          setImageResults(prev => ({ ...prev, [sheetChannel]: result }))
+          setImageCompleted(prev => ({ ...prev, [sheetChannel]: true }))
+        }}
+      />
 
       {toast && <Toast message={toast.message} variant={toast.variant} visible onClose={clearToast} />}
     </div>

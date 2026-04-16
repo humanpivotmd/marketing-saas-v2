@@ -6,10 +6,10 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Toast from '@/components/ui/Toast'
-import BottomSheet from '@/components/ui/BottomSheet'
+import ImagePromptSheet from '../components/ImagePromptSheet'
 import FlowGuard from '@/components/FlowGuard'
 import { useAsyncAction } from '@/hooks/useAsyncAction'
-import { VIDEO_FORMAT_OPTIONS, VIDEO_CHANNEL_OPTIONS, VIDEO_STYLES, AI_TOOL_OPTIONS, IMAGE_STYLE_DETAIL_OPTIONS } from '@/lib/constants'
+import { VIDEO_FORMAT_OPTIONS, VIDEO_CHANNEL_OPTIONS, VIDEO_STYLES } from '@/lib/constants'
 
 const FORMAT_OPTIONS = VIDEO_FORMAT_OPTIONS
 const CHANNEL_OPTIONS = VIDEO_CHANNEL_OPTIONS
@@ -52,11 +52,7 @@ export default function VideoScriptPage() {
   const [revisionNote, setRevisionNote] = useState('')
   const [revising, setRevising] = useState(false)
   const [imgSheetOpen, setImgSheetOpen] = useState(false)
-  const [imgAiTool, setImgAiTool] = useState('Midjourney')
-  const [imgStyleDetail, setImgStyleDetail] = useState('모던')
-  const [imgGenerating, setImgGenerating] = useState(false)
-  const [imgResult, setImgResult] = useState<{ images: { seq: number; description_ko: string; prompt_en: string; placement?: string }[]; thumbnail?: { description_ko: string; prompt_en: string } } | null>(null)
-  const { loading: generating, toast, clearToast, showToast, run } = useAsyncAction()
+  const { loading: generating, toast, clearToast, run } = useAsyncAction()
 
   // 페이지 진입 시 기존 영상 스크립트 복원
   useEffect(() => {
@@ -138,30 +134,7 @@ export default function VideoScriptPage() {
     }, { successMessage: '프로젝트 완료', errorMessage: '완료 처리 실패' })
   }
 
-  const handleGenerateImagePrompt = async () => {
-    setImgGenerating(true)
-    await run(async () => {
-      const res = await fetch('/api/generate/image-script', {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify({
-          project_id: projectId,
-          channel: 'video_script',
-          ai_tool: imgAiTool,
-          image_size: format === 'short' ? '1080x1920' : '1920x1080',
-          image_style: imageStyle,
-          style_detail: imgStyleDetail,
-        }),
-      })
-      const data = await res.json()
-      if (!data.success) throw new Error(data.error)
-      setImgResult({
-        images: data.data.images || [],
-        thumbnail: data.data.thumbnail || undefined,
-      })
-    }, { successMessage: '이미지 프롬프트 생성 완료', errorMessage: '생성 실패' })
-    setImgGenerating(false)
-  }
+
 
   return (
     <FlowGuard projectId={projectId} requiredStep={6}>
@@ -372,7 +345,7 @@ export default function VideoScriptPage() {
               <div className="flex justify-between">
                 <Button variant="ghost" onClick={() => router.back()}>이전</Button>
                 <div className="flex items-center gap-2">
-                  <Button variant="secondary" onClick={() => { setImgResult(null); setImgSheetOpen(true) }}>이미지 프롬프트</Button>
+                  <Button variant="secondary" onClick={() => { setImgSheetOpen(true) }}>이미지 프롬프트</Button>
                   <Button onClick={handleComplete}>프로젝트 완료</Button>
                 </div>
               </div>
@@ -381,96 +354,15 @@ export default function VideoScriptPage() {
         </>
       )}
 
-      {/* 이미지 프롬프트 BottomSheet */}
-      <BottomSheet open={imgSheetOpen} onClose={() => setImgSheetOpen(false)} title="영상 이미지 프롬프트">
-        <div className="space-y-5">
-          <div>
-            <h4 className="text-sm font-semibold text-text-primary mb-2">AI 도구</h4>
-            <div className="flex flex-wrap gap-2">
-              {AI_TOOL_OPTIONS.map(tool => (
-                <button
-                  key={tool}
-                  onClick={() => setImgAiTool(tool)}
-                  className={`px-3 py-2 rounded-lg text-sm border transition-all min-h-[44px] ${
-                    imgAiTool === tool
-                      ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
-                      : 'border-border-primary text-text-tertiary'
-                  }`}
-                >
-                  {tool}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <h4 className="text-sm font-semibold text-text-primary mb-2">영상 유형</h4>
-              <p className="text-sm text-text-secondary">{format === 'short' ? '숏폼 (세로)' : '일반 (가로)'}</p>
-              <p className="text-xs text-text-tertiary">{format === 'short' ? '1080x1920' : '1920x1080'}</p>
-            </div>
-            <div>
-              <h4 className="text-sm font-semibold text-text-primary mb-2">장면 정보</h4>
-              <p className="text-sm text-text-secondary">{result?.scenes.length || sceneCount}장면 / 총 {result?.total_duration || sceneCount * sceneDuration}초</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <h4 className="text-sm font-semibold text-text-primary mb-2">등록 채널</h4>
-              <p className="text-sm text-text-secondary">{CHANNEL_OPTIONS.find(c => c.value === targetChannel)?.label || targetChannel}</p>
-            </div>
-            <div>
-              <h4 className="text-sm font-semibold text-text-primary mb-2">스타일</h4>
-              <select
-                value={imgStyleDetail}
-                onChange={e => setImgStyleDetail(e.target.value)}
-                className="w-full py-2 px-3 rounded-lg bg-surface-secondary border border-border-primary text-text-primary text-sm min-h-[44px]"
-              >
-                {IMAGE_STYLE_DETAIL_OPTIONS.map(s => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <Button className="w-full" onClick={handleGenerateImagePrompt} disabled={imgGenerating}>
-            {imgGenerating ? '이미지 프롬프트 생성 중...' : '이미지 프롬프트 생성'}
-          </Button>
-
-          {imgResult && (
-            <div className="space-y-3">
-              <h4 className="text-sm font-semibold text-text-primary">생성 결과 ({imgResult.images.length}장)</h4>
-              {imgResult.images.map((img, i) => (
-                <div key={i} className="p-3 rounded-lg bg-surface-secondary space-y-2">
-                  {img.placement && <p className="text-xs text-text-tertiary">{img.placement}</p>}
-                  <p className="text-sm text-text-secondary">{img.description_ko}</p>
-                  <div className="flex items-center gap-2">
-                    <code className="flex-1 text-xs text-accent-primary bg-bg-tertiary p-2 rounded overflow-x-auto">{img.prompt_en}</code>
-                    <Button size="sm" variant="ghost" onClick={() => {
-                      navigator.clipboard.writeText(img.prompt_en)
-                      showToast('복사됨', 'success')
-                    }}>복사</Button>
-                  </div>
-                </div>
-              ))}
-              {imgResult.thumbnail && (
-                <div className="p-3 rounded-lg bg-accent-primary/5 border border-accent-primary/20 space-y-2">
-                  <p className="text-xs text-accent-primary font-medium">썸네일</p>
-                  <p className="text-sm text-text-secondary">{imgResult.thumbnail.description_ko}</p>
-                  <div className="flex items-center gap-2">
-                    <code className="flex-1 text-xs text-accent-primary bg-bg-tertiary p-2 rounded overflow-x-auto">{imgResult.thumbnail.prompt_en}</code>
-                    <Button size="sm" variant="ghost" onClick={() => {
-                      navigator.clipboard.writeText(imgResult.thumbnail!.prompt_en)
-                      showToast('복사됨', 'success')
-                    }}>복사</Button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </BottomSheet>
+      <ImagePromptSheet
+        open={imgSheetOpen}
+        onClose={() => setImgSheetOpen(false)}
+        projectId={projectId}
+        channel="video_script"
+        fixedSize={format === 'short' ? '1080x1920' : '1920x1080'}
+        imageStyle={imageStyle}
+        onGenerated={() => {}}
+      />
 
       {toast && <Toast message={toast.message} variant={toast.variant} visible onClose={clearToast} />}
     </div>
