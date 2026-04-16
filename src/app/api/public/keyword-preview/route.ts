@@ -3,14 +3,20 @@ import { handleApiError, AppError } from '@/lib/errors'
 import { getClientIp, rateLimit, checkRateLimitOrRespond } from '@/lib/rate-limit'
 import { fetchNaverKeywords, getPublishCount, getExposureDays } from '@/lib/naver'
 import { calculateGrade } from '@/lib/grade'
+import { getAuthUser } from '@/lib/auth'
 
 // 1시간 5회 제한 (3600000ms = 1h)
 const previewRateLimit = rateLimit(3600000, 5)
 
 export async function POST(req: NextRequest) {
   try {
-    const rateLimited = checkRateLimitOrRespond(req, previewRateLimit, '/api/public/keyword-preview')
-    if (rateLimited) return rateLimited
+    // 인증된 사용자(어드민)는 rate limit 건너뛰기
+    const user = await getAuthUser(req)
+    const isAdmin = user && ['admin', 'super_admin'].includes(user.role)
+    if (!isAdmin) {
+      const rateLimited = checkRateLimitOrRespond(req, previewRateLimit, '/api/public/keyword-preview')
+      if (rateLimited) return rateLimited
+    }
 
     const { keyword } = await req.json()
 
