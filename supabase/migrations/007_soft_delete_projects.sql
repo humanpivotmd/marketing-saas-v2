@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS deleted_projects (
 CREATE INDEX IF NOT EXISTS idx_deleted_projects_user
   ON deleted_projects(user_id, deleted_at DESC);
 
+-- Regular index (not partial): NOW() is STABLE not IMMUTABLE, cannot be in predicate.
+-- Cron cleanup will query WHERE restoration_deadline < NOW() — plain btree suffices.
 CREATE INDEX IF NOT EXISTS idx_deleted_projects_deadline
-  ON deleted_projects(restoration_deadline)
-  WHERE restoration_deadline > NOW();
+  ON deleted_projects(restoration_deadline);
