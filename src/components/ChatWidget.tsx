@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect, useCallback, type FormEvent, type PointerEvent as ReactPointerEvent } from 'react'
 import Button from '@/components/ui/Button'
-import { authHeaders } from '@/lib/auth-client'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -80,17 +79,21 @@ export default function ChatWidget() {
     setIsStreaming(true)
 
     try {
-      const res = await fetch('/api/chat', {
+      const N8N_WEBHOOK = 'http://localhost:5678/webhook/120262ea-1dfb-43e6-8d72-3a50df5f67e6/chat'
+      const res = await fetch(N8N_WEBHOOK, {
         method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify({ message: content }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'sendMessage',
+          chatInput: content,
+          sessionId: 'marketing-app-session',
+        }),
       })
 
       if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: '요청 실패' }))
         setMessages(prev => {
           const updated = [...prev]
-          updated[updated.length - 1] = { role: 'assistant', content: err.error || '오류가 발생했습니다.' }
+          updated[updated.length - 1] = { role: 'assistant', content: 'AI 서비스 연결 오류가 발생했습니다.' }
           return updated
         })
         setIsStreaming(false)
@@ -98,15 +101,16 @@ export default function ChatWidget() {
       }
 
       const data = await res.json()
+      const output = data.output || data.text || JSON.stringify(data)
       setMessages(prev => {
         const updated = [...prev]
-        updated[updated.length - 1] = { role: 'assistant', content: data.output }
+        updated[updated.length - 1] = { role: 'assistant', content: output }
         return updated
       })
     } catch {
       setMessages(prev => {
         const updated = [...prev]
-        updated[updated.length - 1] = { role: 'assistant', content: '네트워크 오류가 발생했습니다.' }
+        updated[updated.length - 1] = { role: 'assistant', content: 'n8n 서버에 연결할 수 없습니다. n8n이 실행 중인지 확인하세요.' }
         return updated
       })
     } finally {
