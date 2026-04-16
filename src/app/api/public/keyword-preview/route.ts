@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
       grade: gradeResult.grade,
       opportunity: gradeResult.opportunity,
       opportunity_score: gradeResult.total_score,
-      cta: '더 자세한 분석은 무료 가입 후 확인하세요.',
+      cta: user ? '' : '더 자세한 분석은 무료 가입 후 확인하세요.',
     }
 
     const ip = getClientIp(req)
