@@ -2,7 +2,6 @@ import { NextRequest } from 'next/server'
 import { requireAuth } from '@/lib/auth'
 import { handleApiError } from '@/lib/errors'
 import { createServerSupabase } from '@/lib/supabase/server'
-import { deleteOwnedRecord } from '@/lib/api-helpers'
 
 // GET: 프로젝트 상세
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -16,6 +15,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       .select('*')
       .eq('id', id)
       .eq('user_id', authUser.userId)
+      .is('deleted_at', null)
       .single()
 
     if (error || !data) {
@@ -83,6 +83,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       .update(updateData)
       .eq('id', id)
       .eq('user_id', authUser.userId)
+      .is('deleted_at', null)
       .select()
       .single()
 
@@ -93,7 +94,55 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 }
 
-// DELETE: 프로젝트 삭제
+// DELETE: 프로젝트 소프트 삭제
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  return deleteOwnedRecord(req, params, 'projects')
+  try {
+    const authUser = await requireAuth(req)
+    const supabase = createServerSupabase()
+    const { id } = await params
+
+    // 소유권 확인 + 이미 삭제된 프로젝트 방어
+    const { data: project, error: fetchError } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', authUser.userId)
+      .is('deleted_at', null)
+      .single()
+
+    if (fetchError || !project) {
+      return Response.json({ success: false, error: '프로젝트를 찾을 수 없습니다.' }, { status: 404 })
+    }
+
+    // deleted_projects 스냅샷 저장
+    await supabase
+      .from('deleted_projects')
+      .insert({ ...project, original_id: project.id, deleted_by: authUser.userId })
+
+    // 소프트 삭제: deleted_at 마킹
+    const { error: updateError } = await supabase
+      .from('projects')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', id)
+      .eq('user_id', authUser.userId)
+
+    if (updateError) throw updateError
+
+    // action_logs INSERT: target_user_id reused as the actor for self-delete
+    // (semantically the actor == target; operationally acceptable per @checker caveat)
+    await supabase.from('action_logs').insert({
+      user_id: authUser.userId,
+      target_user_id: authUser.userId,
+      action: 'project_delete',
+      metadata: {
+        project_id: id,
+        reason: 'user_requested',
+        keyword_text: project.keyword_text,
+      },
+    })
+
+    return Response.json({ success: true })
+  } catch (err) {
+    return handleApiError(err)
+  }
 }

@@ -32,6 +32,7 @@ interface ProjectItem {
   content_ids: Record<string, string>
   created_at: string
   updated_at: string
+  deleted_at?: string | null
   scheduled_date?: string | null
   contents?: ProjectContent[]
   image_channels?: string[]
@@ -164,6 +165,18 @@ export default function ContentsPage() {
     [projects, search, sort, selectedChannels]
   )
 
+  const pendingDeletionCount = useMemo(() => {
+    const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000
+    return projects.filter((p) => {
+      const selectedChannels = p.settings_snapshot?.selected_channels || []
+      if (!selectedChannels.includes('blog')) return false
+      const hasBlog = p.contents?.some((c) => c.channel === 'blog')
+      if (hasBlog) return false
+      const updatedAt = new Date(p.updated_at).getTime()
+      return updatedAt < thirtyDaysAgo
+    }).length
+  }, [projects])
+
   return (
     <div className="p-4 lg:p-8 space-y-6">
       {/* Header */}
@@ -181,6 +194,21 @@ export default function ContentsPage() {
           </Button>
         </Link>
       </div>
+
+      {/* 삭제 예정 경고 배너 */}
+      {pendingDeletionCount > 0 && (
+        <div className="flex items-start gap-3 p-4 rounded-xl bg-accent-warning/10 border border-accent-warning/20">
+          <span className="text-accent-warning text-sm font-semibold mt-0.5">!</span>
+          <div className="flex-1">
+            <p className="text-sm text-text-primary font-medium">
+              블로그 콘텐츠가 없는 프로젝트 {pendingDeletionCount}개가 7일 후 삭제됩니다
+            </p>
+            <p className="text-xs text-text-tertiary mt-1">
+              블로그 글을 추가하거나 아카이브로 전환하면 삭제를 막을 수 있습니다.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Search */}
       <form onSubmit={handleSearch}>
@@ -294,6 +322,12 @@ export default function ContentsPage() {
             const channelStatuses = getChannelStatus(contents, proj.image_channels || [])
             const scheduledDate = getScheduledDate(contents)
             const keywordName = proj.keywords?.keyword || proj.keyword_text || '키워드 없음'
+            const projSelectedChannels = proj.settings_snapshot?.selected_channels || []
+            const hasBlog = proj.contents?.some((c) => c.channel === 'blog')
+            const isPendingDelete =
+              projSelectedChannels.includes('blog') &&
+              !hasBlog &&
+              new Date(proj.updated_at).getTime() < (Date.now() - 30 * 24 * 60 * 60 * 1000)
 
             return (
               <Card key={proj.id} className="overflow-hidden">
@@ -307,6 +341,11 @@ export default function ContentsPage() {
                       </Badge>
                       {proj.status === 'completed' && (
                         <Badge variant="success">완료</Badge>
+                      )}
+                      {isPendingDelete && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-accent-warning/10 text-accent-warning font-medium">
+                          D-7 삭제 예정
+                        </span>
                       )}
                     </div>
                     <p className="text-xs text-text-tertiary mt-1">

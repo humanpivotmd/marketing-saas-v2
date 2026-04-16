@@ -25,6 +25,7 @@ export async function POST(req: NextRequest) {
       .select('*')
       .eq('id', project_id)
       .eq('user_id', authUser.userId)
+      .is('deleted_at', null)
       .single()
 
     if (!project) {
@@ -125,6 +126,7 @@ export async function POST(req: NextRequest) {
       .update({ step_status: { ...project.step_status, s7: 'completed' } })
       .eq('id', project_id)
       .eq('user_id', authUser.userId)
+      .is('deleted_at', null)
 
     await logUsage(authUser.userId, 'video_script_generate', 'video', 'claude-sonnet-4-20250514', tokens)
 

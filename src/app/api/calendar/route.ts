@@ -13,11 +13,21 @@ export async function GET(req: NextRequest) {
     const from = url.searchParams.get('from') // YYYY-MM-DD
     const to = url.searchParams.get('to')     // YYYY-MM-DD
 
+    // 활성 프로젝트 ID 목록 조회 (소프트 삭제된 프로젝트 제외)
+    const { data: activeProjects } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('user_id', user.userId)
+      .is('deleted_at', null)
+
+    const activeIds = (activeProjects || []).map((p: { id: string }) => p.id)
+
     let query = supabase
       .from('contents')
       .select('id, channel, title, status, scheduled_date, confirmed_at, project_id')
       .eq('user_id', user.userId)
       .not('scheduled_date', 'is', null)
+      .or(`project_id.in.(${activeIds.join(',')}),project_id.is.null`)
       .order('scheduled_date', { ascending: true })
 
     if (from) query = query.gte('scheduled_date', from)

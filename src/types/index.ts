@@ -322,6 +322,7 @@ export interface Project {
   confirmed_at: string | null
   created_at: string
   updated_at: string
+  deleted_at?: string | null
 }
 
 export type ImageStyleType = 'photo' | 'illustration'

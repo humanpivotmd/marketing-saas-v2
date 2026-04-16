@@ -120,8 +120,12 @@ export default function CalendarPage() {
 
   // 프로젝트 그룹핑 메모이제이션
   const projectGroups = useMemo(() => {
+    // 소프트 삭제된 프로젝트의 orphan 콘텐츠 제외 (project_id 없는 단독 콘텐츠는 유지)
+    const renderableContents = selectedContents.filter(c =>
+      !c.project_id || projectMap[c.project_id]
+    )
     const groups: Record<string, CalendarProject> = {}
-    for (const c of selectedContents) {
+    for (const c of renderableContents) {
       const pid = c.project_id || c.id
       if (!groups[pid]) {
         const projInfo = c.project_id ? projectMap[c.project_id] : null

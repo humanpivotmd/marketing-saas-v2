@@ -20,6 +20,7 @@ export async function GET(req: NextRequest) {
       .from('projects')
       .select('*', { count: 'exact' })
       .eq('user_id', authUser.userId)
+      .is('deleted_at', null)
 
     if (status) query = query.eq('status', status)
     if (keyword_id) query = query.eq('keyword_id', keyword_id)
@@ -80,6 +81,64 @@ export async function GET(req: NextRequest) {
     }
 
     return Response.json({ success: true, data, total: count })
+  } catch (err) {
+    return handleApiError(err)
+  }
+}
+
+// DELETE: 프로젝트 소프트 삭제 (query: project_id)
+export async function DELETE(req: NextRequest) {
+  try {
+    const authUser = await requireAuth(req)
+    const supabase = createServerSupabase()
+    const url = new URL(req.url)
+    const project_id = url.searchParams.get('project_id')
+
+    if (!project_id) {
+      return Response.json({ success: false, error: 'project_id가 필요합니다.' }, { status: 400 })
+    }
+
+    // 소유권 확인
+    const { data: project, error: fetchError } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('id', project_id)
+      .eq('user_id', authUser.userId)
+      .is('deleted_at', null)
+      .single()
+
+    if (fetchError || !project) {
+      return Response.json({ success: false, error: '프로젝트를 찾을 수 없습니다.' }, { status: 404 })
+    }
+
+    // deleted_projects 스냅샷 저장
+    await supabase
+      .from('deleted_projects')
+      .insert({ ...project, original_id: project.id, deleted_by: authUser.userId })
+
+    // 소프트 삭제: deleted_at 마킹
+    const { error: updateError } = await supabase
+      .from('projects')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', project_id)
+      .eq('user_id', authUser.userId)
+
+    if (updateError) throw updateError
+
+    // action_logs INSERT: target_user_id reused as the actor for self-delete
+    // (semantically the actor == target; operationally acceptable per @checker caveat)
+    await supabase.from('action_logs').insert({
+      user_id: authUser.userId,
+      target_user_id: authUser.userId,
+      action: 'project_delete',
+      metadata: {
+        project_id: project_id,
+        reason: 'user_requested',
+        keyword_text: project.keyword_text,
+      },
+    })
+
+    return Response.json({ success: true })
   } catch (err) {
     return handleApiError(err)
   }

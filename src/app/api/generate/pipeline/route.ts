@@ -23,6 +23,7 @@ export async function POST(req: NextRequest) {
       .select('*')
       .eq('id', project_id)
       .eq('user_id', authUser.userId)
+      .is('deleted_at', null)
       .single()
 
     if (!project) {
@@ -203,12 +204,17 @@ export async function POST(req: NextRequest) {
           }
 
           // 전체 완료 시 step_status 업데이트
+          // blog가 선택됐으나 저장에 실패한 경우 s5를 completed로 올리지 않음
+          const blogOk = !selectedChannels.includes('blog') || !!contentIds['blog']
           await supabase
             .from('projects')
             .update({
               content_ids: contentIds,
               current_step: 5,
-              step_status: { ...project.step_status, s5: 'completed' },
+              step_status: {
+                ...project.step_status,
+                s5: blogOk ? 'completed' : (project.step_status?.s5 || 'pending'),
+              },
             })
             .eq('id', project_id)
             .eq('user_id', authUser.userId)
