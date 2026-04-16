@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import Badge from '@/components/ui/Badge'
 import { BusinessProfileProvider } from '@/hooks/useBusinessProfile'
 import { authHeaders } from '@/lib/auth-client'
+import ChatWidget from '@/components/ChatWidget'
 
 interface NavItem {
   icon: string
@@ -246,6 +247,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           </BusinessProfileProvider>
         </div>
       </main>
+
+      <ChatWidget />
     </div>
   )
 }
