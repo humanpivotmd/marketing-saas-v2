@@ -10,33 +10,8 @@ import Toast from '@/components/ui/Toast'
 import SetupRequired from '@/components/SetupRequired'
 import { getToken, authHeaders } from '@/lib/auth-client'
 import { useBusinessProfile } from '@/hooks/useBusinessProfile'
-
-interface Keyword {
-  id: string
-  keyword: string
-  grade: string | null
-  monthly_search: number | null
-  competition: string | null
-  cpc: number | null
-  group_name: string | null
-  trend_data: Record<string, unknown> | null
-  last_analyzed: string | null
-  created_at: string
-}
-
-interface GradeResult {
-  keyword: string
-  grade: string
-  difficulty: string
-  opportunity: string
-  total_score: number
-  monthly_search: number
-  monthly_publish: number
-  saturation: number
-  avg_cpc: number
-  trend: string
-  trend_change: number
-}
+import type { Keyword } from '@/types'
+import type { GradeResult } from '@/lib/grade'
 
 const GRADE_COLORS: Record<string, string> = {
   'A+': 'bg-emerald-500/15 text-emerald-400',

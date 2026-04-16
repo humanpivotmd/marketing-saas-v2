@@ -44,7 +44,7 @@ export default function ChannelWritePage() {
   const [activeChannel, setActiveChannel] = useState('')
   const [generating, setGenerating] = useState(false)
   const [progress, setProgress] = useState<Record<string, string>>({})
-  const [revisionNote, setRevisionNote] = useState('')
+  const [revisionNotes, setRevisionNotes] = useState<Record<string, string>>({})
   const [revising, setRevising] = useState(false)
   const [useMyPrompt, setUseMyPrompt] = useState(true)
   const { toast, clearToast, showToast, run } = useAsyncAction()
@@ -68,11 +68,12 @@ export default function ChannelWritePage() {
   const [sheetViewOnly, setSheetViewOnly] = useState(false)
 
   // 발행 메모 날짜
-  const [scheduledDate, setScheduledDate] = useState('')
+  const [scheduledDates, setScheduledDates] = useState<Record<string, string>>({})
 
   useEffect(() => {
     if (!projectId) return
     loadProject()
+    return () => { eventSourceRef.current?.abort() }
   }, [projectId])
 
   const loadProject = async () => {
@@ -200,28 +201,32 @@ export default function ChannelWritePage() {
   }
 
   const handleRevise = async (contentId: string) => {
-    if (!revisionNote.trim()) return
+    const note = revisionNotes[activeChannel] || ''
+    if (!note.trim()) return
     setRevising(true)
-    await run(async () => {
-      const content = contents.find(c => c.id === contentId)
-      if (!content) return
+    try {
+      await run(async () => {
+        const content = contents.find(c => c.id === contentId)
+        if (!content) return
 
-      const res = await fetch('/api/generate/single', {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify({
-          content_id: contentId,
-          revision_note: revisionNote,
-          project_id: projectId,
-        }),
-      })
-      const data = await res.json()
-      if (!data.success) throw new Error(data.error)
+        const res = await fetch('/api/generate/single', {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({
+            content_id: contentId,
+            revision_note: note,
+            project_id: projectId,
+          }),
+        })
+        const data = await res.json()
+        if (!data.success) throw new Error(data.error)
 
-      setRevisionNote('')
-      await loadProject()
-    }, { successMessage: '재작성 완료', errorMessage: '재작성 실패' })
-    setRevising(false)
+        setRevisionNotes(prev => ({ ...prev, [activeChannel]: '' }))
+        await loadProject()
+      }, { successMessage: '재작성 완료', errorMessage: '재작성 실패' })
+    } finally {
+      setRevising(false)
+    }
   }
 
   // Open BottomSheet for a specific channel (생성 모드)
@@ -409,7 +414,7 @@ export default function ChannelWritePage() {
                     <span className="text-xs text-text-tertiary">{activeContent.word_count}자</span>
                     <Button size="sm" variant="ghost" onClick={() => {
                       navigator.clipboard.writeText(activeContent.body)
-                      run(async () => {}, { successMessage: '복사됨' })
+                      showToast('복사됨', 'success')
                     }}>
                       복사
                     </Button>
@@ -433,11 +438,11 @@ export default function ChannelWritePage() {
                   <span className="text-sm text-text-secondary shrink-0">📅 발행 예정일</span>
                   <input
                     type="date"
-                    value={scheduledDate}
-                    onChange={(e) => setScheduledDate(e.target.value)}
+                    value={scheduledDates[activeChannel] || ''}
+                    onChange={(e) => setScheduledDates(prev => ({ ...prev, [activeChannel]: e.target.value }))}
                     className="py-1.5 px-2 rounded-lg bg-bg-tertiary border border-border-primary text-text-primary text-sm min-h-[44px]"
                   />
-                  {scheduledDate && (
+                  {scheduledDates[activeChannel] && (
                     <Button
                       size="sm"
                       variant="ghost"
@@ -446,7 +451,7 @@ export default function ChannelWritePage() {
                           await fetch(`/api/contents/${activeContent.id}`, {
                             method: 'PUT',
                             headers: authHeaders(),
-                            body: JSON.stringify({ scheduled_date: scheduledDate }),
+                            body: JSON.stringify({ scheduled_date: scheduledDates[activeChannel] }),
                           })
                         }, { successMessage: '발행 예정일 저장됨', errorMessage: '저장 실패' })
                       }}
@@ -507,8 +512,8 @@ export default function ChannelWritePage() {
                 {/* 수정/재작성 */}
                 <div className="space-y-3">
                   <textarea
-                    value={revisionNote}
-                    onChange={e => setRevisionNote(e.target.value)}
+                    value={revisionNotes[activeChannel] || ''}
+                    onChange={e => setRevisionNotes(prev => ({ ...prev, [activeChannel]: e.target.value }))}
                     placeholder="수정 요청 사항을 입력하세요 (예: 좀 더 캐주얼하게, CTA 강화)"
                     rows={2}
                     className="w-full py-2.5 px-3 rounded-lg bg-surface-secondary border border-border-primary text-text-primary text-sm resize-none"
@@ -517,7 +522,7 @@ export default function ChannelWritePage() {
                     size="sm"
                     variant="secondary"
                     onClick={() => handleRevise(activeContent.id)}
-                    disabled={revising || !revisionNote.trim()}
+                    disabled={revising || !(revisionNotes[activeChannel] || '').trim()}
                   >
                     {revising ? '재작성 중...' : '수정 반영하여 재작성'}
                   </Button>
@@ -659,7 +664,7 @@ export default function ChannelWritePage() {
                     </code>
                     <Button size="sm" variant="ghost" onClick={() => {
                       navigator.clipboard.writeText(img.prompt_en)
-                      run(async () => {}, { successMessage: '복사됨' })
+                      showToast('복사됨', 'success')
                     }}>
                       복사
                     </Button>
@@ -676,7 +681,7 @@ export default function ChannelWritePage() {
                     </code>
                     <Button size="sm" variant="ghost" onClick={() => {
                       navigator.clipboard.writeText(imageResults[sheetChannel].thumbnail!.prompt_en)
-                      run(async () => {}, { successMessage: '복사됨' })
+                      showToast('복사됨', 'success')
                     }}>
                       복사
                     </Button>

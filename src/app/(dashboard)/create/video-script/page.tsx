@@ -56,7 +56,7 @@ export default function VideoScriptPage() {
   const [imgStyleDetail, setImgStyleDetail] = useState('모던')
   const [imgGenerating, setImgGenerating] = useState(false)
   const [imgResult, setImgResult] = useState<{ images: { seq: number; description_ko: string; prompt_en: string; placement?: string }[]; thumbnail?: { description_ko: string; prompt_en: string } } | null>(null)
-  const { loading: generating, toast, clearToast, run } = useAsyncAction()
+  const { loading: generating, toast, clearToast, showToast, run } = useAsyncAction()
 
   // 페이지 진입 시 기존 영상 스크립트 복원
   useEffect(() => {
@@ -305,9 +305,12 @@ export default function VideoScriptPage() {
                       disabled={!revisionNote.trim() || revising}
                       onClick={async () => {
                         setRevising(true)
-                        await handleGenerate()
-                        setRevisionNote('')
-                        setRevising(false)
+                        try {
+                          await handleGenerate()
+                          setRevisionNote('')
+                        } finally {
+                          setRevising(false)
+                        }
                       }}
                     >
                       {revising ? '재작성 중...' : '수정 반영하여 재작성'}
@@ -446,7 +449,7 @@ export default function VideoScriptPage() {
                     <code className="flex-1 text-xs text-accent-primary bg-bg-tertiary p-2 rounded overflow-x-auto">{img.prompt_en}</code>
                     <Button size="sm" variant="ghost" onClick={() => {
                       navigator.clipboard.writeText(img.prompt_en)
-                      run(async () => {}, { successMessage: '복사됨' })
+                      showToast('복사됨', 'success')
                     }}>복사</Button>
                   </div>
                 </div>
@@ -459,7 +462,7 @@ export default function VideoScriptPage() {
                     <code className="flex-1 text-xs text-accent-primary bg-bg-tertiary p-2 rounded overflow-x-auto">{imgResult.thumbnail.prompt_en}</code>
                     <Button size="sm" variant="ghost" onClick={() => {
                       navigator.clipboard.writeText(imgResult.thumbnail!.prompt_en)
-                      run(async () => {}, { successMessage: '복사됨' })
+                      showToast('복사됨', 'success')
                     }}>복사</Button>
                   </div>
                 </div>

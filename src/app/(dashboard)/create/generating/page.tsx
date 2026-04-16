@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Card from '@/components/ui/Card'
 import Toast from '@/components/ui/Toast'
@@ -18,42 +18,65 @@ export default function GeneratingPage() {
   const [status, setStatus] = useState('초안을 작성하고 있습니다...')
   const [error, setError] = useState('')
   const { toast, clearToast } = useAsyncAction()
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
     if (!projectId) return
 
+    const controller = new AbortController()
+
     // 프로그레스 바 애니메이션
-    const interval = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       setProgress(p => Math.min(p + 2, 85))
     }, 500)
 
-    // 초안 생성 요청
-    fetch('/api/generate/draft', {
-      method: 'POST',
-      headers: authHeaders(),
-      body: JSON.stringify({ project_id: projectId }),
-    })
+    // 이미 초안 완료된 프로젝트인지 확인 후 중복 생성 방지
+    fetch(`/api/projects/${projectId}`, { headers: authHeaders(), signal: controller.signal })
       .then(r => r.json())
       .then(data => {
-        clearInterval(interval)
-        if (!data.success) {
-          setError(data.error || '초안 생성 실패')
+        if (data.success && data.data.step_status?.s4 === 'completed') {
+          if (intervalRef.current) clearInterval(intervalRef.current)
+          setProgress(100)
+          setStatus('이미 초안이 완료되었습니다. 이동 중...')
+          setTimeout(() => router.replace(`/create/channel-write?project_id=${projectId}`), 500)
           return
         }
-        setProgress(100)
-        setStatus('초안 작성 완료! 채널별 콘텐츠를 생성합니다...')
-
-        // 채널별 생성 페이지로 이동
-        setTimeout(() => {
-          router.replace(`/create/channel-write?project_id=${projectId}`)
-        }, 1000)
+        startDraftGeneration()
       })
-      .catch(err => {
-        clearInterval(interval)
-        setError((err as Error).message || '초안 생성 실패')
-      })
+      .catch(() => startDraftGeneration())
 
-    return () => clearInterval(interval)
+    function startDraftGeneration() {
+      fetch('/api/generate/draft', {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ project_id: projectId }),
+        signal: controller.signal,
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (intervalRef.current) clearInterval(intervalRef.current)
+          if (!data.success) {
+            setError(data.error || '초안 생성 실패')
+            return
+          }
+          setProgress(100)
+          setStatus('초안 작성 완료! 채널별 콘텐츠를 생성합니다...')
+          setTimeout(() => {
+            router.replace(`/create/channel-write?project_id=${projectId}`)
+          }, 1000)
+        })
+        .catch(err => {
+          if (intervalRef.current) clearInterval(intervalRef.current)
+          if ((err as Error).name !== 'AbortError') {
+            setError((err as Error).message || '초안 생성 실패')
+          }
+        })
+    }
+
+    return () => {
+      controller.abort()
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
   }, [projectId, router])
 
   return (

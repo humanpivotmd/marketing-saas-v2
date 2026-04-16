@@ -10,6 +10,7 @@ import Toast from '@/components/ui/Toast'
 import { useAsyncAction } from '@/hooks/useAsyncAction'
 import { CHANNEL_LABEL_MAP, CHANNEL_COLOR_MAP } from '@/lib/constants'
 import { getToken, authHeaders } from '@/lib/auth-client'
+import { sanitizeInput } from '@/lib/sanitize'
 
 interface ContentDetail {
   id: string
@@ -45,7 +46,7 @@ export default function ContentDetailPage() {
   const [saving, setSaving] = useState(false)
   const [imagePrompts, setImagePrompts] = useState<{ seq: number; description_ko: string; prompt_en: string; placement?: string }[]>([])
   const [imageThumbnail, setImageThumbnail] = useState<{ description_ko: string; prompt_en: string } | null>(null)
-  const { loading, toast, clearToast, run } = useAsyncAction(true)
+  const { loading, toast, clearToast, showToast, run } = useAsyncAction(true)
 
   const token = getToken() || null
 
@@ -89,7 +90,8 @@ export default function ContentDetailPage() {
   const handleSave = async () => {
     if (!token || !content) return
     setSaving(true)
-    await run(async () => {
+    try {
+      await run(async () => {
       const res = await fetch(`/api/contents/${id}`, {
         method: 'PUT',
         headers: authHeaders(),
@@ -104,14 +106,16 @@ export default function ContentDetailPage() {
     }, {
       successMessage: '저장되었습니다.',
       errorMessage: '저장에 실패했습니다.',
-    })
-    setSaving(false)
+      })
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleCopy = () => {
     if (!content?.body) return
     navigator.clipboard.writeText(content.body)
-    run(async () => {}, { successMessage: '클립보드에 복사되었습니다.' })
+    showToast('클립보드에 복사되었습니다.', 'success')
 
     if (token && content.id) {
       fetch('/api/publish/clipboard', {
@@ -215,12 +219,14 @@ export default function ContentDetailPage() {
                   <div
                     className="text-sm text-text-primary leading-relaxed whitespace-pre-wrap [&_h1]:text-xl [&_h1]:font-bold [&_h1]:mb-3 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:mt-6 [&_h2]:mb-2 [&_h3]:text-base [&_h3]:font-medium [&_h3]:mt-4 [&_h3]:mb-1 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
                     dangerouslySetInnerHTML={{
-                      __html: (content.body || '내용이 없습니다.')
-                        .replace(/^### (.+)/gm, '<h3>$1</h3>')
-                        .replace(/^## (.+)/gm, '<h2>$1</h2>')
-                        .replace(/^# (.+)/gm, '<h1>$1</h1>')
-                        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-                        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                      __html: sanitizeInput(
+                        (content.body || '내용이 없습니다.')
+                          .replace(/^### (.+)/gm, '<h3>$1</h3>')
+                          .replace(/^## (.+)/gm, '<h2>$1</h2>')
+                          .replace(/^# (.+)/gm, '<h1>$1</h1>')
+                          .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                          .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                      )
                     }}
                   />
                 </div>
@@ -359,10 +365,8 @@ export default function ContentDetailPage() {
                     </Button>
                   )}
                   {content.channel === 'instagram' && (
-                    <Button fullWidth size="sm" onClick={() => {
-                      run(async () => {}, { successMessage: 'Instagram 발행을 위해 이미지가 필요합니다.' })
-                    }}>
-                      Instagram 발행
+                    <Button fullWidth size="sm" variant="secondary" disabled>
+                      Instagram 발행 (준비 중)
                     </Button>
                   )}
                   {content.channel === 'threads' && (

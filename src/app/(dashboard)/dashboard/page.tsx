@@ -6,6 +6,7 @@ import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import Skeleton from '@/components/ui/Skeleton'
 import EmptyState from '@/components/ui/EmptyState'
+import Link from 'next/link'
 import { useBusinessProfile } from '@/hooks/useBusinessProfile'
 import { authHeaders } from '@/lib/auth-client'
 
@@ -113,9 +114,9 @@ export default function DashboardPage() {
                 콘텐츠를 생성하려면 <strong>비즈니스 유형(B2B/B2C)</strong>, <strong>운영 채널</strong>, <strong>회사명</strong> 등 기본 정보가 필요합니다.
                 설정한 정보는 AI가 맞춤 콘텐츠를 생성할 때 자동으로 반영됩니다.
               </p>
-              <a href="/settings#business">
+              <Link href="/settings#business">
                 <Button size="sm">마이페이지 설정하기</Button>
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -163,9 +164,9 @@ export default function DashboardPage() {
           <Card padding="sm">
             <div className="px-4 py-3 flex items-center justify-between gap-2">
               <h2 className="text-base font-semibold text-text-primary truncate">최근 콘텐츠</h2>
-              <a href="/contents" className="flex-shrink-0">
+              <Link href="/contents" className="flex-shrink-0">
                 <Button variant="ghost" size="sm"><span className="whitespace-nowrap">전체 보기</span></Button>
-              </a>
+              </Link>
             </div>
             {loading ? (
               <div className="px-4 py-3 space-y-4">
@@ -190,9 +191,9 @@ export default function DashboardPage() {
                 title="아직 콘텐츠가 없습니다"
                 description="키워드를 분석하고 B2B/B2C 맞춤 콘텐츠를 생성해보세요."
                 action={
-                  <a href="/keywords">
+                  <Link href="/keywords">
                     <Button>키워드에서 시작하기</Button>
-                  </a>
+                  </Link>
                 }
               />
             ) : (
@@ -201,7 +202,7 @@ export default function DashboardPage() {
                   const confirmedCount = (proj.contents || []).filter(c => c.confirmed_at).length
                   const totalCount = (proj.contents || []).length
                   return (
-                    <a key={proj.id} href={`/contents`}>
+                    <Link key={proj.id} href={`/contents?project=${proj.id}`}>
                       <div className="flex items-center justify-between p-3 rounded-lg hover:bg-surface-secondary transition-colors cursor-pointer">
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium text-text-primary truncate">{proj.keyword_text || '키워드 없음'}</p>
@@ -213,7 +214,7 @@ export default function DashboardPage() {
                           <path d="M6 4l4 4-4 4" />
                         </svg>
                       </div>
-                    </a>
+                    </Link>
                   )
                 })}
               </div>
@@ -227,9 +228,9 @@ export default function DashboardPage() {
           <Card padding="sm">
             <div className="px-4 py-3 flex items-center justify-between gap-2">
               <h2 className="text-base font-semibold text-text-primary truncate">상위 키워드</h2>
-              <a href="/keywords" className="flex-shrink-0">
+              <Link href="/keywords" className="flex-shrink-0">
                 <Button variant="ghost" size="sm"><span className="whitespace-nowrap">분석하기</span></Button>
-              </a>
+              </Link>
             </div>
             {loading ? (
               <div className="px-4 py-3 space-y-3">
@@ -242,10 +243,10 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="px-4 py-6 text-center">
-                <p className="text-sm text-text-tertiary">아직 분석된 키워드가 없습니다.</p>
-                <a href="/keywords" className="text-sm text-text-link hover:underline mt-1 inline-block">
+                <p className="text-sm text-text-tertiary">키워드를 분석하면 여기에 표시됩니다.</p>
+                <Link href="/keywords" className="text-sm text-text-link hover:underline mt-1 inline-block">
                   키워드 분석 시작하기
-                </a>
+                </Link>
               </div>
             )}
           </Card>
@@ -254,15 +255,15 @@ export default function DashboardPage() {
           <Card>
             <h2 className="text-base font-semibold text-text-primary mb-4">빠른 액션</h2>
             <div className="space-y-2.5">
-              <a href="/keywords">
+              <Link href="/keywords">
                 <Button variant="secondary" fullWidth size="sm">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true">
                     <path d="M8 4v8M4 8h8" />
                   </svg>
                   새 콘텐츠 만들기
                 </Button>
-              </a>
-              <a href="/keywords">
+              </Link>
+              <Link href="/keywords">
                 <Button variant="secondary" fullWidth size="sm" className="mt-2.5">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true">
                     <circle cx="7" cy="7" r="5" />
@@ -270,7 +271,7 @@ export default function DashboardPage() {
                   </svg>
                   키워드 분석
                 </Button>
-              </a>
+              </Link>
             </div>
           </Card>
         </div>

@@ -6,35 +6,9 @@ import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import Skeleton from '@/components/ui/Skeleton'
 import Toast from '@/components/ui/Toast'
-
-interface Keyword {
-  id: string
-  keyword: string
-  grade: string | null
-  monthly_search: number | null
-  monthly_search_pc: number | null
-  monthly_search_mobile: number | null
-  competition: string | null
-  cpc: number | null
-  group_name: string | null
-  trend_data: unknown | null
-  last_analyzed: string | null
-}
-
-interface GradeResult {
-  keyword: string
-  grade: string
-  difficulty: string
-  opportunity: string
-  total_score: number
-  monthly_search: number
-  monthly_publish: number
-  saturation: number
-  avg_cpc: number
-  exposure_days: number
-  trend: string
-  trend_change: number
-}
+import type { Keyword } from '@/types'
+import type { GradeResult } from '@/lib/grade'
+import { getToken } from '@/lib/auth-client'
 
 interface SeoScore {
   total: number
@@ -83,7 +57,7 @@ function getGradeStyle(grade: string | null) {
   return GRADE_COLORS[grade] || { bg: 'bg-bg-tertiary', text: 'text-text-tertiary', border: 'border-[rgba(240,246,252,0.1)]' }
 }
 
-import { getToken } from '@/lib/auth-client'
+
 
 const SEO_LABELS: Record<string, string> = {
   titleKeyword: '제목 키워드',
@@ -140,11 +114,12 @@ export default function KeywordDetailPage({ params }: { params: Promise<{ id: st
       const data = await res.json()
       if (data.success) {
         setKeyword(data.data)
-        // Auto-analyze if no grade
+        // 병렬 실행: 등급 분석 + 트렌드 조회
+        const promises: Promise<void>[] = [fetchTrends(data.data.keyword)]
         if (!data.data.grade) {
-          analyzeGrade(data.data.keyword)
+          promises.push(analyzeGrade(data.data.keyword))
         }
-        fetchTrends(data.data.keyword)
+        await Promise.all(promises)
       }
     } catch {
       setToast({ visible: true, message: '키워드 정보를 불러오지 못했습니다.', variant: 'error' })
