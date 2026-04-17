@@ -383,13 +383,16 @@ export default function KeywordsPage() {
                         <div>
                           <p className="text-xs text-text-tertiary">월간 검색량</p>
                           <p className="text-lg font-bold text-text-primary">
-                            {(gradeResult?.monthly_search ?? kw.monthly_search)?.toLocaleString() || '-'}
+                            {(gradeResult?.monthly_search ?? kw.monthly_search) ? (gradeResult?.monthly_search ?? kw.monthly_search)?.toLocaleString() : '정보 없음'}
                           </p>
+                          {gradeResult?.monthly_search === 0 && (
+                            <p className="text-[10px] text-accent-warning mt-0.5">API 데이터 부족 · 등급 참고용</p>
+                          )}
                         </div>
                         <div>
                           <p className="text-xs text-text-tertiary">경쟁도</p>
                           <p className="text-lg font-bold text-text-primary">
-                            {gradeResult ? `${gradeResult.saturation.toFixed(1)}%` : kw.competition || '-'}
+                            {gradeResult ? (gradeResult.saturation >= 100 && gradeResult.monthly_search === 0 ? '데이터 없음' : `${gradeResult.saturation.toFixed(1)}%`) : kw.competition || '-'}
                           </p>
                         </div>
                         <div>

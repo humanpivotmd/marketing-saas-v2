@@ -104,12 +104,15 @@ export function calculateGrade(
   monthlyPublish: number,
   exposureDays: number,
   avgCpc: number
-): GradeInfo & { total_score: number; saturation: number } {
+): GradeInfo & { total_score: number; saturation: number; data_insufficient: boolean } {
+  // 검색량 0 = API 데이터 없음 → 등급 신뢰도 낮음
+  const dataInsufficient = monthlySearch === 0
+
   const saturation =
     monthlySearch > 0
       ? Math.min((monthlyPublish / monthlySearch) * 100, 9999)
       : monthlyPublish > 0
-        ? 9999
+        ? 100  // 9999 대신 100% (UI에서 비현실적 수치 방지)
         : 50
 
   const score =
@@ -124,6 +127,7 @@ export function calculateGrade(
     ...gradeInfo,
     total_score: Math.round(score * 10) / 10,
     saturation: Math.round(saturation * 10) / 10,
+    data_insufficient: dataInsufficient,
   }
 }
 

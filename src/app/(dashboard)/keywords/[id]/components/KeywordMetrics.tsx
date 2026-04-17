@@ -44,7 +44,7 @@ export default function KeywordMetrics({ keyword, gradeResult, mode, gradeStyle,
           <div>
             <p className="text-xs text-text-tertiary">{mode === 'beginner' ? '한 달 검색 수' : '월간 검색량'}</p>
             <p className="text-xl font-bold text-text-primary">
-              {(gradeResult?.monthly_search ?? keyword.monthly_search)?.toLocaleString() || '-'}
+              {(gradeResult?.monthly_search ?? keyword.monthly_search) ? (gradeResult?.monthly_search ?? keyword.monthly_search)?.toLocaleString() : '정보 없음'}
             </p>
             {mode === 'beginner' && <p className="text-[10px] text-text-tertiary mt-0.5">많을수록 관심이 높은 키워드</p>}
           </div>
@@ -55,7 +55,7 @@ export default function KeywordMetrics({ keyword, gradeResult, mode, gradeStyle,
           </div>
           <div>
             <p className="text-xs text-text-tertiary">{mode === 'beginner' ? '경쟁 정도' : '포화도'}</p>
-            <p className="text-xl font-bold text-text-primary">{gradeResult ? `${gradeResult.saturation.toFixed(1)}%` : '-'}</p>
+            <p className="text-xl font-bold text-text-primary">{gradeResult ? (gradeResult.saturation >= 100 && gradeResult.monthly_search === 0 ? '데이터 없음' : `${gradeResult.saturation.toFixed(1)}%`) : '-'}</p>
             {mode === 'beginner' && <p className="text-[10px] text-text-tertiary mt-0.5">낮을수록 노출되기 쉬워요</p>}
           </div>
           <div>

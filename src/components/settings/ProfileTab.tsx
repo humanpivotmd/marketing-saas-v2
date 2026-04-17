@@ -52,6 +52,7 @@ export default function ProfileTab({ onToast }: { onToast: (t: { message: string
           const parsed = JSON.parse(userData)
           parsed.name = name
           sessionStorage.setItem('user', JSON.stringify(parsed))
+          window.dispatchEvent(new CustomEvent('user-profile-updated', { detail: { name } }))
         }
       } else {
         onToast({ message: data.error || '오류가 발생했습니다.', variant: 'error' })

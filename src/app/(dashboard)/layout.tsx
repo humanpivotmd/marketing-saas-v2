@@ -60,6 +60,35 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     // business-profile은 BusinessProfileProvider에서 관리
   }, [router, pathname])
 
+  // U1: 프로필 이름 변경 즉시 반영
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ name: string }>).detail
+      setUser(prev => prev ? { ...prev, name: detail.name } : prev)
+    }
+    window.addEventListener('user-profile-updated', handler)
+    return () => window.removeEventListener('user-profile-updated', handler)
+  }, [])
+
+  // U6: 사용량 캐시 무효화 시 refetch
+  useEffect(() => {
+    const handler = () => {
+      fetch('/api/mypage/usage', { headers: authHeaders() })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success && data.data) {
+            const { content } = data.data
+            const pct = content.limit > 0 ? Math.round((content.used / content.limit) * 100) : 0
+            setUsagePercent(Math.min(pct, 100))
+            setUsageText(`${content.used}/${content.limit}`)
+          }
+        })
+        .catch(() => {})
+    }
+    window.addEventListener('usage-updated', handler)
+    return () => window.removeEventListener('usage-updated', handler)
+  }, [])
+
   useEffect(() => {
     const token = sessionStorage.getItem('token')
     if (!token) return

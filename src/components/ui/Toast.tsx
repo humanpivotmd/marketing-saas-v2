@@ -81,7 +81,7 @@ export default function Toast({
       role="alert"
       aria-live="polite"
       className={`
-        fixed bottom-6 left-1/2 -translate-x-1/2 z-50
+        fixed bottom-6 left-1/2 -translate-x-1/2 z-[60]
         pb-[env(safe-area-inset-bottom)]
         flex items-center gap-3
         px-5 py-3 rounded-xl

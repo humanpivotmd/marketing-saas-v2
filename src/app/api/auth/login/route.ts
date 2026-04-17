@@ -26,7 +26,14 @@ export async function POST(req: NextRequest) {
     }
 
     if (user.status === 'suspended') {
-      throw new AppError('계정이 정지되었습니다. 고객센터에 문의해주세요.', 403, 'ACCOUNT_SUSPENDED')
+      const isDeleted = user.email.startsWith('deleted_')
+      throw new AppError(
+        isDeleted
+          ? '탈퇴한 계정입니다. 신규 회원가입을 이용해주세요.'
+          : '계정 사용이 제한되었습니다. 고객센터에 문의해주세요.',
+        403,
+        isDeleted ? 'ACCOUNT_DELETED' : 'ACCOUNT_SUSPENDED'
+      )
     }
 
     const valid = await comparePassword(password, user.password_hash)

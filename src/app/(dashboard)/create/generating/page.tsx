@@ -61,6 +61,8 @@ export default function GeneratingPage() {
           }
           setProgress(100)
           setStatus('초안 작성 완료! 채널별 콘텐츠를 생성합니다...')
+          sessionStorage.removeItem('dashboard_usage')
+          window.dispatchEvent(new Event('usage-updated'))
           setTimeout(() => {
             router.replace(`/create/channel-write?project_id=${projectId}`)
           }, 1000)
