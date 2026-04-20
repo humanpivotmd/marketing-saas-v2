@@ -348,7 +348,7 @@ export default function KeywordsPage() {
                     <a
                       href={`/create/draft-info?keyword_id=${kw.id}&keyword=${encodeURIComponent(kw.keyword)}`}
                       onClick={(e) => e.stopPropagation()}
-                      className="px-3 py-1.5 text-xs font-medium text-accent-primary hover:bg-accent-primary/10 rounded-lg transition-colors min-h-[44px] flex items-center"
+                      className="px-3 py-1.5 text-xs font-medium bg-accent-primary text-white hover:bg-accent-primary/90 rounded-lg transition-colors min-h-[44px] flex items-center"
                     >
                       콘텐츠 생성
                     </a>

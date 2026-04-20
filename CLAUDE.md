@@ -73,6 +73,7 @@
 | [.md/co-update/patterns.md](.md/co-update/patterns.md) | 전방 영향 패턴 12개 | @designer 매번 |
 | [.md/co-update/cases.md](.md/co-update/cases.md) | 학습 사례 누적 | 패턴 추출 시 |
 | [Agent-Skills.md](Agent-Skills.md) | /spec → /plan → /build → /test → /review → /ship | ADK 워크플로우 |
+| `src/lib/swagger/openapi.ts` | OpenAPI 3.0 스펙 (75개 API) | API route 추가·수정 시 |
 
 ---
 
@@ -93,8 +94,8 @@
 
 - **MarketingFlow**: Next.js 16 + Supabase + Claude API 마케팅 SaaS
 - **문서**: `.md/INDEX.md` 참조
-- **API**: 69개 Route Handler
-- **DB**: 21개 테이블, 마이그레이션 5개 (001~005)
+- **API**: 75개 Route Handler — [Swagger UI](/api-docs) | [OpenAPI JSON](/api/openapi)
+- **DB**: 21개 테이블, 마이그레이션 12개 (001~012)
 - **AI 모델**: `claude-sonnet-4-20250514`
 - **배포**: Railway (`next start`, 표준 모드 — standalone 아님)
 
@@ -104,6 +105,13 @@
 npm run dev     # 개발 서버
 npm run build   # 프로덕션 빌드 (tsc 포함)
 ```
+
+## 📖 API 문서 (Swagger)
+
+- **Swagger UI**: `http://localhost:3000/api-docs`
+- **OpenAPI JSON**: `http://localhost:3000/api/openapi`
+- **Spec 소스**: `src/lib/swagger/openapi.ts`
+- API 추가/수정 시 반드시 `openapi.ts`의 paths에도 반영할 것
 
 ---
 

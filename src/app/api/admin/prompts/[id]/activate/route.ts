@@ -41,6 +41,18 @@ export async function POST(
 
     if (error) throw error
 
+    // 감사 로그
+    try {
+      await supabase.from('action_logs').insert({
+        admin_id: authUser.id,
+        target_user_id: null,
+        action: 'prompt_activate',
+        metadata: { prompt_id: id, step: prompt.step },
+      })
+    } catch {
+      // 로그 실패는 비치명적
+    }
+
     return Response.json({ success: true, data })
   } catch (error) {
     return handleApiError(error)

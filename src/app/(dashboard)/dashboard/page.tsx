@@ -272,6 +272,14 @@ export default function DashboardPage() {
                   키워드 분석
                 </Button>
               </Link>
+              <Link href="/contents">
+                <Button variant="ghost" fullWidth size="sm" className="mt-2.5">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true">
+                    <path d="M4 6h8M4 10h5" />
+                  </svg>
+                  콘텐츠 관리
+                </Button>
+              </Link>
             </div>
           </Card>
         </div>

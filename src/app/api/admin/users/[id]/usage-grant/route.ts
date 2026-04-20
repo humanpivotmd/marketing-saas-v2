@@ -18,6 +18,10 @@ export async function POST(
       return Response.json({ error: 'action_type과 amount는 필수입니다.' }, { status: 400 })
     }
 
+    if (!Number.isInteger(amount) || amount < 1 || amount > 100) {
+      return Response.json({ error: 'amount는 1~100 사이 정수여야 합니다.' }, { status: 400 })
+    }
+
     const validTypes = ['content_create', 'keyword_analyze', 'image_generate']
     if (!validTypes.includes(action_type)) {
       return Response.json({ error: '유효하지 않은 action_type입니다.' }, { status: 400 })
@@ -48,6 +52,18 @@ export async function POST(
 
     const { error } = await supabase.from('usage_logs').insert(logs)
     if (error) throw error
+
+    // 감사 로그
+    try {
+      await supabase.from('action_logs').insert({
+        admin_id: authUser.id,
+        target_user_id: id,
+        action: 'usage_grant',
+        metadata: { action_type, amount, reason: reason || null },
+      })
+    } catch {
+      // 로그 실패는 비치명적
+    }
 
     return Response.json({
       success: true,

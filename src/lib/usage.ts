@@ -21,7 +21,7 @@ export async function checkUsageLimit(
     let limitValue = 9999
     const { data: userData } = await supabase
       .from('users')
-      .select('plan_id, role')
+      .select('plan_id, role, plan_expires_at')
       .eq('id', userId)
       .single()
 
@@ -30,7 +30,11 @@ export async function checkUsageLimit(
       return { allowed: true, used: 0, limit: 0, remaining: Infinity }
     }
 
-    if (userData?.plan_id) {
+    // 플랜 만료 체크: plan_expires_at이 현재보다 과거면 무료 플랜 한도 적용
+    const planExpired = userData?.plan_expires_at
+      && new Date(userData.plan_expires_at) < new Date()
+
+    if (userData?.plan_id && !planExpired) {
       const { data: plan } = await supabase
         .from('plans')
         .select('content_limit, keyword_limit, image_limit')
@@ -65,7 +69,14 @@ export async function checkUsageLimit(
       .gte('created_at', monthStart)
       .lt('created_at', monthEnd)
 
-    const used = count ?? 0
+    // Grant 레코드 카운트 (admin 수동 지급 — 만료 없이 누적)
+    const { count: grantCount } = await supabase
+      .from('usage_logs')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('action_type', `${actionType}_grant`)
+
+    const used = Math.max(0, (count ?? 0) - (grantCount ?? 0))
 
     if (used >= limitValue) {
       const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1)
@@ -86,7 +97,8 @@ export async function checkUsageLimit(
       limit: limitValue,
       remaining: limitValue - used,
     }
-  } catch {
+  } catch (err) {
+    console.error('[checkUsageLimit] DB error — fail-open:', err)
     return { allowed: true, used: 0, limit: 9999, remaining: 9999 }
   }
 }

@@ -128,6 +128,26 @@ export async function sendBroadcastEmail(
   })
 }
 
+export async function sendBillingFailureEmail(
+  email: string,
+  name: string
+): Promise<SendMailResult> {
+  const appUrl = getAppUrl()
+  const safeName = escapeHtml(name)
+  return sendMail({
+    to: email,
+    subject: '[MarketingFlow] 자동결제 실패 안내',
+    html: `<div style="font-family:'Apple SD Gothic Neo',sans-serif;max-width:480px;margin:0 auto;padding:24px">
+      <h2 style="color:#1a1a2e">자동결제 실패 안내</h2>
+      <p>${safeName}님, 자동결제가 정상적으로 처리되지 않았습니다.</p>
+      <p>플랜이 <strong>Free</strong>로 전환되었습니다. 유료 기능을 계속 사용하시려면 결제 수단을 업데이트해주세요.</p>
+      <a href="${appUrl}/pricing" style="display:inline-block;padding:12px 24px;background:#6366f1;color:#fff;border-radius:8px;text-decoration:none;margin:16px 0">플랜 재결제하기</a>
+      <hr style="margin:24px 0;border:none;border-top:1px solid #eee">
+      <p style="color:#888;font-size:12px">MarketingFlow | 문의사항은 고객센터로 연락해주세요.</p>
+    </div>`,
+  })
+}
+
 export function createVerifyToken(): { token: string; expires: Date } {
   return {
     token: crypto.randomUUID(),

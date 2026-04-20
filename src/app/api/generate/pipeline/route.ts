@@ -103,11 +103,14 @@ export async function POST(req: NextRequest) {
             ))
 
             const prompt = buildChannelPrompt(ctx, channel)
+            const { splitPrompt } = await import('@/lib/claude-client')
+            const { system, user } = splitPrompt(prompt)
 
             const claudeBody = JSON.stringify({
                 model: 'claude-sonnet-4-20250514',
                 max_tokens: channel === 'blog' ? 4096 : 2048,
-                messages: [{ role: 'user', content: prompt }],
+                system,
+                messages: [{ role: 'user', content: user }],
               })
 
             const RETRY_DELAYS = [1000, 3000, 5000, 8000, 12000]

@@ -74,12 +74,12 @@ export default function OnboardingPage() {
       if (!res.ok) { router.push('/login'); return }
 
       // Mark onboarding complete (via a simple user update)
-      // For now, store in sessionStorage and navigate
-      const userData = sessionStorage.getItem('user')
+      // For now, store in localStorage and navigate
+      const userData = localStorage.getItem('user') || sessionStorage.getItem('user')
       if (userData) {
         const user = JSON.parse(userData)
         user.onboarding_done = true
-        sessionStorage.setItem('user', JSON.stringify(user))
+        localStorage.setItem('user', JSON.stringify(user))
       }
 
       router.push('/dashboard')

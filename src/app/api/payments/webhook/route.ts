@@ -61,8 +61,69 @@ export async function POST(req: NextRequest) {
       }
 
       case 'BILLING_KEY_STATUS_CHANGED': {
-        // 자동결제 키 상태 변경
-        // 구독 갱신 실패 시 사용자 알림 등 처리
+        // 자동결제 키 비활성화 시 → 무료 플랜으로 다운그레이드
+        const { status: billingStatus, customerKey } = data
+        if (billingStatus === 'EXPIRED' || billingStatus === 'STOPPED') {
+          // customerKey로 payments 테이블에서 user_id 조회 (직접 매핑 금지)
+          let userId: string | null = null
+          if (customerKey) {
+            const { data: payment } = await supabase
+              .from('payments')
+              .select('user_id')
+              .eq('payment_key', customerKey)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .single()
+            userId = payment?.user_id || null
+          }
+          if (userId) {
+            // free 플랜 조회
+            const { data: freePlan } = await supabase
+              .from('plans')
+              .select('id')
+              .eq('name', 'free')
+              .single()
+
+            if (freePlan) {
+              await supabase
+                .from('users')
+                .update({
+                  plan_id: freePlan.id,
+                  plan_expires_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
+                })
+                .eq('id', userId)
+
+              // 감사 로그: 자동 다운그레이드 기록
+              try {
+                await supabase.from('action_logs').insert({
+                  admin_id: userId,
+                  target_user_id: userId,
+                  action: 'status_change',
+                  metadata: { trigger: 'billing_key_expired', billing_status: billingStatus, downgraded_to: 'free' },
+                })
+              } catch {
+                // 로그 실패는 비치명적
+              }
+            }
+
+            // 사용자에게 이메일 알림 (비치명적)
+            try {
+              const { data: user } = await supabase
+                .from('users')
+                .select('email, name')
+                .eq('id', userId)
+                .single()
+
+              if (user?.email) {
+                const { sendBillingFailureEmail } = await import('@/lib/email')
+                await sendBillingFailureEmail(user.email, user.name || '회원')
+              }
+            } catch {
+              // 이메일 실패는 비치명적
+            }
+          }
+        }
         break
       }
 

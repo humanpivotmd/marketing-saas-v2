@@ -1,4 +1,7 @@
 // ─── 7단계 콘텐츠 생성 파이프라인 프롬프트 ───
+import { BLOG_SPEC } from '@/features/content/generation/prompts/blog'
+import { THREADS_SPEC, INSTAGRAM_SPEC, FACEBOOK_SPEC } from '@/features/content/generation/prompts/social'
+import { VIDEO_B2B_PRINCIPLES, VIDEO_B2C_PRINCIPLES } from '@/features/content/generation/prompts/video'
 
 // 시스템/유저 분리 프롬프트 구조
 export interface SplitPrompt {
@@ -399,62 +402,12 @@ ${ctx.businessType === 'B2B'
   return applyUserPrompt(base, ctx)
 }
 
-// ── STEP5: 채널별 변환
+// ── STEP5: 채널별 변환 (스펙은 features/content/generation/prompts/에서 import)
 const CHANNEL_SPECS: Record<string, { b2b: string; b2c: string }> = {
-  blog: {
-    b2b: `- 형식: 네이버 블로그 (B2B 전문 콘텐츠)
-- 분량: 2500~3500자
-- H2/H3 소제목, 데이터 표, 인용 활용
-- 본문 내 키워드 5~8회 자연 포함
-- 사례/레퍼런스 1~2개 포함
-- 맺음말에 상담/문의 CTA`,
-    b2c: `- 형식: 네이버 블로그 (B2C 감성 콘텐츠)
-- 분량: 1800~2500자
-- 읽기 쉬운 문단, 이모지 적절 활용
-- 본문 내 키워드 3~5회 자연 포함
-- 후기/경험담 형식 추천
-- 맺음말에 구매/체험 CTA`,
-  },
-  threads: {
-    b2b: `- 형식: Threads (B2B 인사이트)
-- 분량: 200~400자
-- 전문적이되 간결한 톤
-- 핵심 데이터 1개 + 인사이트
-- 해시태그 3~5개 (업계 키워드)`,
-    b2c: `- 형식: Threads (B2C 대화형)
-- 분량: 100~300자
-- 대화체, 이모지 2~4개
-- 첫 줄 후킹 (질문/충격적 사실)
-- 해시태그 5~10개`,
-  },
-  instagram: {
-    b2b: `- 형식: 인스타그램 캡션 (B2B)
-- 분량: 300~500자
-- 전문적 인사이트 공유 형식
-- 줄바꿈으로 가독성
-- 해시태그 10~15개 (업계 전문 태그)
-- CTA: 링크/프로필 유도`,
-    b2c: `- 형식: 인스타그램 캡션 (B2C)
-- 분량: 200~400자
-- 이모지 적극 활용
-- 감성적 스토리텔링
-- 해시태그 15~25개
-- CTA: 저장/공유/댓글 유도`,
-  },
-  facebook: {
-    b2b: `- 형식: 페이스북 게시물 (B2B)
-- 분량: 500~800자
-- 업계 뉴스/트렌드 분석 형식
-- 데이터 인사이트 포함
-- 링크 공유 유도
-- 해시태그 3~5개`,
-    b2c: `- 형식: 페이스북 게시물 (B2C)
-- 분량: 300~600자
-- 대화형 톤, 질문형 도입
-- 공감/공유 유도
-- 이벤트/혜택 강조
-- 해시태그 3~5개`,
-  },
+  blog: BLOG_SPEC,
+  threads: THREADS_SPEC,
+  instagram: INSTAGRAM_SPEC,
+  facebook: FACEBOOK_SPEC,
 }
 
 export function buildChannelPrompt(ctx: PipelineContext, channel: string): string {
@@ -567,20 +520,7 @@ ${getBusinessContext(ctx.businessType)}
 - 장면당 시간: ${ctx.sceneDuration}초
 - 총 길이: ${totalDuration}초
 
-${ctx.businessType === 'B2B'
-  ? `- B2B 영상 원칙:
-  · 설명형/데모 중심, 전문적 내레이션
-  · 데이터 시각화(그래프, 차트) 장면 포함
-  · 제품/서비스 데모, 대시보드 화면
-  · 사례 발표, 전문가 인터뷰 형식
-  · CTA: "무료 상담", "데모 신청", "백서 다운로드"`
-  : `- B2C 영상 원칙:
-  · 감성적이고 빠른 장면 전환
-  · 첫 3초 강력한 후킹 (질문/충격/공감)
-  · 인물 중심 라이프스타일 장면
-  · 트렌디한 BGM, 자막 효과
-  · CTA: "지금 바로", "링크 클릭", "댓글로 알려주세요"`
-}
+${ctx.businessType === 'B2B' ? VIDEO_B2B_PRINCIPLES : VIDEO_B2C_PRINCIPLES}
 
 [지시]
 각 장면별 스토리보드를 작성하세요.

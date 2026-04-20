@@ -38,7 +38,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.tosspayments.com https://mcp.figma.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://api.tosspayments.com https://cdn.jsdelivr.net https://mcp.figma.com http://localhost:5678; frame-src https://js.tosspayments.com;",
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.tosspayments.com https://mcp.figma.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net https://fonts.scalar.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://api.tosspayments.com https://cdn.jsdelivr.net https://mcp.figma.com https://api.scalar.com http://localhost:5678; frame-src https://js.tosspayments.com;",
           },
         ],
       },

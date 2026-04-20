@@ -10,7 +10,8 @@ import Toast from '@/components/ui/Toast'
 import { useAsyncAction } from '@/hooks/useAsyncAction'
 import { CHANNEL_LABEL_MAP, CHANNEL_COLOR_MAP } from '@/lib/constants'
 import { getToken, authHeaders } from '@/lib/auth-client'
-import { sanitizeInput } from '@/lib/sanitize'
+import ContentEditor from '@/features/content/editor/ContentEditor'
+import MarkdownViewer from '@/features/content/editor/MarkdownViewer'
 
 interface ContentDetail {
   id: string
@@ -203,11 +204,10 @@ export default function ContentDetailPage() {
                     className="w-full h-11 px-4 text-base bg-bg-tertiary text-text-primary border border-[rgba(240,246,252,0.1)] rounded-lg"
                     placeholder="제목"
                   />
-                  <textarea
+                  <ContentEditor
                     value={editBody}
-                    onChange={(e) => setEditBody(e.target.value)}
-                    className="w-full min-h-[400px] px-4 py-3 text-sm bg-bg-tertiary text-text-primary border border-[rgba(240,246,252,0.1)] rounded-lg resize-y font-mono"
-                    placeholder="콘텐츠 본문"
+                    onChange={setEditBody}
+                    placeholder="콘텐츠 본문을 편집하세요"
                   />
                   <div className="flex justify-end gap-2">
                     <Button variant="secondary" size="sm" onClick={() => setEditing(false)}>취소</Button>
@@ -215,21 +215,7 @@ export default function ContentDetailPage() {
                   </div>
                 </div>
               ) : (
-                <div className="prose prose-invert prose-sm max-w-none">
-                  <div
-                    className="text-sm text-text-primary leading-relaxed whitespace-pre-wrap [&_h1]:text-xl [&_h1]:font-bold [&_h1]:mb-3 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:mt-6 [&_h2]:mb-2 [&_h3]:text-base [&_h3]:font-medium [&_h3]:mt-4 [&_h3]:mb-1 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
-                    dangerouslySetInnerHTML={{
-                      __html: sanitizeInput(
-                        (content.body || '내용이 없습니다.')
-                          .replace(/^### (.+)/gm, '<h3>$1</h3>')
-                          .replace(/^## (.+)/gm, '<h2>$1</h2>')
-                          .replace(/^# (.+)/gm, '<h1>$1</h1>')
-                          .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-                          .replace(/\*(.+?)\*/g, '<em>$1</em>')
-                      )
-                    }}
-                  />
-                </div>
+                <MarkdownViewer content={content.body || ''} />
               )}
             </Card>
           </div>

@@ -25,6 +25,7 @@ Co-update 매칭 패턴:
 - 3개 파일씩 배치로 나눠서 처리
 - 완료마다 보고
 - 병렬 처리 금지
+- API route 추가/수정 시 `src/lib/swagger/openapi.ts`에 paths 반영
 
 ### STEP 4 — 검증 (Ralph Loop)
 ```

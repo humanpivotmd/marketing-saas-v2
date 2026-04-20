@@ -36,6 +36,9 @@ export async function POST(req: NextRequest) {
       return Response.json({ success: false, error: 'API 키가 설정되지 않았습니다.' }, { status: 500 })
     }
 
+    const { splitPrompt } = await import('@/lib/claude-client')
+    const { system, user } = splitPrompt(prompt)
+
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -46,7 +49,8 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1024,
-        messages: [{ role: 'user', content: prompt }],
+        system,
+        messages: [{ role: 'user', content: user }],
       }),
     })
 

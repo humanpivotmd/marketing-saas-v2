@@ -63,6 +63,18 @@ export async function PUT(req: NextRequest) {
       return Response.json({ error: '플랜을 찾을 수 없습니다.' }, { status: 404 })
     }
 
+    // 감사 로그
+    try {
+      await supabase.from('action_logs').insert({
+        admin_id: authUser.id,
+        target_user_id: null,
+        action: 'plan_limit_change',
+        metadata: { plan_id: id, changed_fields: Object.keys(filtered) },
+      })
+    } catch {
+      // 로그 실패는 비치명적
+    }
+
     return Response.json({ success: true, data })
   } catch (error) {
     return handleApiError(error)

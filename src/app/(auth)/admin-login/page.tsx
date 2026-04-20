@@ -42,8 +42,8 @@ export default function AdminLoginPage() {
         return
       }
 
-      sessionStorage.setItem('token', data.session.access_token)
-      sessionStorage.setItem('user', JSON.stringify(data.user))
+      localStorage.setItem('token', data.session.access_token)
+      localStorage.setItem('user', JSON.stringify(data.user))
       router.push('/admin')
     } catch {
       setError('네트워크 오류가 발생했습니다.')

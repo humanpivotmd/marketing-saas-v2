@@ -29,6 +29,7 @@
 - [ ] 중복 로직 다른 파일에 있는지
 - [ ] `src/types/index.ts` 요청/응답 타입 업데이트
 - [ ] `src/lib/validations.ts` Zod 스키마 수정
+- [ ] `src/lib/swagger/openapi.ts` Swagger 스펙 반영 (paths/schemas 추가·수정)
 - [ ] 프론트엔드 호출부 수정
 - [ ] token 없을 때 처리 (loading 고착 방지)
 - [ ] loading 시작/종료

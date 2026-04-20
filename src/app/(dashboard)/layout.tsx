@@ -43,8 +43,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [usageText, setUsageText] = useState('')
 
   useEffect(() => {
-    const token = sessionStorage.getItem('token')
-    const userData = sessionStorage.getItem('user')
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token')
+    const userData = localStorage.getItem('user') || sessionStorage.getItem('user')
     if (!token || !userData) {
       router.push('/login')
       return
@@ -90,7 +90,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    const token = sessionStorage.getItem('token')
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token')
     if (!token) return
     fetch('/api/mypage/usage', {
       headers: authHeaders(),
@@ -108,6 +108,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }, [])
 
   const handleLogout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
     sessionStorage.removeItem('token')
     sessionStorage.removeItem('user')
     router.push('/login')

@@ -87,8 +87,8 @@ function LoginContent() {
         return
       }
 
-      sessionStorage.setItem('token', data.session.access_token)
-      sessionStorage.setItem('user', JSON.stringify(data.user))
+      localStorage.setItem('token', data.session.access_token)
+      localStorage.setItem('user', JSON.stringify(data.user))
 
       if (!data.user.onboarding_done) {
         router.push('/onboarding')
@@ -151,8 +151,8 @@ function LoginContent() {
       const loginData = await loginRes.json()
 
       if (loginRes.ok) {
-        sessionStorage.setItem('token', loginData.session.access_token)
-        sessionStorage.setItem('user', JSON.stringify(loginData.user))
+        localStorage.setItem('token', loginData.session.access_token)
+        localStorage.setItem('user', JSON.stringify(loginData.user))
         router.push('/onboarding')
       } else {
         setToast({ visible: true, message: '가입 완료! 로그인해주세요.', variant: 'success' })

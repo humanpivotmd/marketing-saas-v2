@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
 
     const { data: logs, error } = await supabase
       .from('usage_logs')
-      .select('action_type, tokens_used, estimated_cost, ai_model, created_at')
+      .select('action, tokens, created_at')
       .gte('created_at', since.toISOString())
       .order('created_at', { ascending: false })
 
@@ -29,16 +29,17 @@ export async function GET(req: NextRequest) {
     const byDay: Record<string, { count: number; cost: number }> = {}
 
     for (const log of logs || []) {
-      const type = log.action_type
+      const type = log.action || 'unknown'
       if (!byType[type]) byType[type] = { count: 0, tokens: 0, cost: 0 }
       byType[type].count++
-      byType[type].tokens += log.tokens_used || 0
-      byType[type].cost += parseFloat(String(log.estimated_cost || 0))
+      byType[type].tokens += log.tokens || 0
+      // 비용 추정: input $3/MTok, output $15/MTok → 평균 $9/MTok
+      byType[type].cost += ((log.tokens || 0) / 1_000_000) * 9
 
       const day = (log.created_at as string).slice(0, 10)
       if (!byDay[day]) byDay[day] = { count: 0, cost: 0 }
       byDay[day].count++
-      byDay[day].cost += parseFloat(String(log.estimated_cost || 0))
+      byDay[day].cost += ((log.tokens || 0) / 1_000_000) * 9
     }
 
     const totalCost = Object.values(byType).reduce((s, v) => s + v.cost, 0)

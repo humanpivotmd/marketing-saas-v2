@@ -37,10 +37,13 @@ export async function POST(req: NextRequest) {
       .eq('name', 'free')
       .single()
 
+    const username = email.toLowerCase().split('@')[0]
+
     const { data: user, error } = await supabase
       .from('users')
       .insert({
         email: email.toLowerCase(),
+        username,
         password_hash: passwordHash,
         name,
         role: 'user',

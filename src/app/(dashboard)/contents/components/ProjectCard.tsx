@@ -89,38 +89,40 @@ export default function ProjectCard({
           </div>
           <p className="text-xs text-text-tertiary mt-1">{new Date(proj.created_at).toLocaleDateString('ko-KR')} 생성</p>
 
-          <div className="flex flex-wrap gap-2 mt-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 mt-2">
             {channelStatuses.map((cs) => {
               const isSelected = projSelectedChannels.includes(cs.channel)
-              const isDisabled = !isSelected || (!cs.hasText && proj.current_step < 5)
+              const isComplete = cs.hasText && cs.hasImage
               const linkHref = cs.hasText
                 ? `/contents/${cs.content?.id}`
                 : (proj.current_step >= 5 ? `/create/channel-write?project_id=${proj.id}` : null)
 
               return (
-                <div key={cs.channel} className="flex items-center gap-1 text-xs">
+                <div key={cs.channel} className={`flex items-center justify-between px-2 py-1.5 rounded-md text-[11px] ${
+                  !isSelected ? 'bg-surface-secondary/50 text-text-tertiary opacity-50'
+                  : isComplete ? 'bg-green-400/10 text-green-400'
+                  : cs.hasText ? 'bg-accent-primary/10 text-accent-primary'
+                  : 'bg-surface-secondary text-text-tertiary'
+                }`}>
                   {linkHref ? (
-                    <Link href={linkHref}
-                      className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors ${
-                        isDisabled ? 'bg-gray-500 text-gray-300 cursor-not-allowed' : `${CHANNEL_COLOR_MAP[cs.channel] || ''} hover:opacity-80`
-                      }`}
-                      onClick={(e) => { if (isDisabled) e.preventDefault(); else e.stopPropagation() }}
-                    >{CHANNEL_LABEL_MAP[cs.channel] || cs.channel}</Link>
-                  ) : (
-                    <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-500 text-gray-300 cursor-not-allowed">
+                    <Link href={linkHref} className="font-medium hover:underline" onClick={(e) => e.stopPropagation()}>
                       {CHANNEL_LABEL_MAP[cs.channel] || cs.channel}
-                    </span>
+                    </Link>
+                  ) : (
+                    <span className="font-medium">{CHANNEL_LABEL_MAP[cs.channel] || cs.channel}</span>
                   )}
-                  <span>글{cs.hasText ? '✅' : '❌'}</span><span>·</span><span>이미지{cs.hasImage ? '✅' : '❌'}</span>
+                  <span>{isComplete ? '✓' : cs.hasText ? '글' : '—'}</span>
                 </div>
               )
             })}
-            <div className="flex items-center gap-1 text-xs">
+            <div className={`flex items-center justify-between px-2 py-1.5 rounded-md text-[11px] ${
+              proj.has_video ? 'bg-green-400/10 text-green-400' : 'bg-surface-secondary text-text-tertiary'
+            }`}>
               <Link href={`/create/video-script?project_id=${proj.id}`}
-                className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors ${CHANNEL_COLOR_MAP['video_script'] || ''} hover:opacity-80`}
+                className="font-medium hover:underline"
                 onClick={(e) => e.stopPropagation()}
               >{CHANNEL_LABEL_MAP['video_script'] || '영상'}</Link>
-              <span>영상{proj.has_video ? '✅' : '❌'}</span>
+              <span>{proj.has_video ? '✓' : '—'}</span>
             </div>
           </div>
 

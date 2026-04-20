@@ -90,6 +90,13 @@ export async function PUT(
       }
     }
 
+    // 변경 전 값 조회 (감사 로그용)
+    const { data: before } = await supabase
+      .from('users')
+      .select('role, status, plan_id')
+      .eq('id', id)
+      .single()
+
     const { data, error } = await supabase
       .from('users')
       .update(updates)
@@ -99,6 +106,25 @@ export async function PUT(
 
     if (error || !data) {
       return Response.json({ error: '사용자를 찾을 수 없습니다.' }, { status: 404 })
+    }
+
+    // 감사 로그: 변경된 필드 기준 분기
+    try {
+      const logs: Array<{ admin_id: string; target_user_id: string; action: string; metadata: Record<string, unknown> }> = []
+      if (before && body.role !== undefined && before.role !== body.role) {
+        logs.push({ admin_id: authUser.id, target_user_id: id, action: 'role_change', metadata: { before: before.role, after: body.role } })
+      }
+      if (before && body.status !== undefined && before.status !== body.status) {
+        logs.push({ admin_id: authUser.id, target_user_id: id, action: 'status_change', metadata: { before: before.status, after: body.status } })
+      }
+      if (before && body.plan_id !== undefined && before.plan_id !== body.plan_id) {
+        logs.push({ admin_id: authUser.id, target_user_id: id, action: 'plan_limit_change', metadata: { before_plan: before.plan_id, after_plan: body.plan_id } })
+      }
+      if (logs.length > 0) {
+        await supabase.from('action_logs').insert(logs)
+      }
+    } catch {
+      // 로그 실패는 비치명적
     }
 
     return Response.json({ success: true, data })

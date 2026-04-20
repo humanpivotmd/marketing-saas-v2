@@ -37,6 +37,7 @@ export default function ChannelWritePage() {
   const [contents, setContents] = useState<ChannelContent[]>([])
   const [activeChannel, setActiveChannel] = useState('')
   const [generating, setGenerating] = useState(false)
+  const [sseDisconnected, setSseDisconnected] = useState(false)
   const [progress, setProgress] = useState<Record<string, string>>({})
   const [revisionNotes, setRevisionNotes] = useState<Record<string, string>>({})
   const [revising, setRevising] = useState(false)
@@ -164,7 +165,7 @@ export default function ChannelWritePage() {
       }
     } catch (err) {
       if ((err as Error).name !== 'AbortError') {
-        showToast('생성 중 오류 발생', 'error')
+        setSseDisconnected(true)
       }
     } finally {
       setGenerating(false)
@@ -309,6 +310,39 @@ export default function ChannelWritePage() {
           </div>
         </div>
       </div>
+
+      {/* SSE 연결 끊김 안내 */}
+      {sseDisconnected && !generating && (
+        <Card>
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-text-primary">연결이 끊겼습니다</p>
+            <p className="text-xs text-text-tertiary">서버에서 계속 작업 중일 수 있습니다. 완료 여부를 먼저 확인해보세요.</p>
+            {Object.keys(progress).length > 0 && (
+              <div className="space-y-1">
+                {Object.entries(progress).map(([ch, msg]) => (
+                  <div key={ch} className="flex items-center gap-3 text-sm">
+                    <span className="w-20 font-medium text-text-secondary">{CHANNEL_LABEL_MAP[ch] || ch}</span>
+                    <Badge variant={msg === '완료' ? 'success' : 'default'}>{msg}</Badge>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-2">
+              <Button variant="ghost" size="sm" onClick={() => router.back()}>이전으로</Button>
+              <Button size="sm" onClick={async () => {
+                setSseDisconnected(false)
+                await loadProject()
+                const completedChannels = contents.filter(c => c.body)
+                if (completedChannels.length > 0) {
+                  showToast(`${completedChannels.length}개 채널 완료 확인`, 'success')
+                } else {
+                  startGeneration()
+                }
+              }}>완료 여부 확인</Button>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* 생성 중 프로그레스 */}
       {generating && (
