@@ -45,6 +45,33 @@ export async function GET(req: NextRequest) {
     const totalCost = Object.values(byType).reduce((s, v) => s + v.cost, 0)
     const totalTokens = Object.values(byType).reduce((s, v) => s + v.tokens, 0)
 
+    // ADM3: per-user 비용 집계 (상위 10명)
+    const byUser: Record<string, { tokens: number; count: number; cost: number }> = {}
+    for (const log of logs || []) {
+      const uid = (log as Record<string, unknown>).user_id as string || 'unknown'
+      if (!byUser[uid]) byUser[uid] = { tokens: 0, count: 0, cost: 0 }
+      byUser[uid].count++
+      byUser[uid].tokens += log.tokens || 0
+      byUser[uid].cost += ((log.tokens || 0) / 1_000_000) * 9
+    }
+    const topUsers = Object.entries(byUser)
+      .map(([user_id, v]) => ({ user_id, ...v, cost: Math.round(v.cost * 100) / 100 }))
+      .sort((a, b) => b.cost - a.cost)
+      .slice(0, 10)
+
+    // top users의 이메일 조회
+    const topUserIds = topUsers.map(u => u.user_id).filter(id => id !== 'unknown')
+    let userEmails: Record<string, string> = {}
+    if (topUserIds.length > 0) {
+      const { data: userData } = await supabase
+        .from('users')
+        .select('id, email, name')
+        .in('id', topUserIds)
+      for (const u of userData || []) {
+        userEmails[u.id] = u.email || u.name || u.id
+      }
+    }
+
     return Response.json({
       success: true,
       data: {
@@ -56,6 +83,10 @@ export async function GET(req: NextRequest) {
         by_day: Object.entries(byDay)
           .map(([date, v]) => ({ date, ...v }))
           .sort((a, b) => a.date.localeCompare(b.date)),
+        top_users: topUsers.map(u => ({
+          ...u,
+          email: userEmails[u.user_id] || u.user_id,
+        })),
       },
     })
   } catch (error) {

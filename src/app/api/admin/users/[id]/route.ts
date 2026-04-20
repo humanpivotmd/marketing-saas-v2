@@ -52,6 +52,23 @@ export async function GET(
       .eq('action_type', 'keyword_analyze')
       .gte('created_at', monthStart)
 
+    // ADM4: 사용 이력 요약 (프로젝트 수, 콘텐츠 수, 총 사용량)
+    const { count: projectCount } = await supabase
+      .from('projects')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', id)
+      .is('deleted_at', null)
+
+    const { count: totalContents } = await supabase
+      .from('contents')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', id)
+
+    const { count: totalUsageLogs } = await supabase
+      .from('usage_logs')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', id)
+
     return Response.json({
       success: true,
       data: {
@@ -60,6 +77,11 @@ export async function GET(
         usage: {
           content: contentCount || 0,
           keyword: keywordCount || 0,
+        },
+        activity: {
+          total_projects: projectCount || 0,
+          total_contents: totalContents || 0,
+          total_usage_logs: totalUsageLogs || 0,
         },
       },
     })

@@ -13,6 +13,12 @@ interface KpiData {
     churn_rate: number
     ltv: number
   }
+  subscription_health: {
+    active_subscriptions: number
+    expiring_30_days: number
+    expiring_60_days: number
+  }
+  activation_funnel: { step: number; label: string; count: number; rate: number }[]
   plan_distribution: { plan_id: string; name: string; display_name: string; count: number }[]
   recent_users: { id: string; email: string; name: string; role: string; status: string; created_at: string }[]
 }
@@ -91,6 +97,54 @@ export default function AdminDashboard() {
             <p className="text-xs text-text-secondary mt-1">{kpi.sub}</p>
           </Card>
         ))}
+      </div>
+
+      {/* Activation Funnel + Subscription Health */}
+      <div className="grid lg:grid-cols-2 gap-6">
+        <Card>
+          <h2 className="text-lg font-semibold text-text-primary mb-4">활성화 깔때기</h2>
+          <div className="space-y-2">
+            {(data.activation_funnel || []).map((f) => (
+              <div key={f.step}>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-text-secondary">STEP {f.step}. {f.label}</span>
+                  <span className="text-text-primary font-medium">{f.count}건 ({f.rate}%)</span>
+                </div>
+                <div className="h-2 bg-bg-tertiary rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full ${f.rate >= 70 ? 'bg-accent-success' : f.rate >= 40 ? 'bg-yellow-400' : 'bg-accent-error'}`}
+                    style={{ width: `${f.rate}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        <Card>
+          <h2 className="text-lg font-semibold text-text-primary mb-4">구독 건강</h2>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-text-secondary">활성 유료 구독</span>
+              <span className="text-2xl font-bold text-accent-success">{data.subscription_health?.active_subscriptions || 0}명</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-text-secondary">30일 내 만료 예정</span>
+              <span className={`text-lg font-bold ${(data.subscription_health?.expiring_30_days || 0) > 5 ? 'text-accent-error' : 'text-yellow-400'}`}>
+                {data.subscription_health?.expiring_30_days || 0}명
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-text-secondary">60일 내 만료 예정</span>
+              <span className="text-lg font-bold text-text-tertiary">{data.subscription_health?.expiring_60_days || 0}명</span>
+            </div>
+            {(data.subscription_health?.expiring_30_days || 0) > 0 && (
+              <div className="bg-yellow-400/10 border border-yellow-400/20 rounded-lg p-2">
+                <p className="text-xs text-yellow-400">만료 예정 고객에게 갱신 안내 메일을 보내세요.</p>
+              </div>
+            )}
+          </div>
+        </Card>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">

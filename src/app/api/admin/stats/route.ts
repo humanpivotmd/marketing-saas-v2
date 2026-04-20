@@ -94,6 +94,55 @@ export async function GET(req: NextRequest) {
     const uniquePayers = new Set((allPayments || []).map((p) => p.user_id)).size
     const ltv = uniquePayers > 0 ? Math.round(totalRevenue / uniquePayers) : 0
 
+    // ── ADM1: 활성화 깔때기 (projects.current_step 집계) ──
+    const { data: funnelData } = await supabase
+      .from('projects')
+      .select('current_step')
+      .is('deleted_at', null)
+
+    const funnelCounts: Record<number, number> = {}
+    for (const p of funnelData || []) {
+      const step = p.current_step || 1
+      funnelCounts[step] = (funnelCounts[step] || 0) + 1
+    }
+    const totalProjects = (funnelData || []).length
+    const funnel = [
+      { step: 1, label: '프로젝트 생성', count: totalProjects, rate: 100 },
+      { step: 2, label: '비즈니스 설정', count: Object.entries(funnelCounts).filter(([s]) => Number(s) >= 2).reduce((sum, [, c]) => sum + c, 0), rate: 0 },
+      { step: 3, label: '제목 생성', count: Object.entries(funnelCounts).filter(([s]) => Number(s) >= 3).reduce((sum, [, c]) => sum + c, 0), rate: 0 },
+      { step: 4, label: '초안 생성', count: Object.entries(funnelCounts).filter(([s]) => Number(s) >= 4).reduce((sum, [, c]) => sum + c, 0), rate: 0 },
+      { step: 5, label: '채널 변환', count: Object.entries(funnelCounts).filter(([s]) => Number(s) >= 5).reduce((sum, [, c]) => sum + c, 0), rate: 0 },
+      { step: 6, label: '이미지 생성', count: Object.entries(funnelCounts).filter(([s]) => Number(s) >= 6).reduce((sum, [, c]) => sum + c, 0), rate: 0 },
+      { step: 7, label: '영상 스크립트', count: Object.entries(funnelCounts).filter(([s]) => Number(s) >= 7).reduce((sum, [, c]) => sum + c, 0), rate: 0 },
+    ]
+    for (const f of funnel) {
+      f.rate = totalProjects > 0 ? Math.round((f.count / totalProjects) * 100) : 0
+    }
+
+    // ── ADM2: 구독 건강 지표 ──
+    const now30 = new Date(now.getTime() + 30 * 86400000).toISOString()
+    const now60 = new Date(now.getTime() + 60 * 86400000).toISOString()
+
+    const { count: activeSubs } = await supabase
+      .from('users')
+      .select('*', { count: 'exact', head: true })
+      .not('plan_id', 'is', null)
+      .gt('plan_expires_at', now.toISOString())
+
+    const { count: expiring30 } = await supabase
+      .from('users')
+      .select('*', { count: 'exact', head: true })
+      .not('plan_id', 'is', null)
+      .gt('plan_expires_at', now.toISOString())
+      .lte('plan_expires_at', now30)
+
+    const { count: expiring60 } = await supabase
+      .from('users')
+      .select('*', { count: 'exact', head: true })
+      .not('plan_id', 'is', null)
+      .gt('plan_expires_at', now30)
+      .lte('plan_expires_at', now60)
+
     return Response.json({
       success: true,
       data: {
@@ -105,6 +154,12 @@ export async function GET(req: NextRequest) {
           churn_rate: Math.max(churnRate, 0),
           ltv,
         },
+        subscription_health: {
+          active_subscriptions: activeSubs || 0,
+          expiring_30_days: expiring30 || 0,
+          expiring_60_days: expiring60 || 0,
+        },
+        activation_funnel: funnel,
         plan_distribution: planDistribution,
         recent_users: recentUsers || [],
       },
