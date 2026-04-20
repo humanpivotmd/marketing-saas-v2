@@ -16,7 +16,7 @@ export async function GET(
 
     const { data: user, error } = await supabase
       .from('users')
-      .select('*')
+      .select('id, email, name, username, role, status, plan_id, created_at, updated_at, last_login_at, onboarding_done, experience_level, memo, login_fail_count, login_locked_until, plan_started_at, plan_expires_at, business_type, company_name, service_name')
       .eq('id', id)
       .single()
 
@@ -56,7 +56,6 @@ export async function GET(
       success: true,
       data: {
         ...user,
-        password_hash: undefined,
         plan,
         usage: {
           content: contentCount || 0,

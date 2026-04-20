@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
+import Button from '@/components/ui/Button'
 import Toast from '@/components/ui/Toast'
 import { useAsyncAction } from '@/hooks/useAsyncAction'
 import { authHeaders } from '@/lib/auth-client'
@@ -29,7 +30,8 @@ export default function AdminPaymentsPage() {
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [statusFilter, setStatusFilter] = useState('')
-  const { loading, toast, clearToast, run } = useAsyncAction(true)
+  const [refunding, setRefunding] = useState<string | null>(null)
+  const { loading, toast, clearToast, showToast, run } = useAsyncAction(true)
 
   const fetchPayments = () => {
     run(async () => {
@@ -86,7 +88,8 @@ export default function AdminPaymentsPage() {
                   <th className="py-3 pr-4">금액</th>
                   <th className="py-3 pr-4">주기</th>
                   <th className="py-3 pr-4">상태</th>
-                  <th className="py-3">결제일</th>
+                  <th className="py-3 pr-4">결제일</th>
+                  <th className="py-3">액션</th>
                 </tr>
               </thead>
               <tbody>
@@ -108,8 +111,38 @@ export default function AdminPaymentsPage() {
                       <td className="py-3 pr-4">
                         <Badge variant={st.variant}>{st.label}</Badge>
                       </td>
-                      <td className="py-3 text-text-tertiary">
+                      <td className="py-3 pr-4 text-text-tertiary">
                         {new Date(p.paid_at).toLocaleDateString('ko-KR')}
+                      </td>
+                      <td className="py-3">
+                        {p.status === 'completed' && (
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            loading={refunding === p.id}
+                            onClick={async () => {
+                              setRefunding(p.id)
+                              try {
+                                const res = await fetch(`/api/admin/payments/${p.id}/refund`, {
+                                  method: 'POST',
+                                  headers: authHeaders(),
+                                })
+                                const data = await res.json()
+                                if (data.success) {
+                                  showToast('환불 처리되었습니다.', 'success')
+                                  fetchPayments()
+                                } else {
+                                  showToast(data.error || '환불 실패', 'error')
+                                }
+                              } catch {
+                                showToast('환불 처리 중 오류', 'error')
+                              }
+                              setRefunding(null)
+                            }}
+                          >
+                            환불
+                          </Button>
+                        )}
                       </td>
                     </tr>
                   )

@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect, type FormEvent } from 'react'
+import { useState, useEffect, useRef, type FormEvent } from 'react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Skeleton from '@/components/ui/Skeleton'
 import EmptyState from '@/components/ui/EmptyState'
-import Toast from '@/components/ui/Toast'
+// Toast replaced by inline Undo Toast
 import SetupRequired from '@/components/SetupRequired'
 import { getToken, authHeaders } from '@/lib/auth-client'
 import { useBusinessProfile } from '@/hooks/useBusinessProfile'
@@ -139,7 +139,38 @@ export default function KeywordsPage() {
     setSearching(false)
   }
 
-  async function handleDelete(ids: string[]) {
+  const deleteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [pendingDeleteIds, setPendingDeleteIds] = useState<string[] | null>(null)
+
+  function requestDelete(ids: string[]) {
+    // 즉시 UI에서 숨김 (낙관적 업데이트)
+    setPendingDeleteIds(ids)
+    setKeywords((prev) => prev.filter((k) => !ids.includes(k.id)))
+    setSelectedIds(new Set())
+    if (ids.includes(expandedId || '')) setExpandedId(null)
+    setToast({ visible: true, message: `${ids.length}개 키워드 삭제됨 — 5초 내 실행 취소 가능`, variant: 'info' })
+
+    // 5초 후 실제 삭제
+    if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current)
+    deleteTimerRef.current = setTimeout(() => executeDelete(ids), 5000)
+  }
+
+  function undoDelete() {
+    if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current)
+    deleteTimerRef.current = null
+    if (!pendingDeleteIds) return
+    // 키워드 목록 다시 로드
+    const token = getToken()
+    if (token) {
+      fetch('/api/keywords', { headers: authHeaders() })
+        .then(r => r.json())
+        .then(data => { if (data.success) setKeywords(data.data || []) })
+    }
+    setPendingDeleteIds(null)
+    setToast({ visible: true, message: '삭제가 취소되었습니다.', variant: 'success' })
+  }
+
+  async function executeDelete(ids: string[]) {
     const token = getToken()
     if (!token) return
     try {
@@ -149,15 +180,13 @@ export default function KeywordsPage() {
         body: JSON.stringify({ ids }),
       })
       const data = await res.json()
-      if (data.success) {
-        setKeywords((prev) => prev.filter((k) => !ids.includes(k.id)))
-        setSelectedIds(new Set())
-        if (ids.includes(expandedId || '')) setExpandedId(null)
-        setToast({ visible: true, message: '삭제되었습니다.', variant: 'info' })
+      if (!data.success) {
+        setToast({ visible: true, message: '삭제에 실패했습니다.', variant: 'error' })
       }
     } catch {
       setToast({ visible: true, message: '삭제 중 오류가 발생했습니다.', variant: 'error' })
     }
+    setPendingDeleteIds(null)
   }
 
   function toggleSelect(id: string) {
@@ -287,7 +316,7 @@ export default function KeywordsPage() {
           <Button
             variant="danger"
             size="sm"
-            onClick={() => handleDelete(Array.from(selectedIds))}
+            onClick={() => requestDelete(Array.from(selectedIds))}
           >
             {selectedIds.size}개 삭제
           </Button>
@@ -355,9 +384,7 @@ export default function KeywordsPage() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
-                        if (confirm(`"${kw.keyword}" 키워드를 삭제하시겠습니까?`)) {
-                          handleDelete([kw.id])
-                        }
+                        requestDelete([kw.id])
                       }}
                       className="p-1.5 rounded-md text-text-tertiary hover:text-accent-danger hover:bg-accent-danger/10 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                       aria-label={`${kw.keyword} 삭제`}
@@ -440,12 +467,25 @@ export default function KeywordsPage() {
         </div>
       )}
 
-      <Toast
-        message={toast.message}
-        variant={toast.variant as 'error' | 'info'}
-        visible={toast.visible}
-        onClose={() => setToast((t) => ({ ...t, visible: false }))}
-      />
+      {toast.visible && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg bg-bg-secondary border border-border-primary">
+          <span className="text-sm text-text-primary">{toast.message}</span>
+          {pendingDeleteIds && (
+            <button
+              onClick={undoDelete}
+              className="text-sm text-accent-primary font-medium hover:underline min-h-[44px] px-2"
+            >
+              실행 취소
+            </button>
+          )}
+          <button
+            onClick={() => setToast(t => ({ ...t, visible: false }))}
+            className="text-text-tertiary hover:text-text-secondary ml-2"
+          >
+            ✕
+          </button>
+        </div>
+      )}
     </div>
     </SetupRequired>
   )
