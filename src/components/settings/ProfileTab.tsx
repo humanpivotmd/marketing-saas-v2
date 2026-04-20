@@ -47,11 +47,11 @@ export default function ProfileTab({ onToast }: { onToast: (t: { message: string
       const data = await res.json()
       if (data.success) {
         onToast({ message: '이름이 변경되었습니다.', variant: 'success' })
-        const userData = sessionStorage.getItem('user')
+        const userData = localStorage.getItem('user') || sessionStorage.getItem('user')
         if (userData) {
           const parsed = JSON.parse(userData)
           parsed.name = name
-          sessionStorage.setItem('user', JSON.stringify(parsed))
+          localStorage.setItem('user', JSON.stringify(parsed))
           window.dispatchEvent(new CustomEvent('user-profile-updated', { detail: { name } }))
         }
       } else {

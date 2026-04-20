@@ -112,7 +112,7 @@ export default function PricingPage() {
   const [showComparison, setShowComparison] = useState(false)
 
   useEffect(() => {
-    const userData = sessionStorage.getItem('user')
+    const userData = localStorage.getItem('user') || sessionStorage.getItem('user')
     if (userData) {
       try {
         const parsed = JSON.parse(userData)

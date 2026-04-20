@@ -46,7 +46,7 @@ export function BusinessProfileProvider({ children }: { children: ReactNode }) {
         setProfile(data.data)
         const p = data.data
         const done = !!(p.business_type && p.selected_channels?.length > 0 && p.company_name)
-        sessionStorage.setItem('business_setup', done ? 'done' : 'needed')
+        localStorage.setItem('business_setup', done ? 'done' : 'needed')
       }
     } catch { /* ignore */ }
     setLoading(false)

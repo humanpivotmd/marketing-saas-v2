@@ -131,5 +131,9 @@ npm run build   # 프로덕션 빌드 (tsc 포함)
 - projects/route.ts 페이지네이션을 `paginatedResponse`로 통일
 - settings/page.tsx 탭별 컴포넌트 분리 + useAsyncAction
 - keywords/page.tsx, keywords/[id]/page.tsx visible 패턴 정리
-- Redis Rate Limit 전환 (현재 인메모리 Map)
-- 토스페이먼츠 실제 결제 연동
+- ~~Redis Rate Limit 전환~~ ✅ Upstash Redis + 인메모리 fallback 완료
+- 토스페이먼츠 실제 결제 연동 (현재 confirm/cancel API 주석 상태)
+- admin payments UI에 환불 처리 기능 추가 (토스 키 연동 후)
+- tiptap 보기 모드 regex→HTML 교체 ✅ MarkdownViewer 완료
+- window.confirm → Undo Toast 패턴 교체 (keywords/page.tsx:358)
+- select('*') → 명시적 컬럼 지정 (admin/users/[id] GET)

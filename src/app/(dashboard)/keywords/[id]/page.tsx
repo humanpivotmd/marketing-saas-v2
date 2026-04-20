@@ -63,7 +63,7 @@ export default function KeywordDetailPage({ params }: { params: Promise<{ id: st
 
   useEffect(() => {
     try {
-      const user = sessionStorage.getItem('user')
+      const user = localStorage.getItem('user') || sessionStorage.getItem('user')
       if (user) {
         const parsed = JSON.parse(user)
         setMode(parsed.experience_level === 'expert' ? 'expert' : 'beginner')

@@ -85,7 +85,7 @@ export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   useEffect(() => {
     const token = getToken()
-    const userData = sessionStorage.getItem('user')
+    const userData = localStorage.getItem('user') || sessionStorage.getItem('user')
     if (token && userData) {
       try {
         const parsed = JSON.parse(userData)

@@ -35,7 +35,7 @@ export default function DashboardPage() {
   const needsSetup = !isSetup
 
   useEffect(() => {
-    const userData = sessionStorage.getItem('user')
+    const userData = localStorage.getItem('user') || sessionStorage.getItem('user')
     if (userData) {
       try { setUser(JSON.parse(userData)) } catch { /* ignore */ }
     }
