@@ -40,13 +40,17 @@ export async function POST(
       return Response.json({ error: '사용자를 찾을 수 없습니다.' }, { status: 404 })
     }
 
-    // Insert negative usage logs to grant usage
+    // Insert grant usage logs (usage.ts의 checkUsageLimit이 이 레코드를 차감함)
+    const now = new Date()
+    const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
     const logs = []
     for (let i = 0; i < amount; i++) {
       logs.push({
         user_id: id,
-        action_type: `${action_type}_grant`,
-        content_type: reason || 'admin_grant',
+        action: `${action_type}_grant`,
+        step: reason || 'admin_grant',
+        tokens: 0,
+        year_month: yearMonth,
       })
     }
 

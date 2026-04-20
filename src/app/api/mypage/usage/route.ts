@@ -8,12 +8,15 @@ export async function GET(req: NextRequest) {
     const authUser = await requireAuth(req)
     const supabase = createServerSupabase()
 
-    // Get user with plan
+    // Get user with plan + role
     const { data: user } = await supabase
       .from('users')
-      .select('plan_id')
+      .select('plan_id, role')
       .eq('id', authUser.userId)
       .single()
+
+    // admin은 무제한 (limit=0으로 표시)
+    const isAdmin = user?.role === 'admin' || user?.role === 'super_admin'
 
     // Get plan limits
     let planLimits = {
@@ -46,7 +49,7 @@ export async function GET(req: NextRequest) {
         .from('usage_logs')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', authUser.userId)
-        .eq('action_type', actionType)
+        .eq('action', actionType)
         .gte('created_at', monthStart)
         .lt('created_at', monthEnd)
       return count ?? 0
@@ -79,18 +82,22 @@ export async function GET(req: NextRequest) {
 
     const period = `${now.getFullYear()}년 ${now.getMonth() + 1}월`
 
+    // admin은 limit을 0으로 설정 (프론트에서 "무제한" 표시)
+    const displayLimit = (key: keyof typeof planLimits): number =>
+      isAdmin ? 0 : (planLimits[key] as number)
+
     return Response.json({
       success: true,
       data: {
-        plan: planLimits.name,
-        plan_display_name: planLimits.display_name,
+        plan: isAdmin ? 'admin' : planLimits.name,
+        plan_display_name: isAdmin ? '관리자 (무제한)' : planLimits.display_name,
         period,
-        content: { used: contentUsed, limit: planLimits.content_limit },
-        keyword: { used: keywordUsed, limit: planLimits.keyword_limit },
-        image: { used: imageUsed, limit: planLimits.image_limit },
-        saved_keywords: { used: savedKeywords ?? 0, limit: planLimits.saved_keyword_limit },
-        channels: { used: channels ?? 0, limit: planLimits.channel_limit },
-        brand_voices: { used: brandVoices ?? 0, limit: planLimits.brand_voice_limit },
+        content: { used: contentUsed, limit: displayLimit('content_limit') },
+        keyword: { used: keywordUsed, limit: displayLimit('keyword_limit') },
+        image: { used: imageUsed, limit: displayLimit('image_limit') },
+        saved_keywords: { used: savedKeywords ?? 0, limit: displayLimit('saved_keyword_limit') },
+        channels: { used: channels ?? 0, limit: displayLimit('channel_limit') },
+        brand_voices: { used: brandVoices ?? 0, limit: displayLimit('brand_voice_limit') },
       },
     })
   } catch (error) {

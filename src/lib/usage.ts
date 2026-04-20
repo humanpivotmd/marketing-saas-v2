@@ -65,7 +65,7 @@ export async function checkUsageLimit(
       .from('usage_logs')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
-      .eq('action_type', actionType)
+      .eq('action', actionType)
       .gte('created_at', monthStart)
       .lt('created_at', monthEnd)
 
@@ -74,7 +74,7 @@ export async function checkUsageLimit(
       .from('usage_logs')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
-      .eq('action_type', `${actionType}_grant`)
+      .eq('action', `${actionType}_grant`)
 
     const used = Math.max(0, (count ?? 0) - (grantCount ?? 0))
 
@@ -107,19 +107,20 @@ export async function logUsage(
   userId: string,
   actionType: string,
   contentType?: string,
-  aiModel?: string,
+  _aiModel?: string,
   tokensUsed?: number,
-  estimatedCost?: number
+  _estimatedCost?: number
 ): Promise<void> {
   const supabase = createServerSupabase()
+  const now = new Date()
+  const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 
   await supabase.from('usage_logs').insert({
     user_id: userId,
-    action_type: actionType,
-    content_type: contentType,
-    ai_model: aiModel,
-    tokens_used: tokensUsed,
-    estimated_cost: estimatedCost,
+    action: actionType,
+    step: contentType || actionType,
+    tokens: tokensUsed || 0,
+    year_month: yearMonth,
   })
 }
 
